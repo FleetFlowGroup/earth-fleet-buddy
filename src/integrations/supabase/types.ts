@@ -14,12 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
-      assets: {
+      asset_expenses: {
         Row: {
-          asset_number: string | null
+          amount: number
+          asset_id: string
+          category: string
           company_id: string
           created_at: string
           created_by: string | null
+          expense_date: string
+          id: string
+          invoice_ref: string | null
+          notes: string | null
+          updated_at: string
+          vendor: string | null
+        }
+        Insert: {
+          amount: number
+          asset_id: string
+          category: string
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          expense_date?: string
+          id?: string
+          invoice_ref?: string | null
+          notes?: string | null
+          updated_at?: string
+          vendor?: string | null
+        }
+        Update: {
+          amount?: number
+          asset_id?: string
+          category?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          expense_date?: string
+          id?: string
+          invoice_ref?: string | null
+          notes?: string | null
+          updated_at?: string
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_expenses_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_expenses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_photos: {
+        Row: {
+          asset_id: string
+          caption: string | null
+          company_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          asset_id: string
+          caption?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          asset_id?: string
+          caption?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_photos_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_photos_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assets: {
+        Row: {
+          asset_number: string | null
+          assigned_operator_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          current_value: number | null
           custom_type: string | null
           engine_hours: number | null
           id: string
@@ -48,9 +158,11 @@ export type Database = {
         }
         Insert: {
           asset_number?: string | null
+          assigned_operator_id?: string | null
           company_id: string
           created_at?: string
           created_by?: string | null
+          current_value?: number | null
           custom_type?: string | null
           engine_hours?: number | null
           id?: string
@@ -79,9 +191,11 @@ export type Database = {
         }
         Update: {
           asset_number?: string | null
+          assigned_operator_id?: string | null
           company_id?: string
           created_at?: string
           created_by?: string | null
+          current_value?: number | null
           custom_type?: string | null
           engine_hours?: number | null
           id?: string
@@ -109,6 +223,13 @@ export type Database = {
           year?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "assets_assigned_operator_id_fkey"
+            columns: ["assigned_operator_id"]
+            isOneToOne: false
+            referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "assets_company_id_fkey"
             columns: ["company_id"]
