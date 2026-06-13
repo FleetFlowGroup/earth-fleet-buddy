@@ -520,16 +520,6 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex justify-between gap-3">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium">{children}</dd>
-    </div>
-  );
-}
-
 function EmptyRow({ icon: Icon, text }: { icon: any; text: string }) {
   return (
     <div className="grid place-items-center px-5 py-10 text-center">
