@@ -189,6 +189,7 @@ function AssetDetail() {
             <Button asChild variant="ghost" size="sm">
               <Link to="/assets"><ArrowLeft className="mr-1 size-4" />Back</Link>
             </Button>
+            <AssetQrButton assetId={id} label={asset.name} />
             {editable && (
               <Button variant="outline" size="sm" onClick={deleteAsset}>
                 <Trash2 className="mr-2 size-4" /> Delete
