@@ -318,6 +318,101 @@ function AssetDetail() {
 
         {/* Right column */}
         <div className="space-y-6 lg:col-span-2">
+          {/* Service management */}
+          <div className="surface-card overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className={`grid size-10 place-items-center rounded-lg ${serviceDue?.overdue ? "bg-destructive/15 text-destructive" : serviceDue?.warning ? "bg-warning/15 text-warning" : "bg-success/15 text-success"}`}>
+                  <Wrench className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold">Service management</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {serviceDue
+                      ? (serviceDue.overdue ? "🔴 Service overdue" : serviceDue.warning ? "🟠 Service due soon" : "🟢 Service up to date")
+                      : "Set a service interval to start tracking"}
+                  </p>
+                </div>
+              </div>
+              {serviceDue && (
+                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${serviceDue.overdue ? "bg-destructive/15 text-destructive border-destructive/30" : serviceDue.warning ? "bg-warning/15 text-warning border-warning/30" : "bg-success/15 text-success border-success/30"}`}>
+                  {serviceDue.label}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-3">
+              <SvcStat label="Last service" value={asset.last_service_date ? fmtDate(asset.last_service_date) : "—"} />
+              <SvcStat
+                label={meterMode === "km" ? "Last service km" : "Last service hours"}
+                value={
+                  meterMode === "km"
+                    ? (asset.last_service_odometer != null ? `${Number(asset.last_service_odometer).toLocaleString()} km` : "—")
+                    : (asset.last_service_hours != null ? `${Number(asset.last_service_hours).toLocaleString()} h` : "—")
+                }
+              />
+              <SvcStat
+                label={meterMode === "km" ? "Current km" : "Current hours"}
+                value={
+                  meterMode === "km"
+                    ? (asset.odometer != null ? `${Number(asset.odometer).toLocaleString()} km` : "—")
+                    : (asset.engine_hours != null ? `${Number(asset.engine_hours).toLocaleString()} h` : "—")
+                }
+              />
+              <SvcStat label="Next service due" value={serviceDue?.dueDate ? fmtDate(serviceDue.dueDate) : "—"} />
+              <SvcStat
+                label={meterMode === "km" ? "Next service km" : "Next service hours"}
+                value={serviceDue && serviceDue.dueAt > 0 ? `${serviceDue.dueAt.toLocaleString()} ${meterMode === "km" ? "km" : "h"}` : "—"}
+              />
+              <SvcStat
+                label="Interval"
+                value={
+                  meterMode === "km"
+                    ? (asset.service_interval_km ? `${Number(asset.service_interval_km).toLocaleString()} km` : "—")
+                    : (asset.service_interval_hours ? `${Number(asset.service_interval_hours).toLocaleString()} h` : "—")
+                }
+              />
+            </div>
+            {editable && (
+              <div className="grid gap-2 border-t border-border p-4 sm:grid-cols-2">
+                <Dialog open={meterOpen} onOpenChange={setMeterOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="lg" variant="outline" className="h-14 text-base">
+                      <Gauge className="mr-2 size-5" />Update {meterMode === "km" ? "KMs" : "Hours"}
+                    </Button>
+                  </DialogTrigger>
+                  <UpdateMeterDialog
+                    assetId={id} companyId={asset.company_id} mode={meterMode}
+                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
+                    onSaved={() => {
+                      setMeterOpen(false);
+                      qc.invalidateQueries({ queryKey: ["asset", id] });
+                      qc.invalidateQueries({ queryKey: ["asset-meters", id] });
+                      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+                    }}
+                  />
+                </Dialog>
+                <Dialog open={serviceOpen} onOpenChange={setServiceOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="lg" className="h-14 text-base">
+                      <Wrench className="mr-2 size-5" />Complete service
+                    </Button>
+                  </DialogTrigger>
+                  <LogServiceDialog
+                    assetId={id} companyId={asset.company_id} mode={meterMode}
+                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
+                    onSaved={() => {
+                      setServiceOpen(false);
+                      qc.invalidateQueries({ queryKey: ["asset-services", id] });
+                      qc.invalidateQueries({ queryKey: ["asset", id] });
+                      qc.invalidateQueries({ queryKey: ["asset-docs", id] });
+                      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+                    }}
+                  />
+                </Dialog>
+              </div>
+            )}
+          </div>
+
           {/* Compliance */}
           <div className="surface-card">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -525,6 +620,15 @@ function EmptyRow({ icon: Icon, text }: { icon: any; text: string }) {
     <div className="grid place-items-center px-5 py-10 text-center">
       <Icon className="size-6 text-muted-foreground" />
       <div className="mt-2 text-xs text-muted-foreground">{text}</div>
+    </div>
+  );
+}
+
+function SvcStat({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="bg-background px-4 py-3">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-1 text-sm font-semibold">{value}</div>
     </div>
   );
 }
