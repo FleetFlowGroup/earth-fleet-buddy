@@ -7,16 +7,19 @@ import {
   LogOut,
   Menu,
   X,
+  FileBarChart,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/assets", label: "Assets", icon: Truck },
+  { to: "/reports", label: "Reports", icon: FileBarChart },
   { to: "/team", label: "Team", icon: Users },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
@@ -37,23 +40,24 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      {/* Sidebar - desktop */}
       <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar lg:flex lg:flex-col">
         <SidebarInner path={path} onSignOut={signOut} company={me?.company?.name} role={me?.role} email={me?.email} />
       </aside>
 
-      {/* Mobile top bar */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur lg:hidden">
           <Link to="/dashboard" className="flex items-center gap-2">
             <div className="grid size-7 place-items-center rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
               <Truck className="size-4" />
             </div>
-            <span className="text-sm font-semibold">Fleetflow</span>
+            <span className="text-sm font-semibold">FleetFlow</span>
           </Link>
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open menu">
-            <Menu className="size-5" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open menu">
+              <Menu className="size-5" />
+            </Button>
+          </div>
         </header>
 
         {open && (
@@ -91,14 +95,17 @@ function SidebarInner({
 }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-5">
-        <div className="grid size-8 place-items-center rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
-          <Truck className="size-4" />
+      <div className="flex h-16 items-center justify-between gap-2 border-b border-sidebar-border px-5">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="grid size-8 shrink-0 place-items-center rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
+            <Truck className="size-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold leading-tight">FleetFlow</div>
+            {company && <div className="truncate text-[11px] text-muted-foreground">{company}</div>}
+          </div>
         </div>
-        <div>
-          <div className="text-sm font-semibold leading-tight">Fleetflow</div>
-          {company && <div className="text-[11px] text-muted-foreground">{company}</div>}
-        </div>
+        <ThemeToggle />
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4 text-sm">
@@ -156,7 +163,7 @@ export function PageHeader({
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
         {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
       </div>
-      {actions && <div className="flex gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }
