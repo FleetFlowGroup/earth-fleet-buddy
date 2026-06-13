@@ -174,7 +174,7 @@ export function AddPhotosButton({ assetId, companyId, onUploaded }: { assetId: s
     try {
       const { data: user } = await supabase.auth.getUser();
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+        const file = await compressImage(files[i]);
         const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
         const path = `${companyId}/${assetId}/${Date.now()}-${i}-${safe}`;
         const { error: upErr } = await supabase.storage.from("asset-photos").upload(path, file, { contentType: file.type, upsert: false });
