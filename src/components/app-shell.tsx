@@ -16,15 +16,16 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { navFor, ROLE_LABELS } from "@/lib/permissions";
 
-const NAV = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/assets", label: "Assets", icon: Truck },
-  { to: "/operators", label: "Operators", icon: IdCard },
-  { to: "/reports", label: "Reports", icon: FileBarChart },
-  { to: "/team", label: "Team", icon: Users },
-  { to: "/settings", label: "Settings", icon: Settings },
-] as const;
+const ICONS: Record<string, typeof LayoutDashboard> = {
+  "/dashboard": LayoutDashboard,
+  "/assets": Truck,
+  "/operators": IdCard,
+  "/reports": FileBarChart,
+  "/team": Users,
+  "/settings": Settings,
+};
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
