@@ -35,6 +35,7 @@ import {
 } from "@/lib/expiry";
 import { toast } from "sonner";
 import { Plus, Search, Truck, Loader2, ChevronRight } from "lucide-react";
+import { AssetPrimaryThumb } from "@/lib/asset-photos";
 
 export const Route = createFileRoute("/_authenticated/assets/")({
   head: () => ({ meta: [{ title: "Assets · FleetFlow" }] }),
