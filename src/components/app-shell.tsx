@@ -16,15 +16,16 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { navFor, ROLE_LABELS } from "@/lib/permissions";
 
-const NAV = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/assets", label: "Assets", icon: Truck },
-  { to: "/operators", label: "Operators", icon: IdCard },
-  { to: "/reports", label: "Reports", icon: FileBarChart },
-  { to: "/team", label: "Team", icon: Users },
-  { to: "/settings", label: "Settings", icon: Settings },
-] as const;
+const ICONS: Record<string, typeof LayoutDashboard> = {
+  "/dashboard": LayoutDashboard,
+  "/assets": Truck,
+  "/operators": IdCard,
+  "/reports": FileBarChart,
+  "/team": Users,
+  "/settings": Settings,
+};
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -111,9 +112,9 @@ function SidebarInner({
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4 text-sm">
-        {NAV.map((item) => {
+        {navFor(role as any).map((item) => {
           const active = path === item.to || path.startsWith(item.to + "/");
-          const Icon = item.icon;
+          const Icon = ICONS[item.to] ?? LayoutDashboard;
           return (
             <Link
               key={item.to}
@@ -135,7 +136,7 @@ function SidebarInner({
       <div className="border-t border-sidebar-border p-3">
         <div className="rounded-md bg-sidebar-accent/40 px-3 py-2">
           <div className="truncate text-xs font-medium">{email}</div>
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{role ?? "—"}</div>
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{role ? (ROLE_LABELS[role] ?? role) : "—"}</div>
         </div>
         <Button
           onClick={onSignOut}

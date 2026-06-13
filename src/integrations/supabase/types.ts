@@ -317,6 +317,124 @@ export type Database = {
           },
         ]
       }
+      defect_photos: {
+        Row: {
+          caption: string | null
+          company_id: string
+          created_at: string
+          defect_id: string
+          id: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          caption?: string | null
+          company_id: string
+          created_at?: string
+          defect_id: string
+          id?: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          caption?: string | null
+          company_id?: string
+          created_at?: string
+          defect_id?: string
+          id?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "defect_photos_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defect_photos_defect_id_fkey"
+            columns: ["defect_id"]
+            isOneToOne: false
+            referencedRelation: "defect_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      defect_reports: {
+        Row: {
+          asset_id: string
+          company_id: string
+          created_at: string
+          description: string
+          id: string
+          operator_id: string | null
+          reported_at: string
+          reported_by: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          company_id: string
+          created_at?: string
+          description: string
+          id?: string
+          operator_id?: string | null
+          reported_at?: string
+          reported_by?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          company_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          operator_id?: string | null
+          reported_at?: string
+          reported_by?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "defect_reports_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defect_reports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defect_reports_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           asset_id: string | null
@@ -500,6 +618,7 @@ export type Database = {
           position: string | null
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           company_id: string
@@ -515,6 +634,7 @@ export type Database = {
           position?: string | null
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           company_id?: string
@@ -530,6 +650,7 @@ export type Database = {
           position?: string | null
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -537,6 +658,118 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prestart_checks: {
+        Row: {
+          asset_id: string
+          checklist: Json
+          company_id: string
+          completed_at: string
+          created_at: string
+          id: string
+          meter_reading: number | null
+          notes: string | null
+          operator_id: string | null
+          performed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          checklist?: Json
+          company_id: string
+          completed_at?: string
+          created_at?: string
+          id?: string
+          meter_reading?: number | null
+          notes?: string | null
+          operator_id?: string | null
+          performed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          checklist?: Json
+          company_id?: string
+          completed_at?: string
+          created_at?: string
+          id?: string
+          meter_reading?: number | null
+          notes?: string | null
+          operator_id?: string | null
+          performed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prestart_checks_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prestart_checks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prestart_checks_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prestart_photos: {
+        Row: {
+          caption: string | null
+          company_id: string
+          created_at: string
+          id: string
+          prestart_id: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          caption?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          prestart_id: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          caption?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          prestart_id?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prestart_photos_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prestart_photos_prestart_id_fkey"
+            columns: ["prestart_id"]
+            isOneToOne: false
+            referencedRelation: "prestart_checks"
             referencedColumns: ["id"]
           },
         ]
@@ -687,6 +920,51 @@ export type Database = {
           },
         ]
       }
+      service_photos: {
+        Row: {
+          caption: string | null
+          company_id: string
+          created_at: string
+          id: string
+          service_id: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          caption?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          service_id: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          caption?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          service_id?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_photos_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_photos_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "service_history"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           company_id: string
@@ -732,6 +1010,10 @@ export type Database = {
         Args: { _abn: string; _name: string }
         Returns: string
       }
+      current_role: {
+        Args: { _company_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       has_role: {
         Args: {
           _company_id: string
@@ -740,13 +1022,24 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _company_id: string }; Returns: boolean }
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      is_office: { Args: { _company_id: string }; Returns: boolean }
+      is_operator: { Args: { _company_id: string }; Returns: boolean }
+      is_workshop: { Args: { _company_id: string }; Returns: boolean }
+      operator_asset_ids: { Args: never; Returns: string[] }
     }
     Enums: {
-      app_role: "admin" | "manager" | "viewer"
+      app_role:
+        | "admin"
+        | "manager"
+        | "viewer"
+        | "office_staff"
+        | "workshop"
+        | "operator"
       asset_status: "active" | "workshop" | "broken_down" | "sold" | "disposed"
       asset_type:
         | "vehicle"
@@ -907,7 +1200,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "manager", "viewer"],
+      app_role: [
+        "admin",
+        "manager",
+        "viewer",
+        "office_staff",
+        "workshop",
+        "operator",
+      ],
       asset_status: ["active", "workshop", "broken_down", "sold", "disposed"],
       asset_type: [
         "vehicle",

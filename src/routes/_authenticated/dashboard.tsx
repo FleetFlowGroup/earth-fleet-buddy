@@ -84,6 +84,7 @@ function Dashboard() {
 
   useEffect(() => {
     if (!meLoading && me && !me.company) navigate({ to: "/onboarding" });
+    if (!meLoading && (me?.role as string) === "operator") navigate({ to: "/operator", replace: true });
   }, [me, meLoading, navigate]);
 
   const companyId = me?.company?.id;

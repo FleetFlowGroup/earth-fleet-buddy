@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Camera, ImageOff, Loader2, Star, Trash2, Upload, X } from "lucide-react";
+import { compressImage } from "@/lib/photo-upload";
 
 export function useAssetPhotos(assetId: string) {
   return useQuery({
@@ -66,8 +67,9 @@ export function AssetPhotoGallery({
       const { data: user } = await supabase.auth.getUser();
       const havePrimary = (photos ?? []).some((p) => p.is_primary);
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (file.size > 20 * 1024 * 1024) { toast.error(`${file.name} > 20 MB`); continue; }
+        const original = files[i];
+        if (original.size > 25 * 1024 * 1024) { toast.error(`${original.name} > 25 MB`); continue; }
+        const file = await compressImage(original);
         const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
         const path = `${companyId}/${assetId}/${Date.now()}-${i}-${safe}`;
         const { error: upErr } = await supabase.storage.from("asset-photos").upload(path, file, { contentType: file.type, upsert: false });
@@ -172,7 +174,7 @@ export function AddPhotosButton({ assetId, companyId, onUploaded }: { assetId: s
     try {
       const { data: user } = await supabase.auth.getUser();
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+        const file = await compressImage(files[i]);
         const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
         const path = `${companyId}/${assetId}/${Date.now()}-${i}-${safe}`;
         const { error: upErr } = await supabase.storage.from("asset-photos").upload(path, file, { contentType: file.type, upsert: false });

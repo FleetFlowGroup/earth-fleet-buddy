@@ -24,8 +24,16 @@ function Landing() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (active && data.user) navigate({ to: "/dashboard", replace: true });
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!active || !data.user) return;
+      // Decide where to send signed-in users based on their role.
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.user.id);
+      const set = new Set((roles ?? []).map((r) => r.role as string));
+      const dest = set.has("operator") && set.size === 1 ? "/operator" : "/dashboard";
+      if (active) navigate({ to: dest, replace: true });
     });
     return () => {
       active = false;
