@@ -374,8 +374,7 @@ function AssetDetail() {
                     </Button>
                   </DialogTrigger>
                   <UpdateMeterDialog
-                    assetId={id} companyId={asset.company_id} mode={meterMode}
-                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
+                    asset={asset} mode={meterMode}
                     onSaved={() => {
                       setMeterOpen(false);
                       qc.invalidateQueries({ queryKey: ["asset", id] });
@@ -696,49 +695,89 @@ function AddComplianceDialog({
 }
 
 function UpdateMeterDialog({
-  assetId,
-  companyId,
+  asset,
   mode,
-  current,
   onSaved,
 }: {
-  assetId: string;
-  companyId: string;
+  asset: any;
   mode: "km" | "hours";
-  current: number | null;
   onSaved: () => void;
 }) {
-  const [value, setValue] = useState("");
-  const [saving, setSaving] = useState(false);
+  const assetId = asset.id as string;
+  const companyId = asset.company_id as string;
+  const current = mode === "km" ? asset.odometer : asset.engine_hours;
   const unit = mode === "km" ? "km" : "h";
+
+  const [form, setForm] = useState({
+    current: current != null ? String(current) : "",
+    last_service_date: asset.last_service_date ?? "",
+    last_service_meter:
+      mode === "km"
+        ? (asset.last_service_odometer != null ? String(asset.last_service_odometer) : "")
+        : (asset.last_service_hours != null ? String(asset.last_service_hours) : ""),
+    interval_meter:
+      mode === "km"
+        ? (asset.service_interval_km != null ? String(asset.service_interval_km) : "")
+        : (asset.service_interval_hours != null ? String(asset.service_interval_hours) : ""),
+    interval_days: asset.service_interval_days != null ? String(asset.service_interval_days) : "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  const nextServiceMeter =
+    form.last_service_meter && form.interval_meter
+      ? Number(form.last_service_meter) + Number(form.interval_meter)
+      : null;
+  const nextServiceDate =
+    form.last_service_date && form.interval_days
+      ? (() => {
+          const d = new Date(form.last_service_date);
+          d.setDate(d.getDate() + Number(form.interval_days));
+          return d.toISOString().slice(0, 10);
+        })()
+      : null;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!value) return;
     setSaving(true);
     try {
-      const newValue = Number(value);
-      if (current != null && newValue < Number(current)) {
-        if (!confirm("New reading is lower than the previous one. Continue anyway?")) {
-          setSaving(false);
-          return;
+      const newCurrent = form.current ? Number(form.current) : null;
+      // Log meter reading only if changed
+      if (newCurrent != null && (current == null || newCurrent !== Number(current))) {
+        if (current != null && newCurrent < Number(current)) {
+          if (!confirm("New reading is lower than the previous one. Continue anyway?")) {
+            setSaving(false);
+            return;
+          }
         }
+        const { data: user } = await supabase.auth.getUser();
+        const { error: logErr } = await (supabase as any).from("meter_readings").insert({
+          asset_id: assetId,
+          company_id: companyId,
+          meter_type: mode,
+          previous_value: current,
+          new_value: newCurrent,
+          difference: current != null ? newCurrent - Number(current) : null,
+          recorded_by: user.user?.id ?? null,
+        });
+        if (logErr) throw logErr;
       }
-      const { data: user } = await supabase.auth.getUser();
-      const { error: logErr } = await (supabase as any).from("meter_readings").insert({
-        asset_id: assetId,
-        company_id: companyId,
-        meter_type: mode,
-        previous_value: current,
-        new_value: newValue,
-        difference: current != null ? newValue - Number(current) : null,
-        recorded_by: user.user?.id ?? null,
-      });
-      if (logErr) throw logErr;
-      const patch: any = mode === "km" ? { odometer: Math.round(newValue) } : { engine_hours: newValue };
+
+      const patch: any = {
+        last_service_date: form.last_service_date || null,
+        service_interval_days: form.interval_days ? Number(form.interval_days) : null,
+      };
+      if (mode === "km") {
+        patch.odometer = newCurrent != null ? Math.round(newCurrent) : null;
+        patch.last_service_odometer = form.last_service_meter ? Math.round(Number(form.last_service_meter)) : null;
+        patch.service_interval_km = form.interval_meter ? Math.round(Number(form.interval_meter)) : null;
+      } else {
+        patch.engine_hours = newCurrent;
+        patch.last_service_hours = form.last_service_meter ? Number(form.last_service_meter) : null;
+        patch.service_interval_hours = form.interval_meter ? Number(form.interval_meter) : null;
+      }
       const { error: upErr } = await (supabase as any).from("assets").update(patch).eq("id", assetId);
       if (upErr) throw upErr;
-      toast.success("Reading recorded");
+      toast.success("Service details updated");
       onSaved();
     } catch (err: any) {
       toast.error(err.message ?? "Could not save");
@@ -748,31 +787,68 @@ function UpdateMeterDialog({
   }
 
   return (
-    <DialogContent>
+    <DialogContent className="max-h-[90vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Update {mode === "km" ? "odometer" : "engine hours"}</DialogTitle>
+        <DialogTitle>Update service details</DialogTitle>
       </DialogHeader>
       <form onSubmit={submit} className="space-y-3">
-        <div className="space-y-1.5">
-          <Label>Previous reading</Label>
-          <Input value={current != null ? `${Number(current).toLocaleString()} ${unit}` : "—"} readOnly />
-        </div>
-        <div className="space-y-1.5">
-          <Label>New reading ({unit})</Label>
-          <Input
-            type="number"
-            min={0}
-            step={mode === "km" ? 1 : 0.1}
-            required
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            autoFocus
-          />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>Current {mode === "km" ? "odometer" : "engine hours"} ({unit})</Label>
+            <Input
+              type="number" min={0} step={mode === "km" ? 1 : 0.1}
+              value={form.current}
+              onChange={(e) => setForm({ ...form, current: e.target.value })}
+              autoFocus
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Last service date</Label>
+            <Input
+              type="date"
+              value={form.last_service_date}
+              onChange={(e) => setForm({ ...form, last_service_date: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Last service {mode === "km" ? "odometer" : "hours"} ({unit})</Label>
+            <Input
+              type="number" min={0} step={mode === "km" ? 1 : 0.1}
+              value={form.last_service_meter}
+              onChange={(e) => setForm({ ...form, last_service_meter: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Interval ({unit})</Label>
+            <Input
+              type="number" min={0} step={mode === "km" ? 1 : 0.1}
+              value={form.interval_meter}
+              onChange={(e) => setForm({ ...form, interval_meter: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Interval (days, optional)</Label>
+            <Input
+              type="number" min={0} step={1}
+              value={form.interval_days}
+              onChange={(e) => setForm({ ...form, interval_days: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Next service due</Label>
+            <Input
+              readOnly
+              value={[
+                nextServiceMeter != null ? `${nextServiceMeter.toLocaleString()} ${unit}` : null,
+                nextServiceDate ?? null,
+              ].filter(Boolean).join(" • ") || "—"}
+            />
+          </div>
         </div>
         <DialogFooter>
-          <Button type="submit" disabled={saving || !value}>
+          <Button type="submit" disabled={saving}>
             {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Save reading
+            Save changes
           </Button>
         </DialogFooter>
       </form>
