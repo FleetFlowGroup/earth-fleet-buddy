@@ -309,6 +309,8 @@ function AssetDetail() {
 
         {/* Right column */}
         <div className="space-y-6 lg:col-span-2">
+          <AssetPhotoGallery assetId={id} companyId={asset.company_id} editable={editable} />
+
           {/* Service management */}
           <div className="surface-card overflow-hidden">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
