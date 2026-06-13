@@ -16,60 +16,93 @@ export type Database = {
     Tables: {
       assets: {
         Row: {
+          asset_number: string | null
           company_id: string
           created_at: string
           created_by: string | null
+          custom_type: string | null
+          engine_hours: number | null
           id: string
           last_service_date: string | null
+          last_service_hours: number | null
           last_service_odometer: number | null
+          location: string | null
           make: string | null
           model: string | null
           name: string
           notes: string | null
           odometer: number | null
+          operator_name: string | null
+          purchase_date: string | null
+          purchase_price: number | null
           registration: string | null
+          serial_number: string | null
           service_interval_days: number | null
+          service_interval_hours: number | null
           service_interval_km: number | null
+          status: Database["public"]["Enums"]["asset_status"]
           type: Database["public"]["Enums"]["asset_type"]
           updated_at: string
           vin_serial: string | null
           year: number | null
         }
         Insert: {
+          asset_number?: string | null
           company_id: string
           created_at?: string
           created_by?: string | null
+          custom_type?: string | null
+          engine_hours?: number | null
           id?: string
           last_service_date?: string | null
+          last_service_hours?: number | null
           last_service_odometer?: number | null
+          location?: string | null
           make?: string | null
           model?: string | null
           name: string
           notes?: string | null
           odometer?: number | null
+          operator_name?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
           registration?: string | null
+          serial_number?: string | null
           service_interval_days?: number | null
+          service_interval_hours?: number | null
           service_interval_km?: number | null
+          status?: Database["public"]["Enums"]["asset_status"]
           type?: Database["public"]["Enums"]["asset_type"]
           updated_at?: string
           vin_serial?: string | null
           year?: number | null
         }
         Update: {
+          asset_number?: string | null
           company_id?: string
           created_at?: string
           created_by?: string | null
+          custom_type?: string | null
+          engine_hours?: number | null
           id?: string
           last_service_date?: string | null
+          last_service_hours?: number | null
           last_service_odometer?: number | null
+          location?: string | null
           make?: string | null
           model?: string | null
           name?: string
           notes?: string | null
           odometer?: number | null
+          operator_name?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
           registration?: string | null
+          serial_number?: string | null
           service_interval_days?: number | null
+          service_interval_hours?: number | null
           service_interval_km?: number | null
+          status?: Database["public"]["Enums"]["asset_status"]
           type?: Database["public"]["Enums"]["asset_type"]
           updated_at?: string
           vin_serial?: string | null
@@ -166,6 +199,7 @@ export type Database = {
       documents: {
         Row: {
           asset_id: string | null
+          category: string | null
           company_id: string
           id: string
           mime_type: string | null
@@ -177,6 +211,7 @@ export type Database = {
         }
         Insert: {
           asset_id?: string | null
+          category?: string | null
           company_id: string
           id?: string
           mime_type?: string | null
@@ -188,6 +223,7 @@ export type Database = {
         }
         Update: {
           asset_id?: string | null
+          category?: string | null
           company_id?: string
           id?: string
           mime_type?: string | null
@@ -207,6 +243,57 @@ export type Database = {
           },
           {
             foreignKeyName: "documents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meter_readings: {
+        Row: {
+          asset_id: string
+          company_id: string
+          difference: number | null
+          id: string
+          meter_type: string
+          new_value: number
+          previous_value: number | null
+          recorded_at: string
+          recorded_by: string | null
+        }
+        Insert: {
+          asset_id: string
+          company_id: string
+          difference?: number | null
+          id?: string
+          meter_type: string
+          new_value: number
+          previous_value?: number | null
+          recorded_at?: string
+          recorded_by?: string | null
+        }
+        Update: {
+          asset_id?: string
+          company_id?: string
+          difference?: number | null
+          id?: string
+          meter_type?: string
+          new_value?: number
+          previous_value?: number | null
+          recorded_at?: string
+          recorded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meter_readings_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meter_readings_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -284,6 +371,72 @@ export type Database = {
           },
         ]
       }
+      service_history: {
+        Row: {
+          asset_id: string
+          company_id: string
+          cost: number | null
+          created_at: string
+          created_by: string | null
+          hours_at: number | null
+          id: string
+          invoice_path: string | null
+          notes: string | null
+          odometer_at: number | null
+          parts_replaced: string | null
+          service_date: string
+          technician: string | null
+          workshop: string | null
+        }
+        Insert: {
+          asset_id: string
+          company_id: string
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          hours_at?: number | null
+          id?: string
+          invoice_path?: string | null
+          notes?: string | null
+          odometer_at?: number | null
+          parts_replaced?: string | null
+          service_date: string
+          technician?: string | null
+          workshop?: string | null
+        }
+        Update: {
+          asset_id?: string
+          company_id?: string
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          hours_at?: number | null
+          id?: string
+          invoice_path?: string | null
+          notes?: string | null
+          odometer_at?: number | null
+          parts_replaced?: string | null
+          service_date?: string
+          technician?: string | null
+          workshop?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_history_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_history_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           company_id: string
@@ -344,7 +497,27 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "viewer"
-      asset_type: "vehicle" | "machinery" | "trailer" | "other"
+      asset_status: "active" | "workshop" | "broken_down" | "sold" | "disposed"
+      asset_type:
+        | "vehicle"
+        | "machinery"
+        | "trailer"
+        | "other"
+        | "truck"
+        | "prime_mover"
+        | "ute"
+        | "car"
+        | "excavator"
+        | "loader"
+        | "skid_steer"
+        | "dozer"
+        | "grader"
+        | "roller"
+        | "water_cart"
+        | "dump_truck"
+        | "generator"
+        | "compressor"
+        | "attachment"
       compliance_type:
         | "registration"
         | "insurance"
@@ -352,6 +525,11 @@ export type Database = {
         | "inspection"
         | "permit"
         | "other"
+        | "plant_inspection"
+        | "safety_inspection"
+        | "operator_licence"
+        | "fire_extinguisher"
+        | "warranty"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -480,7 +658,28 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "viewer"],
-      asset_type: ["vehicle", "machinery", "trailer", "other"],
+      asset_status: ["active", "workshop", "broken_down", "sold", "disposed"],
+      asset_type: [
+        "vehicle",
+        "machinery",
+        "trailer",
+        "other",
+        "truck",
+        "prime_mover",
+        "ute",
+        "car",
+        "excavator",
+        "loader",
+        "skid_steer",
+        "dozer",
+        "grader",
+        "roller",
+        "water_cart",
+        "dump_truck",
+        "generator",
+        "compressor",
+        "attachment",
+      ],
       compliance_type: [
         "registration",
         "insurance",
@@ -488,6 +687,11 @@ export const Constants = {
         "inspection",
         "permit",
         "other",
+        "plant_inspection",
+        "safety_inspection",
+        "operator_licence",
+        "fire_extinguisher",
+        "warranty",
       ],
     },
   },
