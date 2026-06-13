@@ -29,9 +29,9 @@ function Onboarding() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data, error } = await supabase.rpc("create_company_with_admin", {
+      const { error } = await supabase.rpc("create_company_with_admin", {
         _name: name,
-        _abn: abn || null,
+        _abn: abn || "",
       });
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["current-user"] });
