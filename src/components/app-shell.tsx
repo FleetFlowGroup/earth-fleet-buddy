@@ -136,7 +136,7 @@ function SidebarInner({
       <div className="border-t border-sidebar-border p-3">
         <div className="rounded-md bg-sidebar-accent/40 px-3 py-2">
           <div className="truncate text-xs font-medium">{email}</div>
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{role ?? "—"}</div>
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{role ? (ROLE_LABELS[role] ?? role) : "—"}</div>
         </div>
         <Button
           onClick={onSignOut}
