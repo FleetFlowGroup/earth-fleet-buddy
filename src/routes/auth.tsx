@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { z } from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { Truck, Loader2 } from "lucide-react";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
+  oauth: z.enum(["google"]).optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -26,13 +27,39 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { mode } = useSearch({ from: "/auth" });
+  const { mode, oauth } = useSearch({ from: "/auth" });
   const navigate = useNavigate();
   const [tab, setTab] = useState<"signin" | "signup">(mode ?? "signin");
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+
+  useEffect(() => {
+    if (oauth !== "google") return;
+
+    let active = true;
+    const finishGoogleSignIn = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.auth.getUser();
+
+      if (!active) return;
+      if (error || !data.user) {
+        toast.error("Google sign-in did not finish. Please try again.");
+        setLoading(false);
+        navigate({ to: "/auth", replace: true });
+        return;
+      }
+
+      toast.success("Welcome back");
+      navigate({ to: "/dashboard", replace: true });
+    };
+
+    finishGoogleSignIn();
+    return () => {
+      active = false;
+    };
+  }, [oauth, navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -56,8 +83,8 @@ function AuthPage() {
         toast.success("Welcome back");
         navigate({ to: "/dashboard" });
       }
-    } catch (err: any) {
-      toast.error(err.message ?? "Authentication failed");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Authentication failed");
     } finally {
       setLoading(false);
     }
@@ -66,7 +93,8 @@ function AuthPage() {
   async function handleGoogle() {
     setLoading(true);
     const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/dashboard`,
+      redirect_uri: window.location.origin,
+      extraParams: { prompt: "select_account" },
     });
     if (res.error) {
       toast.error(res.error.message ?? "Google sign-in failed");
@@ -89,7 +117,12 @@ function AuthPage() {
         </Link>
 
         <div className="surface-card p-6 sm:p-8">
-          <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+          <Tabs
+            value={tab}
+            onValueChange={(value) => {
+              if (value === "signin" || value === "signup") setTab(value);
+            }}
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign in</TabsTrigger>
               <TabsTrigger value="signup">Sign up</TabsTrigger>
@@ -178,10 +211,22 @@ function AuthPage() {
 function GoogleIcon() {
   return (
     <svg className="mr-2 size-4" viewBox="0 0 48 48" aria-hidden="true">
-      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35.5 24 35.5c-6.4 0-11.5-5.1-11.5-11.5S17.6 12.5 24 12.5c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.9 6.5 29.2 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5c10.8 0 19.5-8.7 19.5-19.5 0-1.2-.1-2.3-.4-3.5z"/>
-      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16.1 19 13 24 13c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.9 6.5 29.2 4.5 24 4.5 16.1 4.5 9.3 8.9 6.3 14.7z"/>
-      <path fill="#4CAF50" d="M24 43.5c5.1 0 9.7-2 13.2-5.2l-6.1-5c-2 1.4-4.5 2.2-7.1 2.2-5.3 0-9.7-3.1-11.3-7.5l-6.5 5C9.1 39 16 43.5 24 43.5z"/>
-      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.3 4-4.1 5.3l6.1 5C41.3 35.6 43.5 30.2 43.5 24c0-1.2-.1-2.3-.4-3.5z"/>
+      <path
+        fill="#FFC107"
+        d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35.5 24 35.5c-6.4 0-11.5-5.1-11.5-11.5S17.6 12.5 24 12.5c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.9 6.5 29.2 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5c10.8 0 19.5-8.7 19.5-19.5 0-1.2-.1-2.3-.4-3.5z"
+      />
+      <path
+        fill="#FF3D00"
+        d="M6.3 14.7l6.6 4.8C14.7 16.1 19 13 24 13c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.9 6.5 29.2 4.5 24 4.5 16.1 4.5 9.3 8.9 6.3 14.7z"
+      />
+      <path
+        fill="#4CAF50"
+        d="M24 43.5c5.1 0 9.7-2 13.2-5.2l-6.1-5c-2 1.4-4.5 2.2-7.1 2.2-5.3 0-9.7-3.1-11.3-7.5l-6.5 5C9.1 39 16 43.5 24 43.5z"
+      />
+      <path
+        fill="#1976D2"
+        d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.3 4-4.1 5.3l6.1 5C41.3 35.6 43.5 30.2 43.5 24c0-1.2-.1-2.3-.4-3.5z"
+      />
     </svg>
   );
 }

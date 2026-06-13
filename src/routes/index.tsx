@@ -1,14 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Truck,
-  ShieldCheck,
-  BellRing,
-  FileCheck2,
-  Users,
-  Gauge,
-  ArrowRight,
-} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Truck, ShieldCheck, BellRing, FileCheck2, Users, Gauge, ArrowRight } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,9 +20,20 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (active && data.user) navigate({ to: "/dashboard", replace: true });
+    });
+    return () => {
+      active = false;
+    };
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
@@ -36,16 +42,24 @@ function Landing() {
             <span className="text-base font-semibold tracking-tight">Fleetflow</span>
           </Link>
           <nav className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">
-            <a href="#features" className="hover:text-foreground">Features</a>
-            <a href="#how" className="hover:text-foreground">How it works</a>
-            <a href="#pricing" className="hover:text-foreground">Pricing</a>
+            <a href="#features" className="hover:text-foreground">
+              Features
+            </a>
+            <a href="#how" className="hover:text-foreground">
+              How it works
+            </a>
+            <a href="#pricing" className="hover:text-foreground">
+              Pricing
+            </a>
           </nav>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
               <Link to="/auth">Sign in</Link>
             </Button>
             <Button asChild size="sm">
-              <Link to="/auth" search={{ mode: "signup" }}>Get started</Link>
+              <Link to="/auth" search={{ mode: "signup" }}>
+                Get started
+              </Link>
             </Button>
           </div>
         </div>
@@ -64,8 +78,8 @@ function Landing() {
               Fleet compliance, <span className="brand-gradient-text">finally under control</span>.
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-              Track rego, insurance, services and compliance docs for every truck, dozer
-              and trailer. Automatic reminders 30, 14 and 7 days before anything expires.
+              Track rego, insurance, services and compliance docs for every truck, dozer and
+              trailer. Automatic reminders 30, 14 and 7 days before anything expires.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Button asChild size="lg" className="glow">
@@ -87,7 +101,9 @@ function Landing() {
             <div className="rounded-lg border border-border bg-background/60 p-4 sm:p-6">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
                 <div>
-                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Dashboard</div>
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Dashboard
+                  </div>
                   <div className="text-lg font-semibold">Compliance overview</div>
                 </div>
                 <div className="flex gap-2 text-xs text-muted-foreground">
@@ -113,8 +129,8 @@ function Landing() {
             Everything your yard manager wishes you already had
           </h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Replace the whiteboard, the wall calendar and the lost paper folders with
-            one source of truth your whole crew can use.
+            Replace the whiteboard, the wall calendar and the lost paper folders with one source of
+            truth your whole crew can use.
           </p>
 
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -143,7 +159,9 @@ function Landing() {
       {/* How */}
       <section id="how" className="border-t border-border/60 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Up and running in minutes</h2>
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            Up and running in minutes
+          </h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <Step n={1} title="Create your company">
               Sign up, name your business and add your ABN. You're the first admin.
@@ -161,10 +179,10 @@ function Landing() {
       {/* Pricing */}
       <section id="pricing" className="border-t border-border/60 py-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Simple pricing
-          </h2>
-          <p className="mt-3 text-muted-foreground">Free during beta. Pay per asset later — no per-user fees.</p>
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Simple pricing</h2>
+          <p className="mt-3 text-muted-foreground">
+            Free during beta. Pay per asset later — no per-user fees.
+          </p>
           <div className="surface-card mx-auto mt-8 max-w-md p-8 text-left">
             <div className="flex items-baseline justify-between">
               <div className="text-xl font-semibold">Beta access</div>
@@ -177,7 +195,9 @@ function Landing() {
               <li>✓ Automatic 30/14/7-day reminders</li>
             </ul>
             <Button asChild className="mt-8 w-full" size="lg">
-              <Link to="/auth" search={{ mode: "signup" }}>Create your account</Link>
+              <Link to="/auth" search={{ mode: "signup" }}>
+                Create your account
+              </Link>
             </Button>
           </div>
         </div>
@@ -207,7 +227,15 @@ function Logo({ size = 22 }: { size?: number }) {
   );
 }
 
-function Feature({ icon: Icon, title, children }: { icon: any; title: string; children: React.ReactNode }) {
+function Feature({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="surface-card group p-6 transition hover:border-primary/40">
       <div className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary">
@@ -239,7 +267,13 @@ function MiniStat({ label, value, sub }: { label: string; value: string; sub: st
   );
 }
 
-function Pill({ tone, children }: { tone: "success" | "warning" | "danger"; children: React.ReactNode }) {
+function Pill({
+  tone,
+  children,
+}: {
+  tone: "success" | "warning" | "danger";
+  children: React.ReactNode;
+}) {
   const cls =
     tone === "success"
       ? "bg-success/15 text-success border-success/30"
