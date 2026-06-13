@@ -8,6 +8,7 @@ import {
   Menu,
   X,
   FileBarChart,
+  IdCard,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/assets", label: "Assets", icon: Truck },
+  { to: "/operators", label: "Operators", icon: IdCard },
   { to: "/reports", label: "Reports", icon: FileBarChart },
   { to: "/team", label: "Team", icon: Users },
   { to: "/settings", label: "Settings", icon: Settings },
