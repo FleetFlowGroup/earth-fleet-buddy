@@ -158,6 +158,34 @@ function Dashboard() {
     },
   });
 
+  // Today's prestart completion + assigned-asset count
+  const { data: todayStats } = useQuery({
+    queryKey: ["today-prestarts", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const start = new Date(); start.setHours(0, 0, 0, 0);
+      const [psR, assignedR, opsCountR, defectsR] = await Promise.all([
+        (supabase as any).from("prestart_checks").select("asset_id,status").eq("company_id", companyId!).gte("completed_at", start.toISOString()),
+        (supabase as any).from("assets").select("id", { count: "exact", head: true }).eq("company_id", companyId!).not("assigned_operator_id", "is", null),
+        (supabase as any).from("operators").select("id", { count: "exact", head: true }).eq("company_id", companyId!).eq("status", "active"),
+        (supabase as any).from("defect_reports").select("id", { count: "exact", head: true }).eq("company_id", companyId!).neq("status", "resolved"),
+      ]);
+      const rows = (psR.data ?? []) as any[];
+      const uniqueAssets = new Set(rows.map((r) => r.asset_id));
+      const failed = rows.filter((r) => r.status === "fail").length;
+      return {
+        prestartsCompleted: uniqueAssets.size,
+        prestartsFailed: failed,
+        assignedAssets: assignedR.count ?? 0,
+        activeOperators: opsCountR.count ?? 0,
+        openDefects: defectsR.count ?? 0,
+      };
+    },
+  });
+
+  const [dailyOpen, setDailyOpen] = useState(false);
+
+
   const assets = stats?.assets ?? [];
   const services = stats?.serviceRows ?? [];
   const overdueServices = services.filter((x) => x.due.overdue);
@@ -379,6 +407,36 @@ function Dashboard() {
       />
 
       <div className="space-y-6 p-4 sm:p-8">
+        {/* === Owner overview strip === */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          <OwnerStat icon={Truck} label="Total Assets" value={stats?.assetsCount ?? 0} />
+          <OwnerStat icon={Users} label="Operators" value={stats?.operatorsCount ?? 0} />
+          <OwnerStat icon={AlertTriangle} label="Defects Open" value={todayStats?.openDefects ?? 0} tone={(todayStats?.openDefects ?? 0) > 0 ? "danger" : undefined} />
+          <OwnerStat icon={Wrench} label="Services Due" value={overdueServices.length + dueSoonServices.length} tone={overdueServices.length > 0 ? "danger" : dueSoonServices.length > 0 ? "warning" : undefined} />
+          <OwnerStat icon={Shield} label="Rego Expiring" value={registrationDue} tone={registrationDue > 0 ? "warning" : undefined} />
+          <button type="button" onClick={() => setDailyOpen((v) => !v)} className="surface-card flex flex-col items-start gap-1 p-3 text-left transition hover:bg-accent/30">
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+              <CalendarDays className="size-3.5" /> Prestarts Today
+            </div>
+            <div className="text-xl font-bold">
+              {todayStats?.prestartsCompleted ?? 0}<span className="text-sm font-normal text-muted-foreground">/{todayStats?.assignedAssets ?? 0}</span>
+            </div>
+            <div className="text-[10px] text-primary">Daily compliance →</div>
+          </button>
+        </div>
+
+        {dailyOpen && (
+          <DailyCompliancePanel
+            ready={Math.max(0, (stats?.assetsCount ?? 0) - overdueServices.length - registrationDue - (todayStats?.openDefects ?? 0))}
+            awaitingPrestart={Math.max(0, (todayStats?.assignedAssets ?? 0) - (todayStats?.prestartsCompleted ?? 0))}
+            servicesDue={overdueServices.length + dueSoonServices.length}
+            regoExpired={registrationDue}
+            licenceExpiring={expiringIn30 - registrationDue - insuranceDue > 0 ? expiringIn30 - registrationDue - insuranceDue : 0}
+            score={health.score}
+            onClose={() => setDailyOpen(false)}
+          />
+        )}
+
         {/* === Fleet Health Score === */}
         <div className={`surface-card grid gap-6 border-l-4 p-5 sm:p-6 lg:grid-cols-[auto_1fr] ${healthTone.border}`}>
           <div className="flex items-center gap-5">
@@ -896,3 +954,54 @@ function CostRow({ label, value, tone }: { label: string; value: number; tone: "
     </div>
   );
 }
+
+function OwnerStat({ icon: Icon, label, value, tone }: { icon: any; label: string; value: string | number; tone?: "danger" | "warning" }) {
+  const toneCls = tone === "danger" ? "text-destructive" : tone === "warning" ? "text-warning" : "text-foreground";
+  return (
+    <div className="surface-card flex flex-col items-start gap-1 p-3">
+      <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+        <Icon className="size-3.5" /> {label}
+      </div>
+      <div className={`text-xl font-bold ${toneCls}`}>{value}</div>
+    </div>
+  );
+}
+
+function DailyCompliancePanel({
+  ready, awaitingPrestart, servicesDue, regoExpired, licenceExpiring, score, onClose,
+}: { ready: number; awaitingPrestart: number; servicesDue: number; regoExpired: number; licenceExpiring: number; score: number; onClose: () => void }) {
+  const tone = score >= 90 ? "text-success" : score >= 70 ? "text-warning" : "text-destructive";
+  return (
+    <div className="surface-card overflow-hidden border-l-4 border-l-primary">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3">
+        <div>
+          <div className="text-xs uppercase tracking-wide text-muted-foreground">Today's Fleet Status</div>
+          <h3 className="text-base font-semibold">Daily Compliance</h3>
+        </div>
+        <button onClick={onClose} className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-accent/40">Close</button>
+      </div>
+      <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-5">
+        <DailyCell emoji="✅" label="Machines Ready" value={ready} tone="success" />
+        <DailyCell emoji="⚠️" label="Awaiting Prestart" value={awaitingPrestart} tone={awaitingPrestart > 0 ? "warning" : "success"} />
+        <DailyCell emoji="🔧" label="Services Due" value={servicesDue} tone={servicesDue > 0 ? "warning" : "success"} />
+        <DailyCell emoji="🚨" label="Rego Expired" value={regoExpired} tone={regoExpired > 0 ? "danger" : "success"} />
+        <DailyCell emoji="👷" label="Licence Expiring" value={licenceExpiring} tone={licenceExpiring > 0 ? "warning" : "success"} />
+      </div>
+      <div className="border-t border-border bg-muted/30 px-5 py-3 text-sm">
+        Fleet Status: <span className={`font-bold ${tone}`}>{score}% Operational</span>
+      </div>
+    </div>
+  );
+}
+
+function DailyCell({ emoji, label, value, tone }: { emoji: string; label: string; value: number; tone: "success" | "warning" | "danger" }) {
+  const cls = tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : "text-destructive";
+  return (
+    <div className="rounded-lg border border-border bg-background p-3">
+      <div className="text-lg">{emoji}</div>
+      <div className={`mt-1 text-2xl font-bold ${cls}`}>{value}</div>
+      <div className="text-[11px] text-muted-foreground">{label}</div>
+    </div>
+  );
+}
+
