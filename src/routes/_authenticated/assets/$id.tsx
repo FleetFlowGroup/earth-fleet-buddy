@@ -403,8 +403,8 @@ function AssetDetail() {
                   <LogServiceDialog
                     assetId={id}
                     companyId={asset.company_id}
-                    currentKm={asset.odometer}
-                    currentHours={asset.engine_hours}
+                    mode={meterMode}
+                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
                     onSaved={() => {
                       setServiceOpen(false);
                       qc.invalidateQueries({ queryKey: ["asset-services", id] });
