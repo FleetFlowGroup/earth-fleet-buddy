@@ -19,8 +19,15 @@ import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedOperatorsIndexRouteImport } from './routes/_authenticated/operators/index'
+import { Route as AuthenticatedOperatorIndexRouteImport } from './routes/_authenticated/operator.index'
 import { Route as AuthenticatedAssetsIndexRouteImport } from './routes/_authenticated/assets/index'
 import { Route as AuthenticatedOperatorsIdRouteImport } from './routes/_authenticated/operators/$id'
+import { Route as AuthenticatedOperatorTicketsRouteImport } from './routes/_authenticated/operator.tickets'
+import { Route as AuthenticatedOperatorProfileRouteImport } from './routes/_authenticated/operator.profile'
+import { Route as AuthenticatedOperatorPrestartRouteImport } from './routes/_authenticated/operator.prestart'
+import { Route as AuthenticatedOperatorPhotosRouteImport } from './routes/_authenticated/operator.photos'
+import { Route as AuthenticatedOperatorHoursRouteImport } from './routes/_authenticated/operator.hours'
+import { Route as AuthenticatedOperatorDefectRouteImport } from './routes/_authenticated/operator.defect'
 import { Route as AuthenticatedAssetsIdRouteImport } from './routes/_authenticated/assets/$id'
 import { Route as ApiPublicHooksCheckExpiriesRouteImport } from './routes/api/public/hooks/check-expiries'
 
@@ -74,6 +81,12 @@ const AuthenticatedOperatorsIndexRoute =
     path: '/operators/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedOperatorIndexRoute =
+  AuthenticatedOperatorIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedOperatorRoute,
+  } as any)
 const AuthenticatedAssetsIndexRoute =
   AuthenticatedAssetsIndexRouteImport.update({
     id: '/assets/',
@@ -85,6 +98,42 @@ const AuthenticatedOperatorsIdRoute =
     id: '/operators/$id',
     path: '/operators/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOperatorTicketsRoute =
+  AuthenticatedOperatorTicketsRouteImport.update({
+    id: '/tickets',
+    path: '/tickets',
+    getParentRoute: () => AuthenticatedOperatorRoute,
+  } as any)
+const AuthenticatedOperatorProfileRoute =
+  AuthenticatedOperatorProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedOperatorRoute,
+  } as any)
+const AuthenticatedOperatorPrestartRoute =
+  AuthenticatedOperatorPrestartRouteImport.update({
+    id: '/prestart',
+    path: '/prestart',
+    getParentRoute: () => AuthenticatedOperatorRoute,
+  } as any)
+const AuthenticatedOperatorPhotosRoute =
+  AuthenticatedOperatorPhotosRouteImport.update({
+    id: '/photos',
+    path: '/photos',
+    getParentRoute: () => AuthenticatedOperatorRoute,
+  } as any)
+const AuthenticatedOperatorHoursRoute =
+  AuthenticatedOperatorHoursRouteImport.update({
+    id: '/hours',
+    path: '/hours',
+    getParentRoute: () => AuthenticatedOperatorRoute,
+  } as any)
+const AuthenticatedOperatorDefectRoute =
+  AuthenticatedOperatorDefectRouteImport.update({
+    id: '/defect',
+    path: '/defect',
+    getParentRoute: () => AuthenticatedOperatorRoute,
   } as any)
 const AuthenticatedAssetsIdRoute = AuthenticatedAssetsIdRouteImport.update({
   id: '/assets/$id',
@@ -103,13 +152,20 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/operator': typeof AuthenticatedOperatorRoute
+  '/operator': typeof AuthenticatedOperatorRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
+  '/operator/defect': typeof AuthenticatedOperatorDefectRoute
+  '/operator/hours': typeof AuthenticatedOperatorHoursRoute
+  '/operator/photos': typeof AuthenticatedOperatorPhotosRoute
+  '/operator/prestart': typeof AuthenticatedOperatorPrestartRoute
+  '/operator/profile': typeof AuthenticatedOperatorProfileRoute
+  '/operator/tickets': typeof AuthenticatedOperatorTicketsRoute
   '/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/assets/': typeof AuthenticatedAssetsIndexRoute
+  '/operator/': typeof AuthenticatedOperatorIndexRoute
   '/operators/': typeof AuthenticatedOperatorsIndexRoute
   '/api/public/hooks/check-expiries': typeof ApiPublicHooksCheckExpiriesRoute
 }
@@ -118,13 +174,19 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/operator': typeof AuthenticatedOperatorRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
+  '/operator/defect': typeof AuthenticatedOperatorDefectRoute
+  '/operator/hours': typeof AuthenticatedOperatorHoursRoute
+  '/operator/photos': typeof AuthenticatedOperatorPhotosRoute
+  '/operator/prestart': typeof AuthenticatedOperatorPrestartRoute
+  '/operator/profile': typeof AuthenticatedOperatorProfileRoute
+  '/operator/tickets': typeof AuthenticatedOperatorTicketsRoute
   '/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/assets': typeof AuthenticatedAssetsIndexRoute
+  '/operator': typeof AuthenticatedOperatorIndexRoute
   '/operators': typeof AuthenticatedOperatorsIndexRoute
   '/api/public/hooks/check-expiries': typeof ApiPublicHooksCheckExpiriesRoute
 }
@@ -135,13 +197,20 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
-  '/_authenticated/operator': typeof AuthenticatedOperatorRoute
+  '/_authenticated/operator': typeof AuthenticatedOperatorRouteWithChildren
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/assets/$id': typeof AuthenticatedAssetsIdRoute
+  '/_authenticated/operator/defect': typeof AuthenticatedOperatorDefectRoute
+  '/_authenticated/operator/hours': typeof AuthenticatedOperatorHoursRoute
+  '/_authenticated/operator/photos': typeof AuthenticatedOperatorPhotosRoute
+  '/_authenticated/operator/prestart': typeof AuthenticatedOperatorPrestartRoute
+  '/_authenticated/operator/profile': typeof AuthenticatedOperatorProfileRoute
+  '/_authenticated/operator/tickets': typeof AuthenticatedOperatorTicketsRoute
   '/_authenticated/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/_authenticated/assets/': typeof AuthenticatedAssetsIndexRoute
+  '/_authenticated/operator/': typeof AuthenticatedOperatorIndexRoute
   '/_authenticated/operators/': typeof AuthenticatedOperatorsIndexRoute
   '/api/public/hooks/check-expiries': typeof ApiPublicHooksCheckExpiriesRoute
 }
@@ -157,8 +226,15 @@ export interface FileRouteTypes {
     | '/settings'
     | '/team'
     | '/assets/$id'
+    | '/operator/defect'
+    | '/operator/hours'
+    | '/operator/photos'
+    | '/operator/prestart'
+    | '/operator/profile'
+    | '/operator/tickets'
     | '/operators/$id'
     | '/assets/'
+    | '/operator/'
     | '/operators/'
     | '/api/public/hooks/check-expiries'
   fileRoutesByTo: FileRoutesByTo
@@ -167,13 +243,19 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/onboarding'
-    | '/operator'
     | '/reports'
     | '/settings'
     | '/team'
     | '/assets/$id'
+    | '/operator/defect'
+    | '/operator/hours'
+    | '/operator/photos'
+    | '/operator/prestart'
+    | '/operator/profile'
+    | '/operator/tickets'
     | '/operators/$id'
     | '/assets'
+    | '/operator'
     | '/operators'
     | '/api/public/hooks/check-expiries'
   id:
@@ -188,8 +270,15 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/team'
     | '/_authenticated/assets/$id'
+    | '/_authenticated/operator/defect'
+    | '/_authenticated/operator/hours'
+    | '/_authenticated/operator/photos'
+    | '/_authenticated/operator/prestart'
+    | '/_authenticated/operator/profile'
+    | '/_authenticated/operator/tickets'
     | '/_authenticated/operators/$id'
     | '/_authenticated/assets/'
+    | '/_authenticated/operator/'
     | '/_authenticated/operators/'
     | '/api/public/hooks/check-expiries'
   fileRoutesById: FileRoutesById
@@ -273,6 +362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperatorsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/operator/': {
+      id: '/_authenticated/operator/'
+      path: '/'
+      fullPath: '/operator/'
+      preLoaderRoute: typeof AuthenticatedOperatorIndexRouteImport
+      parentRoute: typeof AuthenticatedOperatorRoute
+    }
     '/_authenticated/assets/': {
       id: '/_authenticated/assets/'
       path: '/assets'
@@ -286,6 +382,48 @@ declare module '@tanstack/react-router' {
       fullPath: '/operators/$id'
       preLoaderRoute: typeof AuthenticatedOperatorsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/operator/tickets': {
+      id: '/_authenticated/operator/tickets'
+      path: '/tickets'
+      fullPath: '/operator/tickets'
+      preLoaderRoute: typeof AuthenticatedOperatorTicketsRouteImport
+      parentRoute: typeof AuthenticatedOperatorRoute
+    }
+    '/_authenticated/operator/profile': {
+      id: '/_authenticated/operator/profile'
+      path: '/profile'
+      fullPath: '/operator/profile'
+      preLoaderRoute: typeof AuthenticatedOperatorProfileRouteImport
+      parentRoute: typeof AuthenticatedOperatorRoute
+    }
+    '/_authenticated/operator/prestart': {
+      id: '/_authenticated/operator/prestart'
+      path: '/prestart'
+      fullPath: '/operator/prestart'
+      preLoaderRoute: typeof AuthenticatedOperatorPrestartRouteImport
+      parentRoute: typeof AuthenticatedOperatorRoute
+    }
+    '/_authenticated/operator/photos': {
+      id: '/_authenticated/operator/photos'
+      path: '/photos'
+      fullPath: '/operator/photos'
+      preLoaderRoute: typeof AuthenticatedOperatorPhotosRouteImport
+      parentRoute: typeof AuthenticatedOperatorRoute
+    }
+    '/_authenticated/operator/hours': {
+      id: '/_authenticated/operator/hours'
+      path: '/hours'
+      fullPath: '/operator/hours'
+      preLoaderRoute: typeof AuthenticatedOperatorHoursRouteImport
+      parentRoute: typeof AuthenticatedOperatorRoute
+    }
+    '/_authenticated/operator/defect': {
+      id: '/_authenticated/operator/defect'
+      path: '/defect'
+      fullPath: '/operator/defect'
+      preLoaderRoute: typeof AuthenticatedOperatorDefectRouteImport
+      parentRoute: typeof AuthenticatedOperatorRoute
     }
     '/_authenticated/assets/$id': {
       id: '/_authenticated/assets/$id'
@@ -304,10 +442,35 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedOperatorRouteChildren {
+  AuthenticatedOperatorDefectRoute: typeof AuthenticatedOperatorDefectRoute
+  AuthenticatedOperatorHoursRoute: typeof AuthenticatedOperatorHoursRoute
+  AuthenticatedOperatorPhotosRoute: typeof AuthenticatedOperatorPhotosRoute
+  AuthenticatedOperatorPrestartRoute: typeof AuthenticatedOperatorPrestartRoute
+  AuthenticatedOperatorProfileRoute: typeof AuthenticatedOperatorProfileRoute
+  AuthenticatedOperatorTicketsRoute: typeof AuthenticatedOperatorTicketsRoute
+  AuthenticatedOperatorIndexRoute: typeof AuthenticatedOperatorIndexRoute
+}
+
+const AuthenticatedOperatorRouteChildren: AuthenticatedOperatorRouteChildren = {
+  AuthenticatedOperatorDefectRoute: AuthenticatedOperatorDefectRoute,
+  AuthenticatedOperatorHoursRoute: AuthenticatedOperatorHoursRoute,
+  AuthenticatedOperatorPhotosRoute: AuthenticatedOperatorPhotosRoute,
+  AuthenticatedOperatorPrestartRoute: AuthenticatedOperatorPrestartRoute,
+  AuthenticatedOperatorProfileRoute: AuthenticatedOperatorProfileRoute,
+  AuthenticatedOperatorTicketsRoute: AuthenticatedOperatorTicketsRoute,
+  AuthenticatedOperatorIndexRoute: AuthenticatedOperatorIndexRoute,
+}
+
+const AuthenticatedOperatorRouteWithChildren =
+  AuthenticatedOperatorRoute._addFileChildren(
+    AuthenticatedOperatorRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
-  AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
+  AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRouteWithChildren
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
@@ -320,7 +483,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
-  AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
+  AuthenticatedOperatorRoute: AuthenticatedOperatorRouteWithChildren,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
