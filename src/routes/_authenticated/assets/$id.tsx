@@ -166,7 +166,9 @@ function AssetDetail() {
   }
 
   // Service status (next-service due based on intervals)
-  const serviceInfo = computeServiceStatus(asset);
+  const meterMode = assetMeterMode(asset.type);
+  const serviceDue = computeServiceDue(asset);
+  const lastService = (services ?? [])[0];
 
   return (
     <AppShell>
@@ -218,12 +220,14 @@ function AssetDetail() {
             </dl>
           </div>
 
-          {/* Meters */}
+          {/* Meter */}
           <div className="surface-card">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div>
-                <h3 className="text-sm font-semibold">Meters</h3>
-                <p className="text-xs text-muted-foreground">Kilometres & engine hours</p>
+                <h3 className="text-sm font-semibold">{meterMode === "km" ? "Kilometres" : "Engine hours"}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {meterMode === "km" ? "Odometer reading" : "Operating hours"}
+                </p>
               </div>
               {editable && (
                 <Dialog open={meterOpen} onOpenChange={setMeterOpen}>
@@ -233,8 +237,8 @@ function AssetDetail() {
                   <UpdateMeterDialog
                     assetId={id}
                     companyId={asset.company_id}
-                    currentKm={asset.odometer}
-                    currentHours={asset.engine_hours}
+                    mode={meterMode}
+                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
                     onSaved={() => {
                       setMeterOpen(false);
                       qc.invalidateQueries({ queryKey: ["asset", id] });
@@ -244,23 +248,52 @@ function AssetDetail() {
                 </Dialog>
               )}
             </div>
-            <div className="grid grid-cols-2 divide-x divide-border">
-              <MeterCell label="Kilometres" value={asset.odometer != null ? `${Number(asset.odometer).toLocaleString()} km` : "—"} />
-              <MeterCell label="Engine hours" value={asset.engine_hours != null ? `${Number(asset.engine_hours).toLocaleString()} h` : "—"} />
-            </div>
-            {serviceInfo && (
-              <div className="border-t border-border px-5 py-3">
-                <div className="text-xs text-muted-foreground">Next service</div>
-                <div className={`mt-1 text-sm font-medium ${serviceInfo.tone}`}>{serviceInfo.label}</div>
+            <div className="px-5 py-4">
+              <div className="text-3xl font-semibold">
+                {meterMode === "km"
+                  ? (asset.odometer != null ? `${Number(asset.odometer).toLocaleString()} km` : "—")
+                  : (asset.engine_hours != null ? `${Number(asset.engine_hours).toLocaleString()} h` : "—")}
               </div>
-            )}
-            {(meters ?? []).length > 0 && (
+            </div>
+
+            {/* Service summary */}
+            <div className="grid grid-cols-2 divide-x divide-border border-t border-border">
+              <div className="px-5 py-3">
+                <div className="text-xs text-muted-foreground">Last serviced</div>
+                <div className="mt-1 text-sm font-medium">
+                  {lastService ? fmtDate(lastService.service_date) : asset.last_service_date ? fmtDate(asset.last_service_date) : "—"}
+                </div>
+                {lastService && (
+                  <div className="text-[11px] text-muted-foreground">
+                    {meterMode === "km" && lastService.odometer_at != null && `at ${Number(lastService.odometer_at).toLocaleString()} km`}
+                    {meterMode === "hours" && lastService.hours_at != null && `at ${Number(lastService.hours_at).toLocaleString()} h`}
+                  </div>
+                )}
+              </div>
+              <div className="px-5 py-3">
+                <div className="text-xs text-muted-foreground">Next service</div>
+                {serviceDue ? (
+                  <>
+                    <div className={`mt-1 text-sm font-semibold ${serviceDue.overdue ? "text-destructive" : serviceDue.warning ? "text-warning" : "text-success"}`}>
+                      {serviceDue.label}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      at {serviceDue.dueAt.toLocaleString()} {serviceDue.mode === "km" ? "km" : "h"}
+                    </div>
+                  </>
+                ) : (
+                  <div className="mt-1 text-sm text-muted-foreground">Set interval to track</div>
+                )}
+              </div>
+            </div>
+
+            {(meters ?? []).filter((m: any) => m.meter_type === meterMode).length > 0 && (
               <details className="border-t border-border">
                 <summary className="cursor-pointer px-5 py-2 text-xs text-muted-foreground hover:text-foreground">
-                  <History className="mr-1 inline size-3" /> History ({meters?.length})
+                  <History className="mr-1 inline size-3" /> History
                 </summary>
                 <ul className="max-h-48 divide-y divide-border overflow-y-auto text-xs">
-                  {meters!.map((m: any) => (
+                  {meters!.filter((m: any) => m.meter_type === meterMode).map((m: any) => (
                     <li key={m.id} className="flex items-center justify-between px-5 py-2">
                       <span className="text-muted-foreground">{fmtDate(m.recorded_at)}</span>
                       <span>
