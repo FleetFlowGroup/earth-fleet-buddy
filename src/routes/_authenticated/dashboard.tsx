@@ -46,7 +46,10 @@ function Dashboard() {
     enabled: !!companyId,
     queryFn: async () => {
       const [assetsRes, complianceRes, docsRes] = await Promise.all([
-        supabase.from("assets").select("id,type", { count: "exact" }).eq("company_id", companyId!),
+        supabase
+          .from("assets")
+          .select("id,name,type,registration,asset_number,odometer,engine_hours,last_service_date,last_service_odometer,last_service_hours,service_interval_km,service_interval_hours", { count: "exact" })
+          .eq("company_id", companyId!),
         supabase
           .from("compliance_records")
           .select("id,expiry_date,type,label,asset_id,assets(name,registration)")
@@ -54,22 +57,33 @@ function Dashboard() {
           .order("expiry_date", { ascending: true }),
         supabase.from("documents").select("id", { count: "exact", head: true }).eq("company_id", companyId!),
       ]);
-      const assets = assetsRes.data ?? [];
+      const assets = (assetsRes.data ?? []) as any[];
       const compliance = complianceRes.data ?? [];
       const buckets = { expired: 0, critical: 0, soon: 0, ok: 0 };
       for (const c of compliance) buckets[expiryStatus(c.expiry_date)]++;
+
+      // Service status per asset
+      const serviceRows = assets
+        .map((a) => ({ asset: a, due: computeServiceDue(a) }))
+        .filter((x) => x.due !== null) as { asset: any; due: NonNullable<ReturnType<typeof computeServiceDue>> }[];
+      const serviceAlerts = serviceRows
+        .filter((x) => x.due.overdue || x.due.warning)
+        .sort((a, b) => a.due.remaining - b.due.remaining);
+
       return {
         assetsCount: assetsRes.count ?? assets.length,
-        vehicleCount: assets.filter((a: any) => a.type === "vehicle").length,
-        machineryCount: assets.filter((a: any) => a.type !== "vehicle").length,
+        vehicleCount: assets.filter((a: any) => assetMeterMode(a.type) === "km").length,
+        machineryCount: assets.filter((a: any) => assetMeterMode(a.type) === "hours").length,
         docsCount: docsRes.count ?? 0,
         compliance,
         buckets,
+        serviceAlerts,
       };
     },
   });
 
   const upcoming = (stats?.compliance ?? []).slice(0, 8);
+  const serviceAlerts = stats?.serviceAlerts ?? [];
 
   return (
     <AppShell>
