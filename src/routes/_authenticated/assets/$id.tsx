@@ -229,24 +229,6 @@ function AssetDetail() {
                   {meterMode === "km" ? "Odometer reading" : "Operating hours"}
                 </p>
               </div>
-              {editable && (
-                <Dialog open={meterOpen} onOpenChange={setMeterOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" variant="outline"><Gauge className="mr-2 size-4" />Update</Button>
-                  </DialogTrigger>
-                  <UpdateMeterDialog
-                    assetId={id}
-                    companyId={asset.company_id}
-                    mode={meterMode}
-                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
-                    onSaved={() => {
-                      setMeterOpen(false);
-                      qc.invalidateQueries({ queryKey: ["asset", id] });
-                      qc.invalidateQueries({ queryKey: ["asset-meters", id] });
-                    }}
-                  />
-                </Dialog>
-              )}
             </div>
             <div className="px-5 py-4">
               <div className="text-3xl font-semibold">
@@ -490,24 +472,6 @@ function AssetDetail() {
                 <h3 className="text-sm font-semibold">Service history</h3>
                 <p className="text-xs text-muted-foreground">Permanent record of completed services</p>
               </div>
-              {editable && (
-                <Dialog open={serviceOpen} onOpenChange={setServiceOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm"><Wrench className="mr-2 size-4" />Log service</Button>
-                  </DialogTrigger>
-                  <LogServiceDialog
-                    assetId={id}
-                    companyId={asset.company_id}
-                    mode={meterMode}
-                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
-                    onSaved={() => {
-                      setServiceOpen(false);
-                      qc.invalidateQueries({ queryKey: ["asset-services", id] });
-                      qc.invalidateQueries({ queryKey: ["asset", id] });
-                    }}
-                  />
-                </Dialog>
-              )}
             </div>
             {(services ?? []).length === 0 ? (
               <EmptyRow icon={Wrench} text="No services logged yet" />
