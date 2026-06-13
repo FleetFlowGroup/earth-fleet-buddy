@@ -52,6 +52,10 @@ import {
   Wrench,
   History,
 } from "lucide-react";
+import { AssetPhotoGallery } from "@/lib/asset-photos";
+import { AssetExpenses } from "@/lib/asset-expenses";
+import { AssetQrButton } from "@/lib/asset-qr";
+import { AssetExtrasDialog } from "@/lib/asset-extras-dialog";
 
 export const Route = createFileRoute("/_authenticated/assets/$id")({
   head: () => ({ meta: [{ title: "Asset · FleetFlow" }] }),
