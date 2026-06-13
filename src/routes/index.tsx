@@ -1,5 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Truck,
   ShieldCheck,
@@ -25,6 +27,18 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (active && data.user) navigate({ to: "/dashboard", replace: true });
+    });
+    return () => {
+      active = false;
+    };
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
 
