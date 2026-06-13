@@ -374,8 +374,7 @@ function AssetDetail() {
                     </Button>
                   </DialogTrigger>
                   <UpdateMeterDialog
-                    assetId={id} companyId={asset.company_id} mode={meterMode}
-                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
+                    asset={asset} mode={meterMode}
                     onSaved={() => {
                       setMeterOpen(false);
                       qc.invalidateQueries({ queryKey: ["asset", id] });
