@@ -407,6 +407,36 @@ function Dashboard() {
       />
 
       <div className="space-y-6 p-4 sm:p-8">
+        {/* === Owner overview strip === */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          <OwnerStat icon={Truck} label="Total Assets" value={stats?.assetsCount ?? 0} />
+          <OwnerStat icon={Users} label="Operators" value={stats?.operatorsCount ?? 0} />
+          <OwnerStat icon={AlertTriangle} label="Defects Open" value={todayStats?.openDefects ?? 0} tone={(todayStats?.openDefects ?? 0) > 0 ? "danger" : undefined} />
+          <OwnerStat icon={Wrench} label="Services Due" value={overdueServices.length + dueSoonServices.length} tone={overdueServices.length > 0 ? "danger" : dueSoonServices.length > 0 ? "warning" : undefined} />
+          <OwnerStat icon={Shield} label="Rego Expiring" value={registrationDue} tone={registrationDue > 0 ? "warning" : undefined} />
+          <button type="button" onClick={() => setDailyOpen((v) => !v)} className="surface-card flex flex-col items-start gap-1 p-3 text-left transition hover:bg-accent/30">
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+              <CalendarDays className="size-3.5" /> Prestarts Today
+            </div>
+            <div className="text-xl font-bold">
+              {todayStats?.prestartsCompleted ?? 0}<span className="text-sm font-normal text-muted-foreground">/{todayStats?.assignedAssets ?? 0}</span>
+            </div>
+            <div className="text-[10px] text-primary">Daily compliance →</div>
+          </button>
+        </div>
+
+        {dailyOpen && (
+          <DailyCompliancePanel
+            ready={Math.max(0, (stats?.assetsCount ?? 0) - overdueServices.length - registrationDue - (todayStats?.openDefects ?? 0))}
+            awaitingPrestart={Math.max(0, (todayStats?.assignedAssets ?? 0) - (todayStats?.prestartsCompleted ?? 0))}
+            servicesDue={overdueServices.length + dueSoonServices.length}
+            regoExpired={registrationDue}
+            licenceExpiring={expiringIn30 - registrationDue - insuranceDue > 0 ? expiringIn30 - registrationDue - insuranceDue : 0}
+            score={health.score}
+            onClose={() => setDailyOpen(false)}
+          />
+        )}
+
         {/* === Fleet Health Score === */}
         <div className={`surface-card grid gap-6 border-l-4 p-5 sm:p-6 lg:grid-cols-[auto_1fr] ${healthTone.border}`}>
           <div className="flex items-center gap-5">
