@@ -78,8 +78,8 @@ function Landing() {
               Fleet compliance, <span className="brand-gradient-text">finally under control</span>.
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-              Track rego, insurance, services and compliance docs for every truck, dozer
-              and trailer. Automatic reminders 30, 14 and 7 days before anything expires.
+              Track rego, insurance, services and compliance docs for every truck, dozer and
+              trailer. Automatic reminders 30, 14 and 7 days before anything expires.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Button asChild size="lg" className="glow">
@@ -101,7 +101,9 @@ function Landing() {
             <div className="rounded-lg border border-border bg-background/60 p-4 sm:p-6">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
                 <div>
-                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Dashboard</div>
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Dashboard
+                  </div>
                   <div className="text-lg font-semibold">Compliance overview</div>
                 </div>
                 <div className="flex gap-2 text-xs text-muted-foreground">
@@ -127,8 +129,8 @@ function Landing() {
             Everything your yard manager wishes you already had
           </h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Replace the whiteboard, the wall calendar and the lost paper folders with
-            one source of truth your whole crew can use.
+            Replace the whiteboard, the wall calendar and the lost paper folders with one source of
+            truth your whole crew can use.
           </p>
 
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -157,7 +159,9 @@ function Landing() {
       {/* How */}
       <section id="how" className="border-t border-border/60 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Up and running in minutes</h2>
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            Up and running in minutes
+          </h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <Step n={1} title="Create your company">
               Sign up, name your business and add your ABN. You're the first admin.
@@ -175,10 +179,10 @@ function Landing() {
       {/* Pricing */}
       <section id="pricing" className="border-t border-border/60 py-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Simple pricing
-          </h2>
-          <p className="mt-3 text-muted-foreground">Free during beta. Pay per asset later — no per-user fees.</p>
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Simple pricing</h2>
+          <p className="mt-3 text-muted-foreground">
+            Free during beta. Pay per asset later — no per-user fees.
+          </p>
           <div className="surface-card mx-auto mt-8 max-w-md p-8 text-left">
             <div className="flex items-baseline justify-between">
               <div className="text-xl font-semibold">Beta access</div>
@@ -191,7 +195,9 @@ function Landing() {
               <li>✓ Automatic 30/14/7-day reminders</li>
             </ul>
             <Button asChild className="mt-8 w-full" size="lg">
-              <Link to="/auth" search={{ mode: "signup" }}>Create your account</Link>
+              <Link to="/auth" search={{ mode: "signup" }}>
+                Create your account
+              </Link>
             </Button>
           </div>
         </div>
