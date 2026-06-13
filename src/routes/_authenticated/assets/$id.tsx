@@ -431,8 +431,8 @@ function AssetDetail() {
                     </div>
                     <div className="mt-0.5 text-xs text-muted-foreground">
                       {s.technician && <span>By {s.technician} · </span>}
-                      {s.odometer_at != null && <span>{Number(s.odometer_at).toLocaleString()} km · </span>}
-                      {s.hours_at != null && <span>{Number(s.hours_at).toLocaleString()} h</span>}
+                      {meterMode === "km" && s.odometer_at != null && <span>{Number(s.odometer_at).toLocaleString()} km</span>}
+                      {meterMode === "hours" && s.hours_at != null && <span>{Number(s.hours_at).toLocaleString()} h</span>}
                     </div>
                     {s.parts_replaced && <div className="mt-1 text-xs"><b>Parts:</b> {s.parts_replaced}</div>}
                     {s.notes && <div className="mt-1 text-xs text-muted-foreground">{s.notes}</div>}
