@@ -11,7 +11,7 @@ export type CurrentUserData = {
     company_id: string | null;
   } | null;
   company: { id: string; name: string; abn: string | null } | null;
-  role: "admin" | "manager" | "viewer" | null;
+  role: "admin" | "manager" | "office_staff" | "workshop" | "viewer" | "operator" | null;
 };
 
 export function useCurrentUser() {
