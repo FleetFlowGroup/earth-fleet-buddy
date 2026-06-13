@@ -182,6 +182,7 @@ function AssetsPage() {
                   params={{ id: a.id }}
                   className="flex items-center justify-between gap-3 px-5 py-4 transition hover:bg-accent/30"
                 >
+                  <AssetPrimaryThumb assetId={a.id} className="size-12 shrink-0" />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="truncate text-sm font-semibold">{a.name}</span>
