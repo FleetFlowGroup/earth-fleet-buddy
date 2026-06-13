@@ -137,6 +137,82 @@ export function statusBadgeColor(status: string) {
   }
 }
 
+// Which meter applies to an asset type.
+// Trucks & road vehicles → kilometres only. Plant/machinery → engine hours only.
+const KM_TYPES = new Set([
+  "vehicle",
+  "truck",
+  "prime_mover",
+  "trailer",
+  "ute",
+  "car",
+  "dump_truck",
+]);
+
+export type MeterMode = "km" | "hours";
+
+export function assetMeterMode(type: string | null | undefined): MeterMode {
+  return type && KM_TYPES.has(type) ? "km" : "hours";
+}
+
+// Warning thresholds for upcoming services
+export const SERVICE_WARN_HOURS = 50;
+export const SERVICE_WARN_KM = 500;
+
+export type ServiceDue = {
+  mode: MeterMode;
+  remaining: number; // negative = overdue
+  dueAt: number; // meter value at which service is due
+  current: number;
+  overdue: boolean;
+  warning: boolean; // within threshold
+  label: string; // "Due in 32 h" / "Overdue by 18 km"
+};
+
+export function computeServiceDue(asset: any): ServiceDue | null {
+  const mode = assetMeterMode(asset?.type);
+  if (mode === "km") {
+    const interval = asset.service_interval_km;
+    const last = asset.last_service_odometer;
+    const current = asset.odometer;
+    if (interval == null || last == null || current == null) return null;
+    const dueAt = Number(last) + Number(interval);
+    const remaining = dueAt - Number(current);
+    const overdue = remaining < 0;
+    const warning = !overdue && remaining <= SERVICE_WARN_KM;
+    return {
+      mode,
+      remaining,
+      dueAt,
+      current: Number(current),
+      overdue,
+      warning,
+      label: overdue
+        ? `Overdue by ${Math.abs(remaining).toLocaleString()} km`
+        : `Due in ${remaining.toLocaleString()} km`,
+    };
+  }
+  const interval = asset.service_interval_hours;
+  const last = asset.last_service_hours;
+  const current = asset.engine_hours;
+  if (interval == null || last == null || current == null) return null;
+  const dueAt = Number(last) + Number(interval);
+  const remaining = dueAt - Number(current);
+  const overdue = remaining < 0;
+  const warning = !overdue && remaining <= SERVICE_WARN_HOURS;
+  return {
+    mode,
+    remaining,
+    dueAt,
+    current: Number(current),
+    overdue,
+    warning,
+    label: overdue
+      ? `Overdue by ${Math.abs(remaining).toFixed(0)} h`
+      : `Due in ${remaining.toFixed(0)} h`,
+  };
+}
+
 export const DOCUMENT_CATEGORIES: readonly string[] = [
   "registration",
   "insurance",

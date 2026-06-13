@@ -8,6 +8,8 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import {
   ASSET_TYPE_LABELS,
   COMPLIANCE_LABELS,
+  assetMeterMode,
+  computeServiceDue,
   daysUntil,
   expiryStatus,
   fmtDate,
@@ -21,6 +23,7 @@ import {
   FileText,
   Plus,
   Truck,
+  Wrench,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -43,7 +46,10 @@ function Dashboard() {
     enabled: !!companyId,
     queryFn: async () => {
       const [assetsRes, complianceRes, docsRes] = await Promise.all([
-        supabase.from("assets").select("id,type", { count: "exact" }).eq("company_id", companyId!),
+        supabase
+          .from("assets")
+          .select("id,name,type,registration,asset_number,odometer,engine_hours,last_service_date,last_service_odometer,last_service_hours,service_interval_km,service_interval_hours", { count: "exact" })
+          .eq("company_id", companyId!),
         supabase
           .from("compliance_records")
           .select("id,expiry_date,type,label,asset_id,assets(name,registration)")
@@ -51,22 +57,33 @@ function Dashboard() {
           .order("expiry_date", { ascending: true }),
         supabase.from("documents").select("id", { count: "exact", head: true }).eq("company_id", companyId!),
       ]);
-      const assets = assetsRes.data ?? [];
+      const assets = (assetsRes.data ?? []) as any[];
       const compliance = complianceRes.data ?? [];
       const buckets = { expired: 0, critical: 0, soon: 0, ok: 0 };
       for (const c of compliance) buckets[expiryStatus(c.expiry_date)]++;
+
+      // Service status per asset
+      const serviceRows = assets
+        .map((a) => ({ asset: a, due: computeServiceDue(a) }))
+        .filter((x) => x.due !== null) as { asset: any; due: NonNullable<ReturnType<typeof computeServiceDue>> }[];
+      const serviceAlerts = serviceRows
+        .filter((x) => x.due.overdue || x.due.warning)
+        .sort((a, b) => a.due.remaining - b.due.remaining);
+
       return {
         assetsCount: assetsRes.count ?? assets.length,
-        vehicleCount: assets.filter((a: any) => a.type === "vehicle").length,
-        machineryCount: assets.filter((a: any) => a.type !== "vehicle").length,
+        vehicleCount: assets.filter((a: any) => assetMeterMode(a.type) === "km").length,
+        machineryCount: assets.filter((a: any) => assetMeterMode(a.type) === "hours").length,
         docsCount: docsRes.count ?? 0,
         compliance,
         buckets,
+        serviceAlerts,
       };
     },
   });
 
   const upcoming = (stats?.compliance ?? []).slice(0, 8);
+  const serviceAlerts = stats?.serviceAlerts ?? [];
 
   return (
     <AppShell>
@@ -112,6 +129,68 @@ function Dashboard() {
             tone="neutral"
           />
         </div>
+
+        {/* Service status */}
+        <div className="surface-card">
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <div className="flex items-center gap-2">
+              <Wrench className="size-4 text-primary" />
+              <div>
+                <h2 className="text-base font-semibold">Service status</h2>
+                <p className="text-xs text-muted-foreground">
+                  Overdue services and assets within 50 h / 500 km of their next service
+                </p>
+              </div>
+            </div>
+            <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+              {serviceAlerts.length} {serviceAlerts.length === 1 ? "asset" : "assets"}
+            </span>
+          </div>
+
+          {serviceAlerts.length === 0 ? (
+            <EmptyState
+              icon={CheckCircle2}
+              title="No services due soon"
+              description="All assets with a service interval set are within their schedule."
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {serviceAlerts.map(({ asset, due }) => {
+                const tone = due.overdue
+                  ? "bg-destructive/15 text-destructive border-destructive/30"
+                  : "bg-warning/15 text-warning border-warning/30";
+                const unit = due.mode === "km" ? "km" : "h";
+                return (
+                  <li key={asset.id}>
+                    <Link
+                      to="/assets/$id"
+                      params={{ id: asset.id }}
+                      className="flex items-center justify-between gap-3 px-5 py-3 transition hover:bg-accent/30"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium">
+                          {asset.name}
+                          {asset.registration && <span className="text-muted-foreground"> · {asset.registration}</span>}
+                          {asset.asset_number && <span className="text-muted-foreground"> · #{asset.asset_number}</span>}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Last serviced {asset.last_service_date ? fmtDate(asset.last_service_date) : "—"}
+                          {" · "}now at {Number(due.current).toLocaleString()} {unit}
+                          {" · "}next at {due.dueAt.toLocaleString()} {unit}
+                        </div>
+                      </div>
+                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${tone}`}>
+                        {due.label}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+
 
         {/* Upcoming expiries */}
         <div className="surface-card">
