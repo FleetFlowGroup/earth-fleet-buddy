@@ -617,19 +617,19 @@ function AddComplianceDialog({
 function UpdateMeterDialog({
   assetId,
   companyId,
-  currentKm,
-  currentHours,
+  mode,
+  current,
   onSaved,
 }: {
   assetId: string;
   companyId: string;
-  currentKm: number | null;
-  currentHours: number | null;
+  mode: "km" | "hours";
+  current: number | null;
   onSaved: () => void;
 }) {
-  const [type, setType] = useState<"km" | "hours">("km");
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
+  const unit = mode === "km" ? "km" : "h";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -637,8 +637,7 @@ function UpdateMeterDialog({
     setSaving(true);
     try {
       const newValue = Number(value);
-      const previous = type === "km" ? currentKm : currentHours;
-      if (previous != null && newValue < Number(previous)) {
+      if (current != null && newValue < Number(current)) {
         if (!confirm("New reading is lower than the previous one. Continue anyway?")) {
           setSaving(false);
           return;
@@ -648,14 +647,14 @@ function UpdateMeterDialog({
       const { error: logErr } = await (supabase as any).from("meter_readings").insert({
         asset_id: assetId,
         company_id: companyId,
-        meter_type: type,
-        previous_value: previous,
+        meter_type: mode,
+        previous_value: current,
         new_value: newValue,
-        difference: previous != null ? newValue - Number(previous) : null,
+        difference: current != null ? newValue - Number(current) : null,
         recorded_by: user.user?.id ?? null,
       });
       if (logErr) throw logErr;
-      const patch: any = type === "km" ? { odometer: Math.round(newValue) } : { engine_hours: newValue };
+      const patch: any = mode === "km" ? { odometer: Math.round(newValue) } : { engine_hours: newValue };
       const { error: upErr } = await (supabase as any).from("assets").update(patch).eq("id", assetId);
       if (upErr) throw upErr;
       toast.success("Reading recorded");
@@ -667,34 +666,22 @@ function UpdateMeterDialog({
     }
   }
 
-  const previous = type === "km" ? currentKm : currentHours;
-
   return (
     <DialogContent>
-      <DialogHeader><DialogTitle>Update meter reading</DialogTitle></DialogHeader>
+      <DialogHeader>
+        <DialogTitle>Update {mode === "km" ? "odometer" : "engine hours"}</DialogTitle>
+      </DialogHeader>
       <form onSubmit={submit} className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label>Type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as any)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="km">Kilometres</SelectItem>
-                <SelectItem value="hours">Engine hours</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Previous</Label>
-            <Input value={previous != null ? Number(previous).toLocaleString() : "—"} readOnly />
-          </div>
+        <div className="space-y-1.5">
+          <Label>Previous reading</Label>
+          <Input value={current != null ? `${Number(current).toLocaleString()} ${unit}` : "—"} readOnly />
         </div>
         <div className="space-y-1.5">
-          <Label>New reading ({type === "km" ? "km" : "hours"})</Label>
+          <Label>New reading ({unit})</Label>
           <Input
             type="number"
             min={0}
-            step={type === "km" ? 1 : 0.1}
+            step={mode === "km" ? 1 : 0.1}
             required
             value={value}
             onChange={(e) => setValue(e.target.value)}
@@ -715,14 +702,14 @@ function UpdateMeterDialog({
 function LogServiceDialog({
   assetId,
   companyId,
-  currentKm,
-  currentHours,
+  mode,
+  current,
   onSaved,
 }: {
   assetId: string;
   companyId: string;
-  currentKm: number | null;
-  currentHours: number | null;
+  mode: "km" | "hours";
+  current: number | null;
   onSaved: () => void;
 }) {
   const [form, setForm] = useState({
@@ -730,20 +717,19 @@ function LogServiceDialog({
     workshop: "",
     technician: "",
     cost: "",
-    odometer_at: currentKm != null ? String(currentKm) : "",
-    hours_at: currentHours != null ? String(currentHours) : "",
+    meter_at: current != null ? String(current) : "",
     parts_replaced: "",
     notes: "",
   });
   const [saving, setSaving] = useState(false);
+  const unit = mode === "km" ? "km" : "h";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     try {
       const { data: user } = await supabase.auth.getUser();
-      const odo = form.odometer_at ? Number(form.odometer_at) : null;
-      const hrs = form.hours_at ? Number(form.hours_at) : null;
+      const meter = form.meter_at ? Number(form.meter_at) : null;
       const { error } = await (supabase as any).from("service_history").insert({
         asset_id: assetId,
         company_id: companyId,
@@ -751,17 +737,18 @@ function LogServiceDialog({
         workshop: form.workshop || null,
         technician: form.technician || null,
         cost: form.cost ? Number(form.cost) : null,
-        odometer_at: odo,
-        hours_at: hrs,
+        odometer_at: mode === "km" ? meter : null,
+        hours_at: mode === "hours" ? meter : null,
         parts_replaced: form.parts_replaced || null,
         notes: form.notes || null,
         created_by: user.user?.id ?? null,
       });
       if (error) throw error;
-      // Update asset's last_service markers
       const patch: any = { last_service_date: form.service_date };
-      if (odo != null) patch.last_service_odometer = odo;
-      if (hrs != null) patch.last_service_hours = hrs;
+      if (meter != null) {
+        if (mode === "km") patch.last_service_odometer = meter;
+        else patch.last_service_hours = meter;
+      }
       await (supabase as any).from("assets").update(patch).eq("id", assetId);
       toast.success("Service logged");
       onSaved();
@@ -795,13 +782,9 @@ function LogServiceDialog({
             <Label>Technician</Label>
             <Input maxLength={80} value={form.technician} onChange={(e) => set("technician", e.target.value)} />
           </div>
-          <div className="space-y-1.5">
-            <Label>Odometer at service (km)</Label>
-            <Input type="number" min={0} value={form.odometer_at} onChange={(e) => set("odometer_at", e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Engine hours at service</Label>
-            <Input type="number" min={0} step="0.1" value={form.hours_at} onChange={(e) => set("hours_at", e.target.value)} />
+          <div className="space-y-1.5 col-span-2">
+            <Label>{mode === "km" ? "Odometer at service (km)" : "Engine hours at service"}</Label>
+            <Input type="number" min={0} step={mode === "km" ? 1 : 0.1} value={form.meter_at} onChange={(e) => set("meter_at", e.target.value)} />
           </div>
         </div>
         <div className="space-y-1.5">
@@ -822,6 +805,7 @@ function LogServiceDialog({
     </DialogContent>
   );
 }
+
 
 function UploadButton({
   companyId,
