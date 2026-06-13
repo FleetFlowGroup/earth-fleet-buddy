@@ -16,6 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationsBell } from "@/components/notifications-bell";
 import { navFor, ROLE_LABELS } from "@/lib/permissions";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
@@ -56,6 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="text-sm font-semibold">FleetFlow</span>
           </Link>
           <div className="flex items-center gap-1">
+            <NotificationsBell />
             <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open menu">
               <Menu className="size-5" />
@@ -108,7 +110,10 @@ function SidebarInner({
             {company && <div className="truncate text-[11px] text-muted-foreground">{company}</div>}
           </div>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <NotificationsBell />
+          <ThemeToggle />
+        </div>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4 text-sm">
