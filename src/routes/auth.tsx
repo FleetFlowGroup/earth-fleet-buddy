@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { z } from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { Truck, Loader2 } from "lucide-react";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
+  oauth: z.enum(["google"]).optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -26,13 +27,39 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { mode } = useSearch({ from: "/auth" });
+  const { mode, oauth } = useSearch({ from: "/auth" });
   const navigate = useNavigate();
   const [tab, setTab] = useState<"signin" | "signup">(mode ?? "signin");
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+
+  useEffect(() => {
+    if (oauth !== "google") return;
+
+    let active = true;
+    const finishGoogleSignIn = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.auth.getUser();
+
+      if (!active) return;
+      if (error || !data.user) {
+        toast.error("Google sign-in did not finish. Please try again.");
+        setLoading(false);
+        navigate({ to: "/auth", replace: true });
+        return;
+      }
+
+      toast.success("Welcome back");
+      navigate({ to: "/dashboard", replace: true });
+    };
+
+    finishGoogleSignIn();
+    return () => {
+      active = false;
+    };
+  }, [oauth, navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +93,7 @@ function AuthPage() {
   async function handleGoogle() {
     setLoading(true);
     const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/dashboard`,
+      redirect_uri: `${window.location.origin}/auth?oauth=google`,
     });
     if (res.error) {
       toast.error(res.error.message ?? "Google sign-in failed");
