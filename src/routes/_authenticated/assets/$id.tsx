@@ -825,8 +825,22 @@ function LogServiceDialog({
     parts_replaced: "",
     notes: "",
   });
+  const [invoice, setInvoice] = useState<File | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
   const unit = mode === "km" ? "km" : "h";
+
+  async function uploadFile(file: File, category: string) {
+    const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
+    const path = `${companyId}/${assetId}/service/${Date.now()}-${safe}`;
+    const { error: upErr } = await supabase.storage.from("compliance-docs").upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) throw upErr;
+    await (supabase as any).from("documents").insert({
+      asset_id: assetId, company_id: companyId,
+      name: file.name, storage_path: path,
+      mime_type: file.type, size_bytes: file.size, category,
+    });
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -853,8 +867,17 @@ function LogServiceDialog({
         if (mode === "km") patch.last_service_odometer = meter;
         else patch.last_service_hours = meter;
       }
+      // Also bump the current meter if higher
+      if (meter != null) {
+        if (mode === "km" && (current == null || meter > Number(current))) patch.odometer = Math.round(meter);
+        if (mode === "hours" && (current == null || meter > Number(current))) patch.engine_hours = meter;
+      }
       await (supabase as any).from("assets").update(patch).eq("id", assetId);
-      toast.success("Service logged");
+
+      if (invoice) await uploadFile(invoice, "service");
+      for (const p of photos) await uploadFile(p, "photo");
+
+      toast.success("Service completed");
       onSaved();
     } catch (err: any) {
       toast.error(err.message ?? "Could not save");
@@ -867,11 +890,11 @@ function LogServiceDialog({
 
   return (
     <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-      <DialogHeader><DialogTitle>Log a completed service</DialogTitle></DialogHeader>
+      <DialogHeader><DialogTitle>Complete service</DialogTitle></DialogHeader>
       <form onSubmit={submit} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label>Date</Label>
+            <Label>Service date</Label>
             <Input type="date" required value={form.service_date} onChange={(e) => set("service_date", e.target.value)} />
           </div>
           <div className="space-y-1.5">
@@ -887,7 +910,7 @@ function LogServiceDialog({
             <Input maxLength={80} value={form.technician} onChange={(e) => set("technician", e.target.value)} />
           </div>
           <div className="space-y-1.5 col-span-2">
-            <Label>{mode === "km" ? "Odometer at service (km)" : "Engine hours at service"}</Label>
+            <Label>{mode === "km" ? `Current odometer (${unit})` : `Current engine hours`}</Label>
             <Input type="number" min={0} step={mode === "km" ? 1 : 0.1} value={form.meter_at} onChange={(e) => set("meter_at", e.target.value)} />
           </div>
         </div>
@@ -898,6 +921,24 @@ function LogServiceDialog({
         <div className="space-y-1.5">
           <Label>Notes</Label>
           <Textarea maxLength={500} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>Invoice</Label>
+            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground hover:bg-accent/30">
+              <Upload className="size-4" />
+              <span className="truncate">{invoice ? invoice.name : "Upload invoice"}</span>
+              <input type="file" hidden accept="application/pdf,image/*" onChange={(e) => setInvoice(e.target.files?.[0] ?? null)} />
+            </label>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Photos</Label>
+            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground hover:bg-accent/30">
+              <Upload className="size-4" />
+              <span className="truncate">{photos.length ? `${photos.length} selected` : "Upload photos"}</span>
+              <input type="file" hidden accept="image/*" multiple onChange={(e) => setPhotos(Array.from(e.target.files ?? []))} />
+            </label>
+          </div>
         </div>
         <DialogFooter>
           <Button type="submit" disabled={saving}>
