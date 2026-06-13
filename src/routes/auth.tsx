@@ -93,7 +93,8 @@ function AuthPage() {
   async function handleGoogle() {
     setLoading(true);
     const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/auth?oauth=google`,
+      redirect_uri: window.location.origin,
+      extraParams: { prompt: "select_account" },
     });
     if (res.error) {
       toast.error(res.error.message ?? "Google sign-in failed");
