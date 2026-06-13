@@ -512,6 +512,8 @@ function AssetDetail() {
             )}
           </div>
 
+          <AssetExpenses assetId={id} companyId={asset.company_id} editable={editable} />
+
           {/* Documents */}
           <div className="surface-card">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
