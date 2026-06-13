@@ -52,6 +52,10 @@ import {
   Wrench,
   History,
 } from "lucide-react";
+import { AssetPhotoGallery } from "@/lib/asset-photos";
+import { AssetExpenses } from "@/lib/asset-expenses";
+import { AssetQrButton } from "@/lib/asset-qr";
+import { AssetExtrasDialog } from "@/lib/asset-extras-dialog";
 
 export const Route = createFileRoute("/_authenticated/assets/$id")({
   head: () => ({ meta: [{ title: "Asset · FleetFlow" }] }),
@@ -185,6 +189,7 @@ function AssetDetail() {
             <Button asChild variant="ghost" size="sm">
               <Link to="/assets"><ArrowLeft className="mr-1 size-4" />Back</Link>
             </Button>
+            <AssetQrButton assetId={id} label={asset.name} />
             {editable && (
               <Button variant="outline" size="sm" onClick={deleteAsset}>
                 <Trash2 className="mr-2 size-4" /> Delete
@@ -200,9 +205,12 @@ function AssetDetail() {
           <div className="surface-card p-5">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold">Details</h3>
-              <span className={`rounded-full border px-2 py-0.5 text-[11px] ${statusBadgeColor(asset.status ?? "active")}`}>
-                {ASSET_STATUS_LABELS[asset.status ?? "active"]}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className={`rounded-full border px-2 py-0.5 text-[11px] ${statusBadgeColor(asset.status ?? "active")}`}>
+                  {ASSET_STATUS_LABELS[asset.status ?? "active"]}
+                </span>
+                {editable && <AssetExtrasDialog asset={asset} onSaved={() => qc.invalidateQueries({ queryKey: ["asset", id] })} />}
+              </div>
             </div>
             <dl className="mt-4 space-y-2 text-sm">
               <Row label="Type">{ASSET_TYPE_LABELS[asset.type as string] ?? asset.type}</Row>
@@ -216,7 +224,8 @@ function AssetDetail() {
               <Row label="Location">{asset.location ?? "—"}</Row>
               <Row label="Operator">{asset.operator_name ?? "—"}</Row>
               <Row label="Purchased">{asset.purchase_date ? fmtDate(asset.purchase_date) : "—"}</Row>
-              <Row label="Price">{asset.purchase_price != null ? `$${Number(asset.purchase_price).toLocaleString()}` : "—"}</Row>
+              <Row label="Purchase price">{asset.purchase_price != null ? `$${Number(asset.purchase_price).toLocaleString()}` : "—"}</Row>
+              <Row label="Current value">{asset.current_value != null ? `$${Number(asset.current_value).toLocaleString()}` : "—"}</Row>
             </dl>
           </div>
 
@@ -300,6 +309,8 @@ function AssetDetail() {
 
         {/* Right column */}
         <div className="space-y-6 lg:col-span-2">
+          <AssetPhotoGallery assetId={id} companyId={asset.company_id} editable={editable} />
+
           {/* Service management */}
           <div className="surface-card overflow-hidden">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
@@ -500,6 +511,8 @@ function AssetDetail() {
               </ul>
             )}
           </div>
+
+          <AssetExpenses assetId={id} companyId={asset.company_id} editable={editable} />
 
           {/* Documents */}
           <div className="surface-card">
