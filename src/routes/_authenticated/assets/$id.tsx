@@ -205,9 +205,12 @@ function AssetDetail() {
           <div className="surface-card p-5">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold">Details</h3>
-              <span className={`rounded-full border px-2 py-0.5 text-[11px] ${statusBadgeColor(asset.status ?? "active")}`}>
-                {ASSET_STATUS_LABELS[asset.status ?? "active"]}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className={`rounded-full border px-2 py-0.5 text-[11px] ${statusBadgeColor(asset.status ?? "active")}`}>
+                  {ASSET_STATUS_LABELS[asset.status ?? "active"]}
+                </span>
+                {editable && <AssetExtrasDialog asset={asset} onSaved={() => qc.invalidateQueries({ queryKey: ["asset", id] })} />}
+              </div>
             </div>
             <dl className="mt-4 space-y-2 text-sm">
               <Row label="Type">{ASSET_TYPE_LABELS[asset.type as string] ?? asset.type}</Row>
@@ -221,7 +224,8 @@ function AssetDetail() {
               <Row label="Location">{asset.location ?? "—"}</Row>
               <Row label="Operator">{asset.operator_name ?? "—"}</Row>
               <Row label="Purchased">{asset.purchase_date ? fmtDate(asset.purchase_date) : "—"}</Row>
-              <Row label="Price">{asset.purchase_price != null ? `$${Number(asset.purchase_price).toLocaleString()}` : "—"}</Row>
+              <Row label="Purchase price">{asset.purchase_price != null ? `$${Number(asset.purchase_price).toLocaleString()}` : "—"}</Row>
+              <Row label="Current value">{asset.current_value != null ? `$${Number(asset.current_value).toLocaleString()}` : "—"}</Row>
             </dl>
           </div>
 
