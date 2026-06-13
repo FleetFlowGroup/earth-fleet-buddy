@@ -158,6 +158,34 @@ function Dashboard() {
     },
   });
 
+  // Today's prestart completion + assigned-asset count
+  const { data: todayStats } = useQuery({
+    queryKey: ["today-prestarts", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const start = new Date(); start.setHours(0, 0, 0, 0);
+      const [psR, assignedR, opsCountR, defectsR] = await Promise.all([
+        (supabase as any).from("prestart_checks").select("asset_id,status").eq("company_id", companyId!).gte("completed_at", start.toISOString()),
+        (supabase as any).from("assets").select("id", { count: "exact", head: true }).eq("company_id", companyId!).not("assigned_operator_id", "is", null),
+        (supabase as any).from("operators").select("id", { count: "exact", head: true }).eq("company_id", companyId!).eq("status", "active"),
+        (supabase as any).from("defect_reports").select("id", { count: "exact", head: true }).eq("company_id", companyId!).neq("status", "resolved"),
+      ]);
+      const rows = (psR.data ?? []) as any[];
+      const uniqueAssets = new Set(rows.map((r) => r.asset_id));
+      const failed = rows.filter((r) => r.status === "fail").length;
+      return {
+        prestartsCompleted: uniqueAssets.size,
+        prestartsFailed: failed,
+        assignedAssets: assignedR.count ?? 0,
+        activeOperators: opsCountR.count ?? 0,
+        openDefects: defectsR.count ?? 0,
+      };
+    },
+  });
+
+  const [dailyOpen, setDailyOpen] = useState(false);
+
+
   const assets = stats?.assets ?? [];
   const services = stats?.serviceRows ?? [];
   const overdueServices = services.filter((x) => x.due.overdue);
