@@ -229,24 +229,6 @@ function AssetDetail() {
                   {meterMode === "km" ? "Odometer reading" : "Operating hours"}
                 </p>
               </div>
-              {editable && (
-                <Dialog open={meterOpen} onOpenChange={setMeterOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" variant="outline"><Gauge className="mr-2 size-4" />Update</Button>
-                  </DialogTrigger>
-                  <UpdateMeterDialog
-                    assetId={id}
-                    companyId={asset.company_id}
-                    mode={meterMode}
-                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
-                    onSaved={() => {
-                      setMeterOpen(false);
-                      qc.invalidateQueries({ queryKey: ["asset", id] });
-                      qc.invalidateQueries({ queryKey: ["asset-meters", id] });
-                    }}
-                  />
-                </Dialog>
-              )}
             </div>
             <div className="px-5 py-4">
               <div className="text-3xl font-semibold">
@@ -318,6 +300,101 @@ function AssetDetail() {
 
         {/* Right column */}
         <div className="space-y-6 lg:col-span-2">
+          {/* Service management */}
+          <div className="surface-card overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className={`grid size-10 place-items-center rounded-lg ${serviceDue?.overdue ? "bg-destructive/15 text-destructive" : serviceDue?.warning ? "bg-warning/15 text-warning" : "bg-success/15 text-success"}`}>
+                  <Wrench className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold">Service management</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {serviceDue
+                      ? (serviceDue.overdue ? "🔴 Service overdue" : serviceDue.warning ? "🟠 Service due soon" : "🟢 Service up to date")
+                      : "Set a service interval to start tracking"}
+                  </p>
+                </div>
+              </div>
+              {serviceDue && (
+                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${serviceDue.overdue ? "bg-destructive/15 text-destructive border-destructive/30" : serviceDue.warning ? "bg-warning/15 text-warning border-warning/30" : "bg-success/15 text-success border-success/30"}`}>
+                  {serviceDue.label}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-3">
+              <SvcStat label="Last service" value={asset.last_service_date ? fmtDate(asset.last_service_date) : "—"} />
+              <SvcStat
+                label={meterMode === "km" ? "Last service km" : "Last service hours"}
+                value={
+                  meterMode === "km"
+                    ? (asset.last_service_odometer != null ? `${Number(asset.last_service_odometer).toLocaleString()} km` : "—")
+                    : (asset.last_service_hours != null ? `${Number(asset.last_service_hours).toLocaleString()} h` : "—")
+                }
+              />
+              <SvcStat
+                label={meterMode === "km" ? "Current km" : "Current hours"}
+                value={
+                  meterMode === "km"
+                    ? (asset.odometer != null ? `${Number(asset.odometer).toLocaleString()} km` : "—")
+                    : (asset.engine_hours != null ? `${Number(asset.engine_hours).toLocaleString()} h` : "—")
+                }
+              />
+              <SvcStat label="Next service due" value={serviceDue?.dueDate ? fmtDate(serviceDue.dueDate) : "—"} />
+              <SvcStat
+                label={meterMode === "km" ? "Next service km" : "Next service hours"}
+                value={serviceDue && serviceDue.dueAt > 0 ? `${serviceDue.dueAt.toLocaleString()} ${meterMode === "km" ? "km" : "h"}` : "—"}
+              />
+              <SvcStat
+                label="Interval"
+                value={
+                  meterMode === "km"
+                    ? (asset.service_interval_km ? `${Number(asset.service_interval_km).toLocaleString()} km` : "—")
+                    : (asset.service_interval_hours ? `${Number(asset.service_interval_hours).toLocaleString()} h` : "—")
+                }
+              />
+            </div>
+            {editable && (
+              <div className="grid gap-2 border-t border-border p-4 sm:grid-cols-2">
+                <Dialog open={meterOpen} onOpenChange={setMeterOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="lg" variant="outline" className="h-14 text-base">
+                      <Gauge className="mr-2 size-5" />Update {meterMode === "km" ? "KMs" : "Hours"}
+                    </Button>
+                  </DialogTrigger>
+                  <UpdateMeterDialog
+                    assetId={id} companyId={asset.company_id} mode={meterMode}
+                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
+                    onSaved={() => {
+                      setMeterOpen(false);
+                      qc.invalidateQueries({ queryKey: ["asset", id] });
+                      qc.invalidateQueries({ queryKey: ["asset-meters", id] });
+                      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+                    }}
+                  />
+                </Dialog>
+                <Dialog open={serviceOpen} onOpenChange={setServiceOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="lg" className="h-14 text-base">
+                      <Wrench className="mr-2 size-5" />Complete service
+                    </Button>
+                  </DialogTrigger>
+                  <LogServiceDialog
+                    assetId={id} companyId={asset.company_id} mode={meterMode}
+                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
+                    onSaved={() => {
+                      setServiceOpen(false);
+                      qc.invalidateQueries({ queryKey: ["asset-services", id] });
+                      qc.invalidateQueries({ queryKey: ["asset", id] });
+                      qc.invalidateQueries({ queryKey: ["asset-docs", id] });
+                      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+                    }}
+                  />
+                </Dialog>
+              </div>
+            )}
+          </div>
+
           {/* Compliance */}
           <div className="surface-card">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -395,24 +472,6 @@ function AssetDetail() {
                 <h3 className="text-sm font-semibold">Service history</h3>
                 <p className="text-xs text-muted-foreground">Permanent record of completed services</p>
               </div>
-              {editable && (
-                <Dialog open={serviceOpen} onOpenChange={setServiceOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm"><Wrench className="mr-2 size-4" />Log service</Button>
-                  </DialogTrigger>
-                  <LogServiceDialog
-                    assetId={id}
-                    companyId={asset.company_id}
-                    mode={meterMode}
-                    current={meterMode === "km" ? asset.odometer : asset.engine_hours}
-                    onSaved={() => {
-                      setServiceOpen(false);
-                      qc.invalidateQueries({ queryKey: ["asset-services", id] });
-                      qc.invalidateQueries({ queryKey: ["asset", id] });
-                    }}
-                  />
-                </Dialog>
-              )}
             </div>
             {(services ?? []).length === 0 ? (
               <EmptyRow icon={Wrench} text="No services logged yet" />
@@ -525,6 +584,15 @@ function EmptyRow({ icon: Icon, text }: { icon: any; text: string }) {
     <div className="grid place-items-center px-5 py-10 text-center">
       <Icon className="size-6 text-muted-foreground" />
       <div className="mt-2 text-xs text-muted-foreground">{text}</div>
+    </div>
+  );
+}
+
+function SvcStat({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="bg-background px-4 py-3">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-1 text-sm font-semibold">{value}</div>
     </div>
   );
 }
@@ -721,8 +789,22 @@ function LogServiceDialog({
     parts_replaced: "",
     notes: "",
   });
+  const [invoice, setInvoice] = useState<File | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
   const unit = mode === "km" ? "km" : "h";
+
+  async function uploadFile(file: File, category: string) {
+    const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
+    const path = `${companyId}/${assetId}/service/${Date.now()}-${safe}`;
+    const { error: upErr } = await supabase.storage.from("compliance-docs").upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) throw upErr;
+    await (supabase as any).from("documents").insert({
+      asset_id: assetId, company_id: companyId,
+      name: file.name, storage_path: path,
+      mime_type: file.type, size_bytes: file.size, category,
+    });
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -749,8 +831,17 @@ function LogServiceDialog({
         if (mode === "km") patch.last_service_odometer = meter;
         else patch.last_service_hours = meter;
       }
+      // Also bump the current meter if higher
+      if (meter != null) {
+        if (mode === "km" && (current == null || meter > Number(current))) patch.odometer = Math.round(meter);
+        if (mode === "hours" && (current == null || meter > Number(current))) patch.engine_hours = meter;
+      }
       await (supabase as any).from("assets").update(patch).eq("id", assetId);
-      toast.success("Service logged");
+
+      if (invoice) await uploadFile(invoice, "service");
+      for (const p of photos) await uploadFile(p, "photo");
+
+      toast.success("Service completed");
       onSaved();
     } catch (err: any) {
       toast.error(err.message ?? "Could not save");
@@ -763,11 +854,11 @@ function LogServiceDialog({
 
   return (
     <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-      <DialogHeader><DialogTitle>Log a completed service</DialogTitle></DialogHeader>
+      <DialogHeader><DialogTitle>Complete service</DialogTitle></DialogHeader>
       <form onSubmit={submit} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label>Date</Label>
+            <Label>Service date</Label>
             <Input type="date" required value={form.service_date} onChange={(e) => set("service_date", e.target.value)} />
           </div>
           <div className="space-y-1.5">
@@ -783,7 +874,7 @@ function LogServiceDialog({
             <Input maxLength={80} value={form.technician} onChange={(e) => set("technician", e.target.value)} />
           </div>
           <div className="space-y-1.5 col-span-2">
-            <Label>{mode === "km" ? "Odometer at service (km)" : "Engine hours at service"}</Label>
+            <Label>{mode === "km" ? `Current odometer (${unit})` : `Current engine hours`}</Label>
             <Input type="number" min={0} step={mode === "km" ? 1 : 0.1} value={form.meter_at} onChange={(e) => set("meter_at", e.target.value)} />
           </div>
         </div>
@@ -794,6 +885,24 @@ function LogServiceDialog({
         <div className="space-y-1.5">
           <Label>Notes</Label>
           <Textarea maxLength={500} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>Invoice</Label>
+            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground hover:bg-accent/30">
+              <Upload className="size-4" />
+              <span className="truncate">{invoice ? invoice.name : "Upload invoice"}</span>
+              <input type="file" hidden accept="application/pdf,image/*" onChange={(e) => setInvoice(e.target.files?.[0] ?? null)} />
+            </label>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Photos</Label>
+            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground hover:bg-accent/30">
+              <Upload className="size-4" />
+              <span className="truncate">{photos.length ? `${photos.length} selected` : "Upload photos"}</span>
+              <input type="file" hidden accept="image/*" multiple onChange={(e) => setPhotos(Array.from(e.target.files ?? []))} />
+            </label>
+          </div>
         </div>
         <DialogFooter>
           <Button type="submit" disabled={saving}>

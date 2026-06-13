@@ -301,6 +301,125 @@ export type Database = {
           },
         ]
       }
+      operator_licences: {
+        Row: {
+          certificate_path: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          licence_name: string | null
+          licence_number: string | null
+          licence_type: string
+          notes: string | null
+          operator_id: string
+          updated_at: string
+        }
+        Insert: {
+          certificate_path?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          licence_name?: string | null
+          licence_number?: string | null
+          licence_type: string
+          notes?: string | null
+          operator_id: string
+          updated_at?: string
+        }
+        Update: {
+          certificate_path?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          licence_name?: string | null
+          licence_number?: string | null
+          licence_type?: string
+          notes?: string | null
+          operator_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_licences_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operator_licences_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operators: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          depot: string | null
+          email: string | null
+          employee_id: string | null
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string | null
+          position: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          depot?: string | null
+          email?: string | null
+          employee_id?: string | null
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          depot?: string | null
+          email?: string | null
+          employee_id?: string | null
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operators_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           company_id: string | null
@@ -338,25 +457,28 @@ export type Database = {
       }
       reminder_log: {
         Row: {
-          compliance_id: string
+          compliance_id: string | null
           days_before: number
           id: string
+          operator_licence_id: string | null
           recipient_email: string
           sent_at: string
           status: string
         }
         Insert: {
-          compliance_id: string
+          compliance_id?: string | null
           days_before: number
           id?: string
+          operator_licence_id?: string | null
           recipient_email: string
           sent_at?: string
           status?: string
         }
         Update: {
-          compliance_id?: string
+          compliance_id?: string | null
           days_before?: number
           id?: string
+          operator_licence_id?: string | null
           recipient_email?: string
           sent_at?: string
           status?: string
@@ -367,6 +489,13 @@ export type Database = {
             columns: ["compliance_id"]
             isOneToOne: false
             referencedRelation: "compliance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminder_log_operator_licence_id_fkey"
+            columns: ["operator_licence_id"]
+            isOneToOne: false
+            referencedRelation: "operator_licences"
             referencedColumns: ["id"]
           },
         ]

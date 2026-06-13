@@ -17,7 +17,9 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedOperatorsIndexRouteImport } from './routes/_authenticated/operators/index'
 import { Route as AuthenticatedAssetsIndexRouteImport } from './routes/_authenticated/assets/index'
+import { Route as AuthenticatedOperatorsIdRouteImport } from './routes/_authenticated/operators/$id'
 import { Route as AuthenticatedAssetsIdRouteImport } from './routes/_authenticated/assets/$id'
 import { Route as ApiPublicHooksCheckExpiriesRouteImport } from './routes/api/public/hooks/check-expiries'
 
@@ -60,10 +62,22 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOperatorsIndexRoute =
+  AuthenticatedOperatorsIndexRouteImport.update({
+    id: '/operators/',
+    path: '/operators/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAssetsIndexRoute =
   AuthenticatedAssetsIndexRouteImport.update({
     id: '/assets/',
     path: '/assets/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOperatorsIdRoute =
+  AuthenticatedOperatorsIdRouteImport.update({
+    id: '/operators/$id',
+    path: '/operators/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAssetsIdRoute = AuthenticatedAssetsIdRouteImport.update({
@@ -87,7 +101,9 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
+  '/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/assets/': typeof AuthenticatedAssetsIndexRoute
+  '/operators/': typeof AuthenticatedOperatorsIndexRoute
   '/api/public/hooks/check-expiries': typeof ApiPublicHooksCheckExpiriesRoute
 }
 export interface FileRoutesByTo {
@@ -99,7 +115,9 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
+  '/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/assets': typeof AuthenticatedAssetsIndexRoute
+  '/operators': typeof AuthenticatedOperatorsIndexRoute
   '/api/public/hooks/check-expiries': typeof ApiPublicHooksCheckExpiriesRoute
 }
 export interface FileRoutesById {
@@ -113,7 +131,9 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/assets/$id': typeof AuthenticatedAssetsIdRoute
+  '/_authenticated/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/_authenticated/assets/': typeof AuthenticatedAssetsIndexRoute
+  '/_authenticated/operators/': typeof AuthenticatedOperatorsIndexRoute
   '/api/public/hooks/check-expiries': typeof ApiPublicHooksCheckExpiriesRoute
 }
 export interface FileRouteTypes {
@@ -127,7 +147,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/team'
     | '/assets/$id'
+    | '/operators/$id'
     | '/assets/'
+    | '/operators/'
     | '/api/public/hooks/check-expiries'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -139,7 +161,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/team'
     | '/assets/$id'
+    | '/operators/$id'
     | '/assets'
+    | '/operators'
     | '/api/public/hooks/check-expiries'
   id:
     | '__root__'
@@ -152,7 +176,9 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/team'
     | '/_authenticated/assets/$id'
+    | '/_authenticated/operators/$id'
     | '/_authenticated/assets/'
+    | '/_authenticated/operators/'
     | '/api/public/hooks/check-expiries'
   fileRoutesById: FileRoutesById
 }
@@ -221,11 +247,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/operators/': {
+      id: '/_authenticated/operators/'
+      path: '/operators'
+      fullPath: '/operators/'
+      preLoaderRoute: typeof AuthenticatedOperatorsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/assets/': {
       id: '/_authenticated/assets/'
       path: '/assets'
       fullPath: '/assets/'
       preLoaderRoute: typeof AuthenticatedAssetsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/operators/$id': {
+      id: '/_authenticated/operators/$id'
+      path: '/operators/$id'
+      fullPath: '/operators/$id'
+      preLoaderRoute: typeof AuthenticatedOperatorsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/assets/$id': {
@@ -252,7 +292,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedAssetsIdRoute: typeof AuthenticatedAssetsIdRoute
+  AuthenticatedOperatorsIdRoute: typeof AuthenticatedOperatorsIdRoute
   AuthenticatedAssetsIndexRoute: typeof AuthenticatedAssetsIndexRoute
+  AuthenticatedOperatorsIndexRoute: typeof AuthenticatedOperatorsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -262,7 +304,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedAssetsIdRoute: AuthenticatedAssetsIdRoute,
+  AuthenticatedOperatorsIdRoute: AuthenticatedOperatorsIdRoute,
   AuthenticatedAssetsIndexRoute: AuthenticatedAssetsIndexRoute,
+  AuthenticatedOperatorsIndexRoute: AuthenticatedOperatorsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
