@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Camera, ImageOff, Loader2, Star, Trash2, Upload, X } from "lucide-react";
+import { compressImage } from "@/lib/photo-upload";
 
 export function useAssetPhotos(assetId: string) {
   return useQuery({
