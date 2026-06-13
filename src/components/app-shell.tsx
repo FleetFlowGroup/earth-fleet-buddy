@@ -112,9 +112,9 @@ function SidebarInner({
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4 text-sm">
-        {NAV.map((item) => {
+        {navFor(role as any).map((item) => {
           const active = path === item.to || path.startsWith(item.to + "/");
-          const Icon = item.icon;
+          const Icon = ICONS[item.to] ?? LayoutDashboard;
           return (
             <Link
               key={item.to}
