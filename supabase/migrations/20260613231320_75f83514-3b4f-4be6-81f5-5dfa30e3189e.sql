@@ -1,0 +1,4 @@
+
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'office_staff';
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'workshop';
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'operator';
