@@ -2,15 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Truck,
-  ShieldCheck,
-  BellRing,
-  FileCheck2,
-  Users,
-  Gauge,
-  ArrowRight,
-} from "lucide-react";
+import { Truck, ShieldCheck, BellRing, FileCheck2, Users, Gauge, ArrowRight } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,7 +34,6 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
@@ -221,7 +213,7 @@ function Logo({ size = 22 }: { size?: number }) {
   );
 }
 
-function Feature({ icon: Icon, title, children }: { icon: any; title: string; children: React.ReactNode }) {
+function Feature({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
   return (
     <div className="surface-card group p-6 transition hover:border-primary/40">
       <div className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary">

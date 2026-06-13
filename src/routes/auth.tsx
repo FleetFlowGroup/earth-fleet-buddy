@@ -83,8 +83,8 @@ function AuthPage() {
         toast.success("Welcome back");
         navigate({ to: "/dashboard" });
       }
-    } catch (err: any) {
-      toast.error(err.message ?? "Authentication failed");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Authentication failed");
     } finally {
       setLoading(false);
     }
@@ -117,7 +117,12 @@ function AuthPage() {
         </Link>
 
         <div className="surface-card p-6 sm:p-8">
-          <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+          <Tabs
+            value={tab}
+            onValueChange={(value) => {
+              if (value === "signin" || value === "signup") setTab(value);
+            }}
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign in</TabsTrigger>
               <TabsTrigger value="signup">Sign up</TabsTrigger>
