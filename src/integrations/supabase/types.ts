@@ -457,25 +457,28 @@ export type Database = {
       }
       reminder_log: {
         Row: {
-          compliance_id: string
+          compliance_id: string | null
           days_before: number
           id: string
+          operator_licence_id: string | null
           recipient_email: string
           sent_at: string
           status: string
         }
         Insert: {
-          compliance_id: string
+          compliance_id?: string | null
           days_before: number
           id?: string
+          operator_licence_id?: string | null
           recipient_email: string
           sent_at?: string
           status?: string
         }
         Update: {
-          compliance_id?: string
+          compliance_id?: string | null
           days_before?: number
           id?: string
+          operator_licence_id?: string | null
           recipient_email?: string
           sent_at?: string
           status?: string
@@ -486,6 +489,13 @@ export type Database = {
             columns: ["compliance_id"]
             isOneToOne: false
             referencedRelation: "compliance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminder_log_operator_licence_id_fkey"
+            columns: ["operator_licence_id"]
+            isOneToOne: false
+            referencedRelation: "operator_licences"
             referencedColumns: ["id"]
           },
         ]
