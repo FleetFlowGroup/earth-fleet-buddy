@@ -227,7 +227,15 @@ function Logo({ size = 22 }: { size?: number }) {
   );
 }
 
-function Feature({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
+function Feature({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="surface-card group p-6 transition hover:border-primary/40">
       <div className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary">
@@ -259,7 +267,13 @@ function MiniStat({ label, value, sub }: { label: string; value: string; sub: st
   );
 }
 
-function Pill({ tone, children }: { tone: "success" | "warning" | "danger"; children: React.ReactNode }) {
+function Pill({
+  tone,
+  children,
+}: {
+  tone: "success" | "warning" | "danger";
+  children: React.ReactNode;
+}) {
   const cls =
     tone === "success"
       ? "bg-success/15 text-success border-success/30"
