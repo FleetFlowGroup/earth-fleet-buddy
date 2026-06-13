@@ -511,38 +511,15 @@ function AssetDetail() {
   );
 }
 
-function computeServiceStatus(asset: any) {
-  const parts: { value: number; label: string; tone: string }[] = [];
-  if (asset.service_interval_km && asset.odometer != null && asset.last_service_odometer != null) {
-    const remaining = asset.last_service_odometer + asset.service_interval_km - asset.odometer;
-    parts.push({
-      value: remaining,
-      label: remaining < 0 ? `Overdue by ${Math.abs(remaining).toLocaleString()} km` : `${remaining.toLocaleString()} km remaining`,
-      tone: remaining < 0 ? "text-destructive" : remaining < (asset.service_interval_km * 0.1) ? "text-warning" : "text-success",
-    });
-  }
-  if (asset.service_interval_hours && asset.engine_hours != null && asset.last_service_hours != null) {
-    const remaining = Number(asset.last_service_hours) + asset.service_interval_hours - Number(asset.engine_hours);
-    parts.push({
-      value: remaining,
-      label: remaining < 0 ? `Overdue by ${Math.abs(remaining).toFixed(0)} h` : `${remaining.toFixed(0)} h remaining`,
-      tone: remaining < 0 ? "text-destructive" : "text-success",
-    });
-  }
-  if (!parts.length) return null;
-  // surface the most urgent
-  parts.sort((a, b) => a.value - b.value);
-  return parts[0];
-}
-
-function MeterCell({ label, value }: { label: string; value: string }) {
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="px-5 py-4">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 text-lg font-semibold">{value}</div>
+    <div className="flex justify-between gap-3">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="text-right font-medium">{children}</dd>
     </div>
   );
 }
+
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
