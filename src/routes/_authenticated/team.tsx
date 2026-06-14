@@ -180,7 +180,8 @@ function InviteDialog({ onCreated }: { onCreated: () => void }) {
         _email: email || undefined,
       });
       if (error) throw error;
-      const code = (data as any)?.[0]?.code ?? (data as any)?.code;
+      const row = Array.isArray(data) ? (data as any)[0] : (data as any);
+      const code = row?.invite_code ?? row?.code;
       const url = `${window.location.origin}/join/${code}`;
       setLink(url);
       onCreated();
