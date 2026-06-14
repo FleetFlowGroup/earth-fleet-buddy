@@ -965,6 +965,65 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          environment: string
+          id: string
+          paddle_customer_id: string
+          paddle_subscription_id: string
+          price_id: string
+          product_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          paddle_customer_id: string
+          paddle_subscription_id: string
+          price_id: string
+          product_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          paddle_customer_id?: string
+          paddle_subscription_id?: string
+          price_id?: string
+          product_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           company_id: string
@@ -1005,6 +1064,19 @@ export type Database = {
       can_edit_company: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
+      }
+      company_asset_limit: { Args: { _company_id: string }; Returns: number }
+      company_billing_state: {
+        Args: { _company_id: string }
+        Returns: {
+          asset_limit: number
+          cancel_at_period_end: boolean
+          period_end: string
+          product_id: string
+          state: string
+          status: string
+          trial_ends_at: string
+        }[]
       }
       create_company_with_admin: {
         Args: { _abn: string; _name: string }
