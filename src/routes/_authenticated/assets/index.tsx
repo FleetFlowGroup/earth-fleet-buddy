@@ -99,6 +99,8 @@ function AssetsPage() {
   }, [assets, q, typeFilter, statusFilter, expiryFilter]);
 
   const [open, setOpen] = useState(false);
+  const { data: billing } = useBillingState(companyId);
+  const { data: assetCount = 0 } = useAssetCount(companyId);
 
   return (
     <AppShell>
@@ -107,19 +109,35 @@ function AssetsPage() {
         description="Vehicles, plant and machinery in your fleet."
         actions={
           editable && (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button><Plus className="mr-2 size-4" /> Add asset</Button>
-              </DialogTrigger>
-              <AddAssetDialog
-                companyId={companyId!}
-                onCreated={() => {
-                  setOpen(false);
-                  qc.invalidateQueries({ queryKey: ["assets"] });
-                  qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-                }}
-              />
-            </Dialog>
+            <div className="flex items-center gap-3">
+              {billing && (
+                <Link
+                  to="/billing"
+                  className={`hidden sm:inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${
+                    assetCount >= billing.asset_limit
+                      ? "border-destructive/40 bg-destructive/10 text-destructive"
+                      : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Plan & usage"
+                >
+                  {assetCount} / {billing.asset_limit} assets
+                </Link>
+              )}
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button><Plus className="mr-2 size-4" /> Add asset</Button>
+                </DialogTrigger>
+                <AddAssetDialog
+                  companyId={companyId!}
+                  onCreated={() => {
+                    setOpen(false);
+                    qc.invalidateQueries({ queryKey: ["assets"] });
+                    qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+                    qc.invalidateQueries({ queryKey: ["asset-count"] });
+                  }}
+                />
+              </Dialog>
+            </div>
           )
         }
       />
