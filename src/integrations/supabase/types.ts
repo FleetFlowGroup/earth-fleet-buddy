@@ -1465,16 +1465,29 @@ export type Database = {
         Args: { _ip: string; _max: number; _window_minutes: number }
         Returns: boolean
       }
-      create_company_invite: {
-        Args: {
-          _email?: string
-          _role: Database["public"]["Enums"]["app_role"]
-        }
-        Returns: {
-          invite_code: string
-          invite_id: string
-        }[]
-      }
+      create_company_invite:
+        | {
+            Args: {
+              _email?: string
+              _role: Database["public"]["Enums"]["app_role"]
+            }
+            Returns: {
+              invite_code: string
+              invite_id: string
+            }[]
+          }
+        | {
+            Args: {
+              _email?: string
+              _name?: string
+              _phone?: string
+              _role: Database["public"]["Enums"]["app_role"]
+            }
+            Returns: {
+              invite_code: string
+              invite_id: string
+            }[]
+          }
       create_company_with_admin: {
         Args: { _abn: string; _name: string }
         Returns: string
@@ -1519,6 +1532,10 @@ export type Database = {
         }
         Returns: string
       }
+      mark_invite_email_sent: {
+        Args: { _invite_id: string }
+        Returns: undefined
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -1541,8 +1558,24 @@ export type Database = {
         Args: { _asset_id: string; _new_value: number }
         Returns: undefined
       }
+      remove_member: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: undefined
+      }
+      resend_company_invite: {
+        Args: { _invite_id: string }
+        Returns: undefined
+      }
       seed_prestart_template: {
         Args: { _company_id: string }
+        Returns: undefined
+      }
+      update_member_role: {
+        Args: {
+          _company_id: string
+          _new_role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
         Returns: undefined
       }
     }
