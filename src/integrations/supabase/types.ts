@@ -1462,8 +1462,8 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: {
-          code: string
-          id: string
+          invite_code: string
+          invite_id: string
         }[]
       }
       create_company_with_admin: {
