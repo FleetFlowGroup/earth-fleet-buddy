@@ -55,14 +55,14 @@ function PrestartsAdmin() {
   const [selected, setSelected] = useState<Row | null>(null);
   const qc = useQueryClient();
 
-  const { data: rows, isLoading } = useQuery({
+  const { data: rows, isLoading, error: rowsError } = useQuery({
     queryKey: ["admin-prestarts", me?.company?.id, days, statusFilter],
     enabled: !!me?.company?.id && allowed,
     queryFn: async () => {
       let q = (supabase as any)
         .from("prestart_checks")
         .select(
-          "id, company_id, asset_id, status, completed_at, meter_reading, notes, admin_notes, checklist, signature_path, gps_lat, gps_lng, gps_accuracy, performed_by, operator_id, submitter_user_agent, assets:asset_id(id, name, asset_number, registration, location, requires_attention), operators:operator_id(full_name), profiles:performed_by(full_name, email)",
+          "id, company_id, asset_id, status, completed_at, meter_reading, notes, admin_notes, checklist, signature_path, gps_lat, gps_lng, gps_accuracy, performed_by, operator_id, submitter_user_agent, assets:asset_id(id, name, asset_number, registration, location, requires_attention), operators:operator_id(full_name)",
         )
         .eq("company_id", me!.company!.id)
         .order("completed_at", { ascending: false })
@@ -74,9 +74,20 @@ function PrestartsAdmin() {
       if (statusFilter !== "all") q = q.eq("status", statusFilter);
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as Row[];
+      const list = (data ?? []) as Row[];
+      // Backfill profile names for performed_by (no FK to profiles → fetch separately)
+      const ids = Array.from(new Set(list.map((r) => r.performed_by).filter(Boolean))) as string[];
+      if (ids.length) {
+        const { data: profs } = await (supabase as any)
+          .from("profiles").select("id, full_name, email").in("id", ids);
+        const map = new Map<string, { full_name: string | null; email: string | null }>();
+        for (const p of profs ?? []) map.set(p.id, { full_name: p.full_name, email: p.email });
+        for (const r of list) if (r.performed_by) r.profiles = map.get(r.performed_by) ?? null;
+      }
+      return list;
     },
   });
+  if (rowsError) console.error("admin-prestarts query error", rowsError);
 
   // Stats
   const { data: stats } = useQuery({
