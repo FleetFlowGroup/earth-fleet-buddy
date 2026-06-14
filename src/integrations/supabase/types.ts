@@ -242,6 +242,53 @@ export type Database = {
           },
         ]
       }
+      audit_log: {
+        Row: {
+          action: string
+          company_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          ip: string | null
+          metadata: Json
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          company_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          company_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           abn: string | null
@@ -851,11 +898,15 @@ export type Database = {
       }
       prestart_checks: {
         Row: {
+          admin_notes: string | null
           asset_id: string
           checklist: Json
           company_id: string
           completed_at: string
           created_at: string
+          gps_accuracy: number | null
+          gps_lat: number | null
+          gps_lng: number | null
           id: string
           meter_reading: number | null
           notes: string | null
@@ -868,11 +919,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_notes?: string | null
           asset_id: string
           checklist?: Json
           company_id: string
           completed_at?: string
           created_at?: string
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
           id?: string
           meter_reading?: number | null
           notes?: string | null
@@ -885,11 +940,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_notes?: string | null
           asset_id?: string
           checklist?: Json
           company_id?: string
           completed_at?: string
           created_at?: string
+          gps_accuracy?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
           id?: string
           meter_reading?: number | null
           notes?: string | null
@@ -1379,6 +1438,17 @@ export type Database = {
       is_operator: { Args: { _company_id: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       is_workshop: { Args: { _company_id: string }; Returns: boolean }
+      log_audit: {
+        Args: {
+          _action: string
+          _company_id: string
+          _entity_id?: string
+          _entity_type?: string
+          _metadata?: Json
+          _user_agent?: string
+        }
+        Returns: string
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string

@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { logAudit } from "@/lib/audit-log";
 
 export const Route = createFileRoute("/m/$id")({
   ssr: false,
@@ -43,6 +44,7 @@ function MachineDispatcher() {
       const isOperatorOnly = rs.length === 1 && rs[0] === "operator";
       const isAdminLike = rs.some((r) => ["admin", "manager", "office_staff", "workshop"].includes(r));
 
+      logAudit("qr.scan", { companyId: asset.company_id, entityType: "assets", entityId: id });
       if (isAdminLike) {
         navigate({ to: "/assets/$id", params: { id }, replace: true });
       } else if (isOperatorOnly) {

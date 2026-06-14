@@ -12,6 +12,7 @@ import { ArrowLeft, Loader2, Camera, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { uploadPhoto, compressImage } from "@/lib/photo-upload";
 import { SignaturePad, type SignaturePadHandle } from "@/components/signature-pad";
+import { logAudit, getBrowserPosition } from "@/lib/audit-log";
 import { z } from "zod";
 
 const search = z.object({ asset: z.string().uuid().optional() });
@@ -123,6 +124,7 @@ function PrestartScreen() {
       } catch { /* ignore */ }
 
       const ua = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : null;
+      const gps = await getBrowserPosition(3500);
       const { data: ps, error } = await (supabase as any).from("prestart_checks").insert({
         company_id: me.company.id,
         asset_id: asset.id,
@@ -134,6 +136,9 @@ function PrestartScreen() {
         meter_reading: meterReading ? Number(meterReading) : null,
         signature_path: signaturePath,
         submitter_user_agent: ua,
+        gps_lat: gps?.lat ?? null,
+        gps_lng: gps?.lng ?? null,
+        gps_accuracy: gps?.accuracy ?? null,
       }).select("id").single();
       if (error) throw error;
 
@@ -181,6 +186,10 @@ function PrestartScreen() {
         }
       }
 
+      await logAudit("prestart.submit", {
+        companyId: me.company.id, entityType: "prestart_checks", entityId: ps.id,
+        metadata: { asset_id: asset.id, status: anyFail ? "fail" : "pass", failed_count: failed.length },
+      });
       toast.success(anyFail ? "Prestart submitted — defect logged" : "Prestart passed");
       navigate({ to: "/operator" });
     } catch (e: any) {

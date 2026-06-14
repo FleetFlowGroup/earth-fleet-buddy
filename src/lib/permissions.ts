@@ -90,6 +90,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", perm: "dashboard.view" },
   { to: "/assets", label: "Assets", perm: "assets.view" },
   { to: "/operators", label: "Operators", perm: "operators.view" },
+  { to: "/admin/prestarts", label: "Prestarts", perm: "defects.view" },
   { to: "/reports", label: "Reports", perm: "reports.view" },
   { to: "/team", label: "Team", perm: "team.view" },
   { to: "/billing", label: "Billing", perm: "billing.view" },

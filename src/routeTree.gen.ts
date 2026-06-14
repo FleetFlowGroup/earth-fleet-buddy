@@ -40,6 +40,7 @@ import { Route as AuthenticatedOperatorPhotosRouteImport } from './routes/_authe
 import { Route as AuthenticatedOperatorHoursRouteImport } from './routes/_authenticated/operator.hours'
 import { Route as AuthenticatedOperatorDefectRouteImport } from './routes/_authenticated/operator.defect'
 import { Route as AuthenticatedAssetsIdRouteImport } from './routes/_authenticated/assets/$id'
+import { Route as AuthenticatedAdminPrestartsRouteImport } from './routes/_authenticated/admin.prestarts'
 import { Route as AuthenticatedAdminEnquiriesRouteImport } from './routes/_authenticated/admin.enquiries'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -211,6 +212,12 @@ const AuthenticatedAssetsIdRoute = AuthenticatedAssetsIdRouteImport.update({
   path: '/assets/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminPrestartsRoute =
+  AuthenticatedAdminPrestartsRouteImport.update({
+    id: '/admin/prestarts',
+    path: '/admin/prestarts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminEnquiriesRoute =
   AuthenticatedAdminEnquiriesRouteImport.update({
     id: '/admin/enquiries',
@@ -267,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/m/$id': typeof MIdRoute
   '/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
+  '/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/operator/defect': typeof AuthenticatedOperatorDefectRoute
   '/operator/hours': typeof AuthenticatedOperatorHoursRoute
@@ -304,6 +312,7 @@ export interface FileRoutesByTo {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/m/$id': typeof MIdRoute
   '/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
+  '/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/operator/defect': typeof AuthenticatedOperatorDefectRoute
   '/operator/hours': typeof AuthenticatedOperatorHoursRoute
@@ -344,6 +353,7 @@ export interface FileRoutesById {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/m/$id': typeof MIdRoute
   '/_authenticated/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
+  '/_authenticated/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/_authenticated/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/_authenticated/operator/defect': typeof AuthenticatedOperatorDefectRoute
   '/_authenticated/operator/hours': typeof AuthenticatedOperatorHoursRoute
@@ -384,6 +394,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/m/$id'
     | '/admin/enquiries'
+    | '/admin/prestarts'
     | '/assets/$id'
     | '/operator/defect'
     | '/operator/hours'
@@ -421,6 +432,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/m/$id'
     | '/admin/enquiries'
+    | '/admin/prestarts'
     | '/assets/$id'
     | '/operator/defect'
     | '/operator/hours'
@@ -460,6 +472,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/m/$id'
     | '/_authenticated/admin/enquiries'
+    | '/_authenticated/admin/prestarts'
     | '/_authenticated/assets/$id'
     | '/_authenticated/operator/defect'
     | '/_authenticated/operator/hours'
@@ -720,6 +733,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssetsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/prestarts': {
+      id: '/_authenticated/admin/prestarts'
+      path: '/admin/prestarts'
+      fullPath: '/admin/prestarts'
+      preLoaderRoute: typeof AuthenticatedAdminPrestartsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/enquiries': {
       id: '/_authenticated/admin/enquiries'
       path: '/admin/enquiries'
@@ -799,6 +819,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedAdminEnquiriesRoute: typeof AuthenticatedAdminEnquiriesRoute
+  AuthenticatedAdminPrestartsRoute: typeof AuthenticatedAdminPrestartsRoute
   AuthenticatedAssetsIdRoute: typeof AuthenticatedAssetsIdRoute
   AuthenticatedOperatorsIdRoute: typeof AuthenticatedOperatorsIdRoute
   AuthenticatedAssetsIndexRoute: typeof AuthenticatedAssetsIndexRoute
@@ -814,6 +835,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedAdminEnquiriesRoute: AuthenticatedAdminEnquiriesRoute,
+  AuthenticatedAdminPrestartsRoute: AuthenticatedAdminPrestartsRoute,
   AuthenticatedAssetsIdRoute: AuthenticatedAssetsIdRoute,
   AuthenticatedOperatorsIdRoute: AuthenticatedOperatorsIdRoute,
   AuthenticatedAssetsIndexRoute: AuthenticatedAssetsIndexRoute,
