@@ -36,6 +36,7 @@ import {
 import { toast } from "sonner";
 import { Plus, Search, Truck, Loader2, ChevronRight, AlertTriangle } from "lucide-react";
 import { AssetPrimaryThumb } from "@/lib/asset-photos";
+import { AssetQrButton } from "@/lib/asset-qr";
 import {
   useBillingState,
   useAssetCount,
