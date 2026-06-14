@@ -20,7 +20,7 @@ const Email = (p: Props) => {
     <Html lang="en">
       <Head />
       <Preview>
-        {p.operatorName ?? 'An operator'}'s {p.licenceLabel ?? 'licence'} expires in {days} days
+        {`${p.operatorName ?? 'An operator'}'s ${p.licenceLabel ?? 'licence'} expires in ${days} days`}
       </Preview>
       <Body style={main}>
         <Container style={container}>
