@@ -24,8 +24,8 @@ import { NotificationsBell } from "@/components/notifications-bell";
 import { navFor, ROLE_LABELS } from "@/lib/permissions";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { setOperatorPreview } from "@/lib/operator-preview";
+import { useIsPlatformAdmin } from "@/hooks/use-is-platform-admin";
 
-const PLATFORM_ADMIN_EMAIL = "fleetflow.group@gmail.com";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
@@ -181,8 +181,9 @@ function SidebarInner({
   );
 }
 
-function PlatformAdminNav({ email, path, onNavigate }: { email?: string; path: string; onNavigate?: () => void }) {
-  const isPlatformAdmin = (email ?? "").toLowerCase() === PLATFORM_ADMIN_EMAIL;
+function PlatformAdminNav({ path, onNavigate }: { email?: string; path: string; onNavigate?: () => void }) {
+  const { data: isPlatformAdmin = false } = useIsPlatformAdmin();
+
   const { data: newCount } = useQuery({
     queryKey: ["contact-enquiries-new-count"],
     enabled: isPlatformAdmin,

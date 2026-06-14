@@ -23,9 +23,14 @@ export function AssetQrButton({ assetId, label }: { assetId: string; label: stri
     if (!dataUrl) return;
     const w = window.open("", "_blank", "width=480,height=640");
     if (!w) return toast.error("Pop-up blocked");
-    w.document.write(`<!doctype html><html><head><title>${label}</title>
+    const escapeHtml = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    const safeLabel = escapeHtml(label);
+    const safeUrl = escapeHtml(url);
+    const safeDataUrl = escapeHtml(dataUrl);
+    w.document.write(`<!doctype html><html><head><title>${safeLabel}</title>
       <style>body{font-family:system-ui,sans-serif;text-align:center;padding:40px}img{width:320px;height:320px}h1{font-size:22px;margin:16px 0 4px}p{color:#555;margin:0}</style>
-      </head><body><img src="${dataUrl}" alt="QR"/><h1>${label}</h1><p>${url}</p></body></html>`);
+      </head><body><img src="${safeDataUrl}" alt="QR"/><h1>${safeLabel}</h1><p>${safeUrl}</p></body></html>`);
     w.document.close();
     w.focus();
     setTimeout(() => w.print(), 250);
