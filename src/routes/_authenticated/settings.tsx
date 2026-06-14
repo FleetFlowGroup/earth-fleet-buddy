@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { canEdit, useCurrentUser } from "@/hooks/use-current-user";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { PrestartTemplateEditor } from "@/components/prestart-template-editor";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings · Fleetflow" }] }),
@@ -86,6 +87,19 @@ function SettingsPage() {
             expires. Reminders go to all members of your company.
           </p>
         </div>
+
+        {me?.company && (
+          <div className="surface-card p-6">
+            <h3 className="text-sm font-semibold">Daily prestart checklist</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Customise the items operators see when they complete a daily prestart. Mark items as
+              <span className="font-medium"> Critical</span> to escalate failures to a critical defect.
+            </p>
+            <div className="mt-4">
+              <PrestartTemplateEditor companyId={me.company.id} canEdit={isAdmin} />
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );

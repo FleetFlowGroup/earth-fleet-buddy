@@ -146,6 +146,7 @@ export type Database = {
           purchase_date: string | null
           purchase_price: number | null
           registration: string | null
+          requires_attention: boolean
           serial_number: string | null
           service_interval_days: number | null
           service_interval_hours: number | null
@@ -179,6 +180,7 @@ export type Database = {
           purchase_date?: string | null
           purchase_price?: number | null
           registration?: string | null
+          requires_attention?: boolean
           serial_number?: string | null
           service_interval_days?: number | null
           service_interval_hours?: number | null
@@ -212,6 +214,7 @@ export type Database = {
           purchase_date?: string | null
           purchase_price?: number | null
           registration?: string | null
+          requires_attention?: boolean
           serial_number?: string | null
           service_interval_days?: number | null
           service_interval_hours?: number | null
@@ -370,6 +373,7 @@ export type Database = {
           description: string
           id: string
           operator_id: string | null
+          prestart_id: string | null
           reported_at: string
           reported_by: string | null
           resolution_notes: string | null
@@ -386,6 +390,7 @@ export type Database = {
           description: string
           id?: string
           operator_id?: string | null
+          prestart_id?: string | null
           reported_at?: string
           reported_by?: string | null
           resolution_notes?: string | null
@@ -402,6 +407,7 @@ export type Database = {
           description?: string
           id?: string
           operator_id?: string | null
+          prestart_id?: string | null
           reported_at?: string
           reported_by?: string | null
           resolution_notes?: string | null
@@ -431,6 +437,13 @@ export type Database = {
             columns: ["operator_id"]
             isOneToOne: false
             referencedRelation: "operators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defect_reports_prestart_id_fkey"
+            columns: ["prestart_id"]
+            isOneToOne: false
+            referencedRelation: "prestart_checks"
             referencedColumns: ["id"]
           },
         ]
@@ -674,6 +687,7 @@ export type Database = {
           notes: string | null
           operator_id: string | null
           performed_by: string | null
+          signature_path: string | null
           status: string
           updated_at: string
         }
@@ -688,6 +702,7 @@ export type Database = {
           notes?: string | null
           operator_id?: string | null
           performed_by?: string | null
+          signature_path?: string | null
           status?: string
           updated_at?: string
         }
@@ -702,6 +717,7 @@ export type Database = {
           notes?: string | null
           operator_id?: string | null
           performed_by?: string | null
+          signature_path?: string | null
           status?: string
           updated_at?: string
         }
@@ -770,6 +786,50 @@ export type Database = {
             columns: ["prestart_id"]
             isOneToOne: false
             referencedRelation: "prestart_checks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prestart_template_items: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          id: string
+          is_critical: boolean
+          label: string
+          section: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          id?: string
+          is_critical?: boolean
+          label: string
+          section: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_critical?: boolean
+          label?: string
+          section?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prestart_template_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -1103,6 +1163,10 @@ export type Database = {
       is_operator: { Args: { _company_id: string }; Returns: boolean }
       is_workshop: { Args: { _company_id: string }; Returns: boolean }
       operator_asset_ids: { Args: never; Returns: string[] }
+      seed_prestart_template: {
+        Args: { _company_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
