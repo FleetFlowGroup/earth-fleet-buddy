@@ -519,7 +519,7 @@ function PlanCard({
       )}
       <div className="text-sm font-medium text-muted-foreground">{name}</div>
       <div className="mt-2 flex items-baseline gap-1">
-        <span className="text-3xl font-semibold">${price}</span>
+        <span className="text-3xl font-semibold">${price} AUD</span>
         <span className="text-sm text-muted-foreground">/mo</span>
       </div>
       <div className="mt-1 text-sm text-foreground/80">{limit}</div>
