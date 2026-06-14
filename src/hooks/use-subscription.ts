@@ -57,6 +57,7 @@ export function useBillingState(companyId?: string | null) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any).rpc("company_billing_state", {
         _company_id: companyId,
+        _env: getPaddleEnvironment(),
       });
       if (error) throw error;
       const row = Array.isArray(data) ? data[0] : data;
