@@ -32,6 +32,7 @@ function PublicJoinPage() {
   const [preview, setPreview] = useState<Preview | null>(null);
   const [loading, setLoading] = useState(true);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [currentEmail, setCurrentEmail] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -44,9 +45,24 @@ function PublicJoinPage() {
       const row = Array.isArray(rpc) ? rpc[0] : rpc;
       setPreview(row ?? { status: "invalid", company_name: null, role: null, invited_email: null, invited_name: null });
       setSignedIn(!!session.session);
+      setCurrentEmail(session.session?.user?.email?.toLowerCase() ?? null);
       setLoading(false);
     })();
   }, [code]);
+
+  async function switchAccount() {
+    await supabase.auth.signOut();
+    await qc.clear();
+    navigate({
+      to: "/auth",
+      search: {
+        mode: "signin",
+        invite: code,
+        ...(preview?.invited_email ? { email: preview.invited_email } : {}),
+      } as any,
+    });
+  }
+
 
   async function accept() {
     setBusy(true);
