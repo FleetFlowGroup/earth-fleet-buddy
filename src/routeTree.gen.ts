@@ -39,6 +39,7 @@ import { Route as AuthenticatedOperatorPrestartRouteImport } from './routes/_aut
 import { Route as AuthenticatedOperatorPhotosRouteImport } from './routes/_authenticated/operator.photos'
 import { Route as AuthenticatedOperatorHoursRouteImport } from './routes/_authenticated/operator.hours'
 import { Route as AuthenticatedOperatorDefectRouteImport } from './routes/_authenticated/operator.defect'
+import { Route as AuthenticatedJoinCodeRouteImport } from './routes/_authenticated/join.$code'
 import { Route as AuthenticatedAssetsIdRouteImport } from './routes/_authenticated/assets/$id'
 import { Route as AuthenticatedAdminPrestartsRouteImport } from './routes/_authenticated/admin.prestarts'
 import { Route as AuthenticatedAdminEnquiriesRouteImport } from './routes/_authenticated/admin.enquiries'
@@ -207,6 +208,11 @@ const AuthenticatedOperatorDefectRoute =
     path: '/defect',
     getParentRoute: () => AuthenticatedOperatorRoute,
   } as any)
+const AuthenticatedJoinCodeRoute = AuthenticatedJoinCodeRouteImport.update({
+  id: '/join/$code',
+  path: '/join/$code',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAssetsIdRoute = AuthenticatedAssetsIdRouteImport.update({
   id: '/assets/$id',
   path: '/assets/$id',
@@ -276,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
+  '/join/$code': typeof AuthenticatedJoinCodeRoute
   '/operator/defect': typeof AuthenticatedOperatorDefectRoute
   '/operator/hours': typeof AuthenticatedOperatorHoursRoute
   '/operator/photos': typeof AuthenticatedOperatorPhotosRoute
@@ -314,6 +321,7 @@ export interface FileRoutesByTo {
   '/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
+  '/join/$code': typeof AuthenticatedJoinCodeRoute
   '/operator/defect': typeof AuthenticatedOperatorDefectRoute
   '/operator/hours': typeof AuthenticatedOperatorHoursRoute
   '/operator/photos': typeof AuthenticatedOperatorPhotosRoute
@@ -355,6 +363,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/_authenticated/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/_authenticated/assets/$id': typeof AuthenticatedAssetsIdRoute
+  '/_authenticated/join/$code': typeof AuthenticatedJoinCodeRoute
   '/_authenticated/operator/defect': typeof AuthenticatedOperatorDefectRoute
   '/_authenticated/operator/hours': typeof AuthenticatedOperatorHoursRoute
   '/_authenticated/operator/photos': typeof AuthenticatedOperatorPhotosRoute
@@ -396,6 +405,7 @@ export interface FileRouteTypes {
     | '/admin/enquiries'
     | '/admin/prestarts'
     | '/assets/$id'
+    | '/join/$code'
     | '/operator/defect'
     | '/operator/hours'
     | '/operator/photos'
@@ -434,6 +444,7 @@ export interface FileRouteTypes {
     | '/admin/enquiries'
     | '/admin/prestarts'
     | '/assets/$id'
+    | '/join/$code'
     | '/operator/defect'
     | '/operator/hours'
     | '/operator/photos'
@@ -474,6 +485,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/enquiries'
     | '/_authenticated/admin/prestarts'
     | '/_authenticated/assets/$id'
+    | '/_authenticated/join/$code'
     | '/_authenticated/operator/defect'
     | '/_authenticated/operator/hours'
     | '/_authenticated/operator/photos'
@@ -726,6 +738,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperatorDefectRouteImport
       parentRoute: typeof AuthenticatedOperatorRoute
     }
+    '/_authenticated/join/$code': {
+      id: '/_authenticated/join/$code'
+      path: '/join/$code'
+      fullPath: '/join/$code'
+      preLoaderRoute: typeof AuthenticatedJoinCodeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/assets/$id': {
       id: '/_authenticated/assets/$id'
       path: '/assets/$id'
@@ -821,6 +840,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminEnquiriesRoute: typeof AuthenticatedAdminEnquiriesRoute
   AuthenticatedAdminPrestartsRoute: typeof AuthenticatedAdminPrestartsRoute
   AuthenticatedAssetsIdRoute: typeof AuthenticatedAssetsIdRoute
+  AuthenticatedJoinCodeRoute: typeof AuthenticatedJoinCodeRoute
   AuthenticatedOperatorsIdRoute: typeof AuthenticatedOperatorsIdRoute
   AuthenticatedAssetsIndexRoute: typeof AuthenticatedAssetsIndexRoute
   AuthenticatedOperatorsIndexRoute: typeof AuthenticatedOperatorsIndexRoute
@@ -837,6 +857,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminEnquiriesRoute: AuthenticatedAdminEnquiriesRoute,
   AuthenticatedAdminPrestartsRoute: AuthenticatedAdminPrestartsRoute,
   AuthenticatedAssetsIdRoute: AuthenticatedAssetsIdRoute,
+  AuthenticatedJoinCodeRoute: AuthenticatedJoinCodeRoute,
   AuthenticatedOperatorsIdRoute: AuthenticatedOperatorsIdRoute,
   AuthenticatedAssetsIndexRoute: AuthenticatedAssetsIndexRoute,
   AuthenticatedOperatorsIndexRoute: AuthenticatedOperatorsIndexRoute,
