@@ -32,6 +32,7 @@ export type Permission =
   | "compliance.edit"
   | "documents.view"
   | "documents.edit"
+  | "tickets.manage"
   | "reports.view"
   | "team.view"
   | "team.manage"
