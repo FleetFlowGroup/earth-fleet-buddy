@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { logAudit } from "@/lib/audit-log";
 
 export const Route = createFileRoute("/m/$id")({
   ssr: false,
