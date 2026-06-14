@@ -462,6 +462,8 @@ export type Database = {
           resolved_by: string | null
           severity: string
           status: string
+          submitter_ip: string | null
+          submitter_user_agent: string | null
           updated_at: string
         }
         Insert: {
@@ -479,6 +481,8 @@ export type Database = {
           resolved_by?: string | null
           severity?: string
           status?: string
+          submitter_ip?: string | null
+          submitter_user_agent?: string | null
           updated_at?: string
         }
         Update: {
@@ -496,6 +500,8 @@ export type Database = {
           resolved_by?: string | null
           severity?: string
           status?: string
+          submitter_ip?: string | null
+          submitter_user_agent?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -857,6 +863,8 @@ export type Database = {
           performed_by: string | null
           signature_path: string | null
           status: string
+          submitter_ip: string | null
+          submitter_user_agent: string | null
           updated_at: string
         }
         Insert: {
@@ -872,6 +880,8 @@ export type Database = {
           performed_by?: string | null
           signature_path?: string | null
           status?: string
+          submitter_ip?: string | null
+          submitter_user_agent?: string | null
           updated_at?: string
         }
         Update: {
@@ -887,6 +897,8 @@ export type Database = {
           performed_by?: string | null
           signature_path?: string | null
           status?: string
+          submitter_ip?: string | null
+          submitter_user_agent?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1384,6 +1396,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      record_operator_meter: {
+        Args: { _asset_id: string; _new_value: number }
+        Returns: undefined
       }
       seed_prestart_template: {
         Args: { _company_id: string }
