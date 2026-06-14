@@ -168,12 +168,12 @@ function Tile({ label, value, sub, tone }: { label: string; value: string; sub: 
   );
 }
 
-function BigBtn({ to, icon: Icon, label, tone = "default", disabled }: { to: string; icon: any; label: string; tone?: "default" | "danger"; disabled?: boolean }) {
+function BigBtn({ to, icon: Icon, label, tone = "default", disabled, assetId }: { to: string; icon: any; label: string; tone?: "default" | "danger"; disabled?: boolean; assetId?: string }) {
   const cls = `flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border p-4 text-center transition disabled:opacity-50 ${
     tone === "danger" ? "border-destructive/30 bg-destructive/5 hover:bg-destructive/10 text-destructive" : "border-border bg-card hover:bg-accent/30"
   }`;
   if (disabled) return <button type="button" disabled className={cls}><Icon className="size-8" /><span className="text-sm font-medium leading-tight">{label}</span></button>;
-  return <Link to={to as any} className={cls}><Icon className="size-8" /><span className="text-sm font-medium leading-tight">{label}</span></Link>;
+  return <Link to={to as any} search={assetId ? { asset: assetId } as any : undefined} className={cls}><Icon className="size-8" /><span className="text-sm font-medium leading-tight">{label}</span></Link>;
 }
 
 function greetingFor(d: Date) {
