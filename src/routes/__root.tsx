@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "Fleetflow" },
       { name: "theme-color", content: "#0A0F1C" },
-      { property: "og:title", content: "Fleetflow — Fleet compliance, made simple" },
+      { property: "og:title", content: "Fleetflow — Fleet compliance for Australian earthmoving & transport" },
       {
         property: "og:description",
         content:
@@ -93,7 +93,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Fleetflow" },
+      { name: "twitter:title", content: "Fleetflow — Fleet compliance for Australian earthmoving & transport" },
+      { name: "description", content: "FleetFlow manages Australian earthmoving, transport, and construction fleets, tracking assets and compliance." },
+      { property: "og:description", content: "FleetFlow manages Australian earthmoving, transport, and construction fleets, tracking assets and compliance." },
+      { name: "twitter:description", content: "FleetFlow manages Australian earthmoving, transport, and construction fleets, tracking assets and compliance." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f360cb1c-f20d-4db5-9268-af3d0d74f9aa/id-preview-42371e1d--cc35b793-3bf7-4ec1-bb88-1f86d597cc70.lovable.app-1781432685800.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f360cb1c-f20d-4db5-9268-af3d0d74f9aa/id-preview-42371e1d--cc35b793-3bf7-4ec1-bb88-1f86d597cc70.lovable.app-1781432685800.png" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
@@ -128,9 +133,6 @@ function RootComponent() {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-      if (event === "SIGNED_IN") {
-        import("@/lib/audit-log").then((m) => m.logAudit("auth.signin")).catch(() => {});
-      }
     });
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
