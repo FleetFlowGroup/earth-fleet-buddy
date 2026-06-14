@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Truck,
   ShieldCheck,
-  BellRing,
-  FileCheck2,
+  ClipboardCheck,
+  QrCode,
+  Wrench,
   Users,
   Gauge,
   ArrowRight,
@@ -14,17 +15,18 @@ import {
   Menu,
   X,
   HardHat,
+  Quote,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Fleetflow — Fleet compliance for AU earthmoving & transport" },
+      { title: "FleetFlow — Digital Pre-Starts & Fleet Management for Earthmoving Businesses" },
       {
         name: "description",
         content:
-          "Centralise rego, insurance, services and compliance documents for your trucks, plant and machinery. Automatic expiry reminders so nothing slips.",
+          "FleetFlow helps earthmoving, civil, and plant hire businesses replace paper pre-start books with digital inspections, fleet tracking, and compliance management — all from one platform.",
       },
     ],
   }),
@@ -110,23 +112,23 @@ function Landing() {
               Built for Australian earthmoving & transport
             </div>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-              Fleet compliance, <span className="brand-gradient-text">finally under control</span>.
+              Ditch the paper pre-start books. <span className="brand-gradient-text">Run your fleet from your phone</span>.
             </h1>
             <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-              Track rego, insurance, services and compliance docs for every truck, dozer and trailer. Automatic email reminders 30, 14 and 7 days before anything expires.
+              FleetFlow is the all-in-one platform for earthmoving, civil, and plant hire businesses. Digital pre-starts, fleet management, compliance, and maintenance — all in one place.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button asChild size="lg" className="glow">
                 <Link to="/auth" search={{ mode: "signup" }}>
-                  Start 14-day free trial <ArrowRight className="ml-1 size-4" />
+                  Start Free Trial <ArrowRight className="ml-1 size-4" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link to="/pricing">See pricing</Link>
+                <a href="#how">See How It Works</a>
               </Button>
             </div>
             <p className="mt-4 text-xs text-muted-foreground">
-              No credit card to start · Cancel anytime · USD pricing
+              Built for Australian earthmoving, civil, mining, and plant hire businesses.
             </p>
           </div>
 
@@ -187,7 +189,7 @@ function Landing() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="max-w-2xl">
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              Everything your yard manager wishes you already had
+              Everything your business needs to run properly
             </h2>
             <p className="mt-3 text-muted-foreground">
               Replace the whiteboard, the wall calendar and the lost paper folders with one source of truth your whole crew can use.
@@ -195,24 +197,53 @@ function Landing() {
           </div>
 
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Feature icon={Truck} title="Vehicles & machinery">
-              One record per asset with rego, VIN/serial, make, model, year, odometer and notes.
+            <Feature icon={ClipboardCheck} title="Digital Pre-Start Inspections">
+              Operators complete machine pre-starts from their phone before every shift. Results go straight to management, creating a permanent record and reducing your compliance risk.
             </Feature>
-            <Feature icon={ShieldCheck} title="Compliance dates">
-              Registration, insurance, services, inspections, permits — all in one place.
+            <Feature icon={QrCode} title="QR Code Machine Access">
+              Every machine gets its own QR code. Operators scan it and land directly on that machine's pre-start — fast, consistent, and impossible to mix up.
             </Feature>
-            <Feature icon={BellRing} title="Auto reminders">
-              Email alerts 30, 14 and 7 days before any expiry. No more last-minute scrambles.
+            <Feature icon={Truck} title="Fleet & Asset Management">
+              Manage every piece of equipment in one place. Registration, serial numbers, service intervals, inspection history, and documents — all attached to the right machine.
             </Feature>
-            <Feature icon={FileCheck2} title="Document storage">
-              Attach rego papers, COI certificates and service receipts as PDFs or photos.
+            <Feature icon={Wrench} title="Maintenance & Service Tracking">
+              Record service history and track upcoming maintenance. Reduce unexpected breakdowns and keep your equipment running longer.
             </Feature>
-            <Feature icon={HardHat} title="Operator portal">
-              Mobile-first prestart checks, defect reports and ticket tracking for the crew in the cab.
+            <Feature icon={ShieldCheck} title="Compliance Made Simple">
+              Store operator licences, expiry dates, machine documentation, and safety records in one secure place. When an audit comes, you're ready.
             </Feature>
-            <Feature icon={Gauge} title="Built for the field">
-              Dark UI, works on a cracked phone screen in the sun. Designed for utes and workshops.
+            <Feature icon={Users} title="Operator Management">
+              Invite your team with a single link. Each operator gets their own account with the right permissions — they see what they need, nothing they don't.
             </Feature>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="border-t border-border/60 py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+            Trusted by operators in the field
+          </h2>
+          <div className="mt-10 grid gap-6 md:grid-cols-2">
+            <div className="surface-card p-6">
+              <Quote className="size-6 text-primary/40" />
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                "We used to run everything off paper pre-start books and a group chat. FleetFlow replaced all of it. Our inspections are done before the machine even starts."
+              </p>
+              <div className="mt-4 text-xs font-medium text-foreground">
+                — Site Supervisor, Civil Contractor — QLD
+              </div>
+            </div>
+            <div className="surface-card p-6">
+              <Quote className="size-6 text-primary/40" />
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                "The QR codes are the best part. The guys just scan the machine and they're straight into their pre-start. No excuses for skipping it."
+              </p>
+              <div className="mt-4 text-xs font-medium text-foreground">
+                — Fleet Manager, Plant Hire Business — NSW
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -222,14 +253,14 @@ function Landing() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Up and running in minutes</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            <Step n={1} title="Create your company">
-              Sign up, name your business and add your ABN. You're the first admin.
+            <Step n={1} title="Add your machines">
+              Add your fleet to FleetFlow in minutes. Excavators, trucks, dozers, attachments — every piece of plant in one place.
             </Step>
-            <Step n={2} title="Add your fleet">
-              Bulk-add vehicles and plant. Capture rego, insurance and service dates per asset.
+            <Step n={2} title="Operators scan and go">
+              Each machine gets its own QR code. Operators scan it on their phone and go straight to their pre-start checklist — no app download, no login hassle.
             </Step>
-            <Step n={3} title="Sleep easy">
-              Fleetflow watches every expiry and emails the right people, automatically.
+            <Step n={3} title="Management stays across everything">
+              Inspections, defects, service records, and compliance documents are instantly available in your dashboard. No chasing paper, no missing records.
             </Step>
           </div>
         </div>
@@ -239,13 +270,17 @@ function Landing() {
       <section id="pricing" className="border-t border-border/60 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="text-center">
-            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Simple per-asset pricing</h2>
+            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Simple pricing. No per-user fees.</h2>
             <p className="mt-3 text-muted-foreground">
-              14-day free trial on every plan. Cancel anytime. No per-user fees. USD.
+              Only administrators need a paid plan. Your operators, mechanics, and supervisors join for free under your subscription — no matter how many you have.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 rounded-lg border border-primary/30 bg-primary/5 p-4 text-center text-sm font-medium text-primary">
+            Unlimited operators included on every plan. You only pay for admin seats.
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <PlanCard
               name="Starter"
               price={99}
@@ -303,7 +338,7 @@ function Landing() {
               <div className="text-lg font-semibold">100+ assets — custom quote, SSO, dedicated support</div>
             </div>
             <Button asChild variant="outline" size="sm">
-              <a href="mailto:sales@fleetflow.app?subject=Enterprise%20quote">Contact sales</a>
+              <Link to="/contact">Contact sales</Link>
             </Button>
           </div>
 
@@ -311,6 +346,39 @@ function Landing() {
             <Button asChild size="lg">
               <Link to="/pricing">See full plan details</Link>
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="border-t border-border/60 py-20">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-4xl">Common questions</h2>
+          <div className="mt-10 space-y-4">
+            <FaqItem
+              question="Do my operators need a paid subscription?"
+              answer="No. Only company administrators require a paid plan. Operators, mechanics, supervisors, and any other staff join under your subscription at no extra cost."
+            />
+            <FaqItem
+              question="Do operators need to download an app?"
+              answer="FleetFlow works in any modern web browser — no app download required. Operators can access it from any phone, tablet, or computer."
+            />
+            <FaqItem
+              question="Can I import my existing data?"
+              answer="Yes. You can add your assets and operator details manually or contact us and we'll help you get set up quickly."
+            />
+            <FaqItem
+              question="Where is my data stored?"
+              answer="FleetFlow is cloud-based and your data is securely stored and isolated to your company only. No other organisation can see your information."
+            />
+            <FaqItem
+              question="What happens when my trial ends?"
+              answer="You'll be prompted to choose a plan. Your data is safe and nothing is deleted."
+            />
+            <FaqItem
+              question="Is FleetFlow suitable for small businesses?"
+              answer="Yes. FleetFlow is designed to scale — whether you're running 3 machines or 300, the platform works the same way."
+            />
           </div>
         </div>
       </section>
@@ -363,6 +431,15 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
       <div className="text-sm font-semibold text-primary">Step {n}</div>
       <div className="mt-1 text-lg font-semibold">{title}</div>
       <p className="mt-2 text-sm text-muted-foreground">{children}</p>
+    </div>
+  );
+}
+
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  return (
+    <div className="surface-card p-5">
+      <h3 className="text-sm font-semibold">{question}</h3>
+      <p className="mt-2 text-sm text-muted-foreground">{answer}</p>
     </div>
   );
 }

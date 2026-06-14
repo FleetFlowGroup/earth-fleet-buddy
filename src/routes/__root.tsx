@@ -77,26 +77,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Fleetflow — Fleet compliance for Australian earthmoving & transport" },
+      { title: "FleetFlow — Digital Pre-Starts & Fleet Management for Earthmoving Businesses" },
       {
         name: "description",
         content:
-          "Track vehicle and machinery registration, insurance, services and compliance documents. Never miss an expiry again.",
+          "FleetFlow helps earthmoving, civil, and plant hire businesses replace paper pre-start books with digital inspections, fleet tracking, and compliance management — all from one platform.",
       },
       { name: "author", content: "Fleetflow" },
       { name: "theme-color", content: "#0A0F1C" },
-      { property: "og:title", content: "Fleetflow — Fleet compliance for Australian earthmoving & transport" },
+      { property: "og:title", content: "FleetFlow — Digital Pre-Starts & Fleet Management for Earthmoving Businesses" },
       {
         property: "og:description",
         content:
-          "Built for Australian earthmoving and transport. Centralise rego, insurance, service and compliance docs with automatic reminders.",
+          "FleetFlow helps earthmoving, civil, and plant hire businesses replace paper pre-start books with digital inspections, fleet tracking, and compliance management — all from one platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Fleetflow — Fleet compliance for Australian earthmoving & transport" },
-      { name: "description", content: "FleetFlow manages Australian earthmoving, transport, and construction fleets, tracking assets and compliance." },
-      { property: "og:description", content: "FleetFlow manages Australian earthmoving, transport, and construction fleets, tracking assets and compliance." },
-      { name: "twitter:description", content: "FleetFlow manages Australian earthmoving, transport, and construction fleets, tracking assets and compliance." },
+      { name: "twitter:title", content: "FleetFlow — Digital Pre-Starts & Fleet Management for Earthmoving Businesses" },
+      { name: "twitter:description", content: "FleetFlow helps earthmoving, civil, and plant hire businesses replace paper pre-start books with digital inspections, fleet tracking, and compliance management — all from one platform." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f360cb1c-f20d-4db5-9268-af3d0d74f9aa/id-preview-42371e1d--cc35b793-3bf7-4ec1-bb88-1f86d597cc70.lovable.app-1781432685800.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f360cb1c-f20d-4db5-9268-af3d0d74f9aa/id-preview-42371e1d--cc35b793-3bf7-4ec1-bb88-1f86d597cc70.lovable.app-1781432685800.png" },
     ],
