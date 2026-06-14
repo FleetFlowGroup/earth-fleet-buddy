@@ -65,6 +65,7 @@ function Landing() {
             <a href="#features" className="hover:text-foreground">Features</a>
             <a href="#how" className="hover:text-foreground">How it works</a>
             <a href="#pricing" className="hover:text-foreground">Pricing</a>
+            <Link to="/contact" className="hover:text-foreground">Contact</Link>
           </nav>
           <div className="hidden items-center gap-2 md:flex">
             <Button asChild variant="ghost" size="sm"><Link to="/auth">Sign in</Link></Button>
@@ -87,6 +88,7 @@ function Landing() {
               <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">Features</a>
               <a href="#how" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">How it works</a>
               <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">Pricing</a>
+              <Link to="/contact" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">Contact</Link>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Button asChild variant="outline" size="sm"><Link to="/auth">Sign in</Link></Button>
                 <Button asChild size="sm">
@@ -321,6 +323,7 @@ function Landing() {
           </div>
           <div className="flex flex-wrap items-center gap-4">
             <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
+            <Link to="/contact" className="hover:text-foreground">Contact</Link>
             <Link to="/terms" className="hover:text-foreground">Terms</Link>
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link to="/refund" className="hover:text-foreground">Refunds</Link>

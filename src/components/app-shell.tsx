@@ -11,10 +11,11 @@ import {
   IdCard,
   CreditCard,
   Eye,
+  Inbox,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -22,6 +23,8 @@ import { NotificationsBell } from "@/components/notifications-bell";
 import { navFor, ROLE_LABELS } from "@/lib/permissions";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { setOperatorPreview } from "@/lib/operator-preview";
+
+const PLATFORM_ADMIN_EMAIL = "fleetflow.group@gmail.com";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
@@ -142,6 +145,7 @@ function SidebarInner({
             </Link>
           );
         })}
+        <PlatformAdminNav email={email} path={path} onNavigate={onNavigate} />
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
@@ -172,6 +176,47 @@ function SidebarInner({
         </Button>
       </div>
     </div>
+  );
+}
+
+function PlatformAdminNav({ email, path, onNavigate }: { email?: string; path: string; onNavigate?: () => void }) {
+  const isPlatformAdmin = (email ?? "").toLowerCase() === PLATFORM_ADMIN_EMAIL;
+  const { data: newCount } = useQuery({
+    queryKey: ["contact-enquiries-new-count"],
+    enabled: isPlatformAdmin,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("contact_enquiries")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "new");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+  if (!isPlatformAdmin) return null;
+  const to = "/admin/enquiries";
+  const active = path === to || path.startsWith(to + "/");
+  return (
+    <Link
+      to={to}
+      onClick={onNavigate}
+      className={`mt-3 flex items-center justify-between gap-3 rounded-md px-3 py-2 transition ${
+        active
+          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+          : "text-sidebar-foreground hover:bg-sidebar-accent/60"
+      }`}
+    >
+      <span className="flex items-center gap-3">
+        <Inbox className="size-4" />
+        Enquiries
+      </span>
+      {!!newCount && newCount > 0 && (
+        <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
+          {newCount}
+        </span>
+      )}
+    </Link>
   );
 }
 
