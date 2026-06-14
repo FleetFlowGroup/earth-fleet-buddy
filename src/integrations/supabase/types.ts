@@ -320,8 +320,11 @@ export type Database = {
           created_at: string
           created_by: string
           email: string | null
+          email_sent_at: string | null
           expires_at: string
           id: string
+          invited_name: string | null
+          invited_phone: string | null
           revoked_at: string | null
           role: Database["public"]["Enums"]["app_role"]
           used_at: string | null
@@ -333,8 +336,11 @@ export type Database = {
           created_at?: string
           created_by: string
           email?: string | null
+          email_sent_at?: string | null
           expires_at?: string
           id?: string
+          invited_name?: string | null
+          invited_phone?: string | null
           revoked_at?: string | null
           role: Database["public"]["Enums"]["app_role"]
           used_at?: string | null
@@ -346,8 +352,11 @@ export type Database = {
           created_at?: string
           created_by?: string
           email?: string | null
+          email_sent_at?: string | null
           expires_at?: string
           id?: string
+          invited_name?: string | null
+          invited_phone?: string | null
           revoked_at?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           used_at?: string | null
@@ -1545,6 +1554,9 @@ export type Database = {
         | "office_staff"
         | "workshop"
         | "operator"
+        | "super_admin"
+        | "supervisor"
+        | "mechanic"
       asset_status: "active" | "workshop" | "broken_down" | "sold" | "disposed"
       asset_type:
         | "vehicle"
@@ -1713,6 +1725,9 @@ export const Constants = {
         "office_staff",
         "workshop",
         "operator",
+        "super_admin",
+        "supervisor",
+        "mechanic",
       ],
       asset_status: ["active", "workshop", "broken_down", "sold", "disposed"],
       asset_type: [
