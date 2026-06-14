@@ -170,6 +170,7 @@ function PrestartScreen() {
           description,
           status: "open",
           prestart_id: ps.id,
+          submitter_user_agent: ua,
         }).select("id").single();
         if (!defErr && def?.id) {
           for (const path of uploadedPaths) {
