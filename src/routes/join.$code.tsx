@@ -37,17 +37,26 @@ function PublicJoinPage() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const [{ data: rpc }, { data: session }] = await Promise.all([
-        (supabase as any).rpc("preview_company_invite", { _code: code }),
-        supabase.auth.getSession(),
-      ]);
+    let active = true;
+    async function loadInvite() {
+      setLoading(true);
+      const { data: userRes } = await supabase.auth.getUser();
+      const { data: rpc } = await (supabase as any).rpc("preview_company_invite", { _code: code });
+      if (!active) return;
       const row = Array.isArray(rpc) ? rpc[0] : rpc;
       setPreview(row ?? { status: "invalid", company_name: null, role: null, invited_email: null, invited_name: null });
-      setSignedIn(!!session.session);
-      setCurrentEmail(session.session?.user?.email?.toLowerCase() ?? null);
+      setSignedIn(!!userRes.user);
+      setCurrentEmail(userRes.user?.email?.toLowerCase() ?? null);
       setLoading(false);
-    })();
+    }
+    loadInvite();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      loadInvite();
+    });
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, [code]);
 
   async function switchAccount() {
@@ -70,6 +79,7 @@ function PublicJoinPage() {
       const { error } = await supabase.rpc("accept_company_invite", { _code: code });
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["current-user"] });
+      await qc.invalidateQueries();
       setDone(true);
       toast.success(`Joined ${preview?.company_name ?? "company"}`);
       setTimeout(() => {
