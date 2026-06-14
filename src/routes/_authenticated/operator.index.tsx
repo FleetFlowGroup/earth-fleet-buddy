@@ -41,7 +41,9 @@ function OperatorHome() {
   const { asset: assetOverride } = Route.useSearch();
 
   const { data: operatorRow } = useOperatorSelf(me?.userId, me?.company?.id);
-  const { data: asset } = useOperatorTargetAsset(operatorRow?.id, assetOverride);
+  // Always start with the machine picker each session — only show the selected
+  // machine when an explicit ?asset=<id> is in the URL.
+  const { data: asset } = useOperatorTargetAsset(undefined, assetOverride);
 
   async function signOut() {
     await qc.cancelQueries(); qc.clear();
