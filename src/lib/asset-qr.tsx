@@ -8,7 +8,7 @@ import { toast } from "sonner";
 export function AssetQrButton({ assetId, label }: { assetId: string; label: string }) {
   const [open, setOpen] = useState(false);
   const [dataUrl, setDataUrl] = useState<string | null>(null);
-  const url = typeof window !== "undefined" ? `${window.location.origin}/assets/${assetId}` : `/assets/${assetId}`;
+  const url = typeof window !== "undefined" ? `${window.location.origin}/m/${assetId}` : `/m/${assetId}`;
 
   useEffect(() => {
     if (!open) return;
