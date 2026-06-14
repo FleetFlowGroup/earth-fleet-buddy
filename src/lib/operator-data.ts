@@ -83,6 +83,31 @@ export function useOperatorAsset(operatorId?: string) {
   });
 }
 
+// Load any asset by id (RLS scopes to operator's company automatically).
+export function useOperatorAssetById(assetId?: string | null) {
+  return useQuery({
+    queryKey: ["operator-asset-by-id", assetId],
+    enabled: !!assetId,
+    queryFn: async () => {
+      const { data: asset } = await (supabase as any)
+        .from("assets").select("*").eq("id", assetId!).maybeSingle();
+      if (!asset) return null;
+      const { data: comp } = await (supabase as any)
+        .from("compliance_records")
+        .select("type,label,expiry_date")
+        .eq("asset_id", asset.id);
+      return { ...asset, _compliance: comp ?? [] } as any;
+    },
+  });
+}
+
+// Convenience: pick asset-by-id when provided, else fall back to assigned.
+export function useOperatorTargetAsset(operatorId?: string, overrideAssetId?: string | null) {
+  const assigned = useOperatorAsset(overrideAssetId ? undefined : operatorId);
+  const byId = useOperatorAssetById(overrideAssetId ?? undefined);
+  return overrideAssetId ? byId : assigned;
+}
+
 export function meterValue(asset: any): { value: number | null; unit: string; mode: "km" | "hours" } {
   const mode = assetMeterMode(asset?.type);
   const value = mode === "km" ? asset?.odometer : asset?.engine_hours;
