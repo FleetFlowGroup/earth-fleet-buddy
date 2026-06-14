@@ -3,10 +3,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { assetMeterMode, computeServiceDue, daysUntil } from "@/lib/expiry";
+import { isOperatorPreviewOn } from "@/lib/operator-preview";
+
+export const PREVIEW_OPERATOR_ID = "__preview_operator__";
 
 export function useOperatorSelf(userId?: string, companyId?: string) {
   return useQuery({
-    queryKey: ["operator-self", userId, companyId],
+    queryKey: ["operator-self", userId, companyId, isOperatorPreviewOn()],
     enabled: !!userId && !!companyId,
     queryFn: async () => {
       const { data } = await (supabase as any)
@@ -19,18 +22,31 @@ export function useOperatorSelf(userId?: string, companyId?: string) {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("email")
+        .select("email,full_name")
         .eq("id", userId!)
         .maybeSingle();
-      if (!profile?.email) return null;
+      if (profile?.email) {
+        const { data: byEmail } = await (supabase as any)
+          .from("operators")
+          .select("*")
+          .eq("company_id", companyId!)
+          .ilike("email", profile.email)
+          .maybeSingle();
+        if (byEmail) return byEmail as any;
+      }
 
-      const { data: byEmail } = await (supabase as any)
-        .from("operators")
-        .select("*")
-        .eq("company_id", companyId!)
-        .ilike("email", profile.email)
-        .maybeSingle();
-      return byEmail as any;
+      // Synthetic operator for admin preview mode
+      if (isOperatorPreviewOn()) {
+        return {
+          id: PREVIEW_OPERATOR_ID,
+          company_id: companyId,
+          user_id: userId,
+          full_name: profile?.full_name ?? "Preview Operator",
+          email: profile?.email ?? null,
+          __preview: true,
+        } as any;
+      }
+      return null;
     },
   });
 }
@@ -40,11 +56,23 @@ export function useOperatorAsset(operatorId?: string) {
     queryKey: ["operator-asset", operatorId],
     enabled: !!operatorId,
     queryFn: async () => {
-      const { data: asset } = await (supabase as any)
-        .from("assets")
-        .select("*")
-        .eq("assigned_operator_id", operatorId!)
-        .maybeSingle();
+      let asset: any = null;
+      if (operatorId === PREVIEW_OPERATOR_ID) {
+        const { data } = await (supabase as any)
+          .from("assets")
+          .select("*")
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        asset = data;
+      } else {
+        const { data } = await (supabase as any)
+          .from("assets")
+          .select("*")
+          .eq("assigned_operator_id", operatorId!)
+          .maybeSingle();
+        asset = data;
+      }
       if (!asset) return null;
       const { data: comp } = await (supabase as any)
         .from("compliance_records")
