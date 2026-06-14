@@ -20,6 +20,7 @@ import {
   Clock,
   ChevronRight,
   RefreshCw,
+  FileText,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useOperatorSelf, useOperatorTargetAsset, meterValue, nextServiceText, regoExpiryText } from "@/lib/operator-data";
@@ -317,6 +318,7 @@ function SelectedMachine({ me, asset, operatorRow, greeting, name, onSignOut }: 
           <BigBtn to="/operator/defect" icon={AlertTriangle} label="Report defect" tone="danger" assetId={asset.id} />
           <BigBtn to="/operator/photos" icon={Camera} label="Upload photos" assetId={asset.id} />
           <BigBtn to="/operator/tickets" icon={Ticket} label="My tickets" />
+          <BigBtn to="/operator/documents" icon={FileText} label="My documents" />
           <BigBtn to="/operator/profile" icon={User} label="My profile" />
         </section>
 

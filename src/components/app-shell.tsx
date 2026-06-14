@@ -13,6 +13,7 @@ import {
   Eye,
   Inbox,
   ClipboardCheck,
+  FileText,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +32,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
   "/assets": Truck,
   "/operators": IdCard,
+  "/tickets": FileText,
   "/admin/prestarts": ClipboardCheck,
   "/reports": FileBarChart,
   "/team": Users,
