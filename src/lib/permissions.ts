@@ -32,6 +32,7 @@ export type Permission =
   | "compliance.edit"
   | "documents.view"
   | "documents.edit"
+  | "tickets.manage"
   | "reports.view"
   | "team.view"
   | "team.manage"
@@ -47,7 +48,7 @@ const PERMS: Record<Exclude<Role, null | undefined>, Permission[]> = {
     "dashboard.view", "assets.view", "assets.edit", "assets.delete", "assets.value.view",
     "operators.view", "operators.edit", "services.view", "services.edit",
     "defects.view", "defects.edit", "compliance.view", "compliance.edit",
-    "documents.view", "documents.edit", "reports.view",
+    "documents.view", "documents.edit", "tickets.manage", "reports.view",
     "team.view", "team.manage", "settings.view", "settings.edit",
     "billing.view", "billing.manage", "audit.view",
   ],
@@ -55,7 +56,7 @@ const PERMS: Record<Exclude<Role, null | undefined>, Permission[]> = {
     "dashboard.view", "assets.view", "assets.edit", "assets.delete", "assets.value.view",
     "operators.view", "operators.edit", "services.view", "services.edit",
     "defects.view", "defects.edit", "compliance.view", "compliance.edit",
-    "documents.view", "documents.edit", "reports.view",
+    "documents.view", "documents.edit", "tickets.manage", "reports.view",
     "team.view", "team.manage", "settings.view", "settings.edit",
     "billing.view", "billing.manage", "audit.view",
   ],
@@ -63,20 +64,20 @@ const PERMS: Record<Exclude<Role, null | undefined>, Permission[]> = {
     "dashboard.view", "assets.view", "assets.edit", "assets.value.view",
     "operators.view", "operators.edit", "services.view", "services.edit",
     "defects.view", "defects.edit", "compliance.view", "compliance.edit",
-    "documents.view", "documents.edit", "reports.view",
+    "documents.view", "documents.edit", "tickets.manage", "reports.view",
     "team.view", "team.manage", "settings.view",
   ],
   supervisor: [
     "dashboard.view", "assets.view", "assets.edit",
     "operators.view", "operators.edit", "services.view", "services.edit",
     "defects.view", "defects.edit", "compliance.view",
-    "documents.view", "reports.view", "team.view",
+    "documents.view", "tickets.manage", "reports.view", "team.view",
   ],
   office_staff: [
     "dashboard.view", "assets.view", "assets.edit",
     "operators.view", "operators.edit", "services.view", "services.edit",
     "defects.view", "defects.edit", "compliance.view", "compliance.edit",
-    "documents.view", "documents.edit", "reports.view",
+    "documents.view", "documents.edit", "tickets.manage", "reports.view",
   ],
   workshop: [
     "assets.view", "services.view", "services.edit",
@@ -113,6 +114,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", perm: "dashboard.view" },
   { to: "/assets", label: "Assets", perm: "assets.view" },
   { to: "/operators", label: "Operators", perm: "operators.view" },
+  { to: "/tickets", label: "Tickets", perm: "tickets.manage" },
   { to: "/admin/prestarts", label: "Prestarts", perm: "defects.view" },
   { to: "/reports", label: "Reports", perm: "reports.view" },
   { to: "/team", label: "Team", perm: "team.view" },

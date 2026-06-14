@@ -21,6 +21,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MIdRouteImport } from './routes/m.$id'
 import { Route as JoinCodeRouteImport } from './routes/join.$code'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as AuthenticatedTicketsRouteImport } from './routes/_authenticated/tickets'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
@@ -39,6 +40,7 @@ import { Route as AuthenticatedOperatorProfileRouteImport } from './routes/_auth
 import { Route as AuthenticatedOperatorPrestartRouteImport } from './routes/_authenticated/operator.prestart'
 import { Route as AuthenticatedOperatorPhotosRouteImport } from './routes/_authenticated/operator.photos'
 import { Route as AuthenticatedOperatorHoursRouteImport } from './routes/_authenticated/operator.hours'
+import { Route as AuthenticatedOperatorDocumentsRouteImport } from './routes/_authenticated/operator.documents'
 import { Route as AuthenticatedOperatorDefectRouteImport } from './routes/_authenticated/operator.defect'
 import { Route as AuthenticatedAssetsIdRouteImport } from './routes/_authenticated/assets/$id'
 import { Route as AuthenticatedAdminPrestartsRouteImport } from './routes/_authenticated/admin.prestarts'
@@ -107,6 +109,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTicketsRoute = AuthenticatedTicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   id: '/team',
@@ -207,6 +214,12 @@ const AuthenticatedOperatorHoursRoute =
     path: '/hours',
     getParentRoute: () => AuthenticatedOperatorRoute,
   } as any)
+const AuthenticatedOperatorDocumentsRoute =
+  AuthenticatedOperatorDocumentsRouteImport.update({
+    id: '/documents',
+    path: '/documents',
+    getParentRoute: () => AuthenticatedOperatorRoute,
+  } as any)
 const AuthenticatedOperatorDefectRoute =
   AuthenticatedOperatorDefectRouteImport.update({
     id: '/defect',
@@ -277,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/tickets': typeof AuthenticatedTicketsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
@@ -284,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/operator/defect': typeof AuthenticatedOperatorDefectRoute
+  '/operator/documents': typeof AuthenticatedOperatorDocumentsRoute
   '/operator/hours': typeof AuthenticatedOperatorHoursRoute
   '/operator/photos': typeof AuthenticatedOperatorPhotosRoute
   '/operator/prestart': typeof AuthenticatedOperatorPrestartRoute
@@ -316,6 +331,7 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/tickets': typeof AuthenticatedTicketsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
@@ -323,6 +339,7 @@ export interface FileRoutesByTo {
   '/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/operator/defect': typeof AuthenticatedOperatorDefectRoute
+  '/operator/documents': typeof AuthenticatedOperatorDocumentsRoute
   '/operator/hours': typeof AuthenticatedOperatorHoursRoute
   '/operator/photos': typeof AuthenticatedOperatorPhotosRoute
   '/operator/prestart': typeof AuthenticatedOperatorPrestartRoute
@@ -358,6 +375,7 @@ export interface FileRoutesById {
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/_authenticated/tickets': typeof AuthenticatedTicketsRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
@@ -365,6 +383,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/_authenticated/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/_authenticated/operator/defect': typeof AuthenticatedOperatorDefectRoute
+  '/_authenticated/operator/documents': typeof AuthenticatedOperatorDocumentsRoute
   '/_authenticated/operator/hours': typeof AuthenticatedOperatorHoursRoute
   '/_authenticated/operator/photos': typeof AuthenticatedOperatorPhotosRoute
   '/_authenticated/operator/prestart': typeof AuthenticatedOperatorPrestartRoute
@@ -400,6 +419,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/team'
+    | '/tickets'
     | '/email/unsubscribe'
     | '/join/$code'
     | '/m/$id'
@@ -407,6 +427,7 @@ export interface FileRouteTypes {
     | '/admin/prestarts'
     | '/assets/$id'
     | '/operator/defect'
+    | '/operator/documents'
     | '/operator/hours'
     | '/operator/photos'
     | '/operator/prestart'
@@ -439,6 +460,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/team'
+    | '/tickets'
     | '/email/unsubscribe'
     | '/join/$code'
     | '/m/$id'
@@ -446,6 +468,7 @@ export interface FileRouteTypes {
     | '/admin/prestarts'
     | '/assets/$id'
     | '/operator/defect'
+    | '/operator/documents'
     | '/operator/hours'
     | '/operator/photos'
     | '/operator/prestart'
@@ -480,6 +503,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reports'
     | '/_authenticated/settings'
     | '/_authenticated/team'
+    | '/_authenticated/tickets'
     | '/email/unsubscribe'
     | '/join/$code'
     | '/m/$id'
@@ -487,6 +511,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/prestarts'
     | '/_authenticated/assets/$id'
     | '/_authenticated/operator/defect'
+    | '/_authenticated/operator/documents'
     | '/_authenticated/operator/hours'
     | '/_authenticated/operator/photos'
     | '/_authenticated/operator/prestart'
@@ -612,6 +637,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/email/unsubscribe'
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/tickets': {
+      id: '/_authenticated/tickets'
+      path: '/tickets'
+      fullPath: '/tickets'
+      preLoaderRoute: typeof AuthenticatedTicketsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/team': {
       id: '/_authenticated/team'
@@ -739,6 +771,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperatorHoursRouteImport
       parentRoute: typeof AuthenticatedOperatorRoute
     }
+    '/_authenticated/operator/documents': {
+      id: '/_authenticated/operator/documents'
+      path: '/documents'
+      fullPath: '/operator/documents'
+      preLoaderRoute: typeof AuthenticatedOperatorDocumentsRouteImport
+      parentRoute: typeof AuthenticatedOperatorRoute
+    }
     '/_authenticated/operator/defect': {
       id: '/_authenticated/operator/defect'
       path: '/defect'
@@ -807,6 +846,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedOperatorRouteChildren {
   AuthenticatedOperatorDefectRoute: typeof AuthenticatedOperatorDefectRoute
+  AuthenticatedOperatorDocumentsRoute: typeof AuthenticatedOperatorDocumentsRoute
   AuthenticatedOperatorHoursRoute: typeof AuthenticatedOperatorHoursRoute
   AuthenticatedOperatorPhotosRoute: typeof AuthenticatedOperatorPhotosRoute
   AuthenticatedOperatorPrestartRoute: typeof AuthenticatedOperatorPrestartRoute
@@ -817,6 +857,7 @@ interface AuthenticatedOperatorRouteChildren {
 
 const AuthenticatedOperatorRouteChildren: AuthenticatedOperatorRouteChildren = {
   AuthenticatedOperatorDefectRoute: AuthenticatedOperatorDefectRoute,
+  AuthenticatedOperatorDocumentsRoute: AuthenticatedOperatorDocumentsRoute,
   AuthenticatedOperatorHoursRoute: AuthenticatedOperatorHoursRoute,
   AuthenticatedOperatorPhotosRoute: AuthenticatedOperatorPhotosRoute,
   AuthenticatedOperatorPrestartRoute: AuthenticatedOperatorPrestartRoute,
@@ -838,6 +879,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
+  AuthenticatedTicketsRoute: typeof AuthenticatedTicketsRoute
   AuthenticatedAdminEnquiriesRoute: typeof AuthenticatedAdminEnquiriesRoute
   AuthenticatedAdminPrestartsRoute: typeof AuthenticatedAdminPrestartsRoute
   AuthenticatedAssetsIdRoute: typeof AuthenticatedAssetsIdRoute
@@ -854,6 +896,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
+  AuthenticatedTicketsRoute: AuthenticatedTicketsRoute,
   AuthenticatedAdminEnquiriesRoute: AuthenticatedAdminEnquiriesRoute,
   AuthenticatedAdminPrestartsRoute: AuthenticatedAdminPrestartsRoute,
   AuthenticatedAssetsIdRoute: AuthenticatedAssetsIdRoute,
@@ -889,13 +932,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
