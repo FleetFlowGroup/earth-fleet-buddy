@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useOperatorSelf, useOperatorTargetAsset, meterValue } from "@/lib/operator-data";
+import { useOperatorSelf, useOperatorTargetAsset, meterValue, realOperatorId } from "@/lib/operator-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -128,7 +128,7 @@ function PrestartScreen() {
       const { data: ps, error } = await (supabase as any).from("prestart_checks").insert({
         company_id: me.company.id,
         asset_id: asset.id,
-        operator_id: op?.id ?? null,
+        operator_id: realOperatorId(op),
         performed_by: me.userId,
         checklist,
         notes: notes || null,
@@ -169,7 +169,7 @@ function PrestartScreen() {
         const { data: def, error: defErr } = await (supabase as any).from("defect_reports").insert({
           company_id: me.company.id,
           asset_id: asset.id,
-          operator_id: op?.id ?? null,
+          operator_id: realOperatorId(op),
           reported_by: me.userId,
           severity,
           description,

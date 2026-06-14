@@ -7,6 +7,13 @@ import { isOperatorPreviewOn } from "@/lib/operator-preview";
 
 export const PREVIEW_OPERATOR_ID = "__preview_operator__";
 
+// Returns null for the preview sentinel so it's never sent to the DB as a uuid.
+export function realOperatorId(op: any): string | null {
+  const id = op?.id;
+  if (!id || id === PREVIEW_OPERATOR_ID) return null;
+  return id;
+}
+
 export function useOperatorSelf(userId?: string, companyId?: string) {
   return useQuery({
     queryKey: ["operator-self", userId, companyId, isOperatorPreviewOn()],

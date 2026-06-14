@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useOperatorSelf, useOperatorTargetAsset } from "@/lib/operator-data";
+import { useOperatorSelf, useOperatorTargetAsset, realOperatorId } from "@/lib/operator-data";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,7 +46,7 @@ function DefectScreen() {
       const ua = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : null;
       const { data: rep, error } = await (supabase as any).from("defect_reports").insert({
         company_id: me.company.id, asset_id: asset.id,
-        operator_id: op?.id ?? null, reported_by: me.userId,
+        operator_id: realOperatorId(op), reported_by: me.userId,
         severity, description: description.trim(), status: "open",
         submitter_user_agent: ua,
       }).select("id").single();
