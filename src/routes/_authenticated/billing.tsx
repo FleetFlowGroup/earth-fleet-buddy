@@ -8,7 +8,7 @@ import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { changeSubscriptionPlan, createPortalSession } from "@/utils/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { useQueryClient } from "@tanstack/react-query";
-import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+
 import { toast } from "sonner";
 import { Loader2, ExternalLink, Check } from "lucide-react";
 
@@ -84,7 +84,6 @@ function BillingPage() {
 
   return (
     <AppShell>
-      <PaymentTestModeBanner />
       <PageHeader title="Billing" description="Manage your FleetFlow subscription, plan and payment method." />
       <div className="space-y-6 px-4 py-6 sm:px-8">
         {isLoading || !billing ? (
