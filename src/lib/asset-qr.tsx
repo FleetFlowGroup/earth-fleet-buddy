@@ -8,7 +8,9 @@ import { toast } from "sonner";
 export function AssetQrButton({ assetId, label }: { assetId: string; label: string }) {
   const [open, setOpen] = useState(false);
   const [dataUrl, setDataUrl] = useState<string | null>(null);
-  const url = typeof window !== "undefined" ? `${window.location.origin}/m/${assetId}` : `/m/${assetId}`;
+  // Always point QR codes at the public production domain so scanning a sticker
+  // never lands operators on a preview/lovable subdomain (which breaks sign-in).
+  const url = `https://www.fleetflow.group/m/${assetId}`;
 
   useEffect(() => {
     if (!open) return;
