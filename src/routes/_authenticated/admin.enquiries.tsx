@@ -2,7 +2,7 @@ import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { useCurrentUser } from '@/hooks/use-current-user'
+import { useIsPlatformAdmin } from '@/hooks/use-is-platform-admin'
 import { AppShell } from '@/components/app-shell'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +14,6 @@ import {
 import { Loader2, Search, Mail, Phone, ShieldAlert, Inbox } from 'lucide-react'
 import { toast } from 'sonner'
 
-const PLATFORM_ADMIN_EMAIL = 'fleetflow.group@gmail.com'
 
 type Status = 'new' | 'in_progress' | 'completed'
 
