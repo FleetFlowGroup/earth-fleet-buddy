@@ -152,14 +152,25 @@ function AuthPage() {
             </TabsList>
 
             <TabsContent value={tab} className="mt-6">
+              {invitePreview && (
+                <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5 text-sm">
+                  <div className="font-medium">You've been invited to join {invitePreview.company_name ?? "a company"}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">
+                    Your account will be free — your company's subscription covers your access.
+                  </div>
+                </div>
+              )}
               <h1 className="text-2xl font-semibold tracking-tight">
-                {tab === "signin" ? "Welcome back" : "Create your account"}
+                {tab === "signin" ? "Welcome back" : (invite ? "Create your account" : "Create your account")}
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 {tab === "signin"
                   ? "Sign in to manage your fleet compliance."
-                  : "Start tracking your fleet in a minute."}
+                  : invite
+                    ? "Just set a password to finish joining your team."
+                    : "Start tracking your fleet in a minute."}
               </p>
+
 
               <Button
                 onClick={handleGoogle}
