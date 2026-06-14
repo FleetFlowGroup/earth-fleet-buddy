@@ -45,6 +45,11 @@ function PricingPage() {
       navigate({ to: "/auth", search: { mode: "signup" } });
       return;
     }
+    if (me.role !== "admin" && me.role !== "super_admin") {
+      // Only the company admin pays. Invited staff are covered by the admin's plan.
+      navigate({ to: "/dashboard" });
+      return;
+    }
     await openCheckout({
       priceId,
       customerEmail: me.email,
