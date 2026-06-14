@@ -31,15 +31,30 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { mode, oauth, redirect } = useSearch({ from: "/auth" });
+  const search = useSearch({ from: "/auth" });
+  const { mode, oauth, redirect, invite, email: prefillEmail } = search;
   const isSafeRedirect = !!redirect && redirect.startsWith("/") && !redirect.startsWith("//");
-  const dest = isSafeRedirect ? redirect! : "/dashboard";
+  // If we arrived from an invite link, after sign-in/up land on the join page to accept.
+  const dest = invite ? `/join/${invite}` : (isSafeRedirect ? redirect! : "/dashboard");
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"signin" | "signup">(mode ?? "signin");
+  const [tab, setTab] = useState<"signin" | "signup">(mode ?? (invite ? "signup" : "signin"));
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(prefillEmail ?? "");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [invitePreview, setInvitePreview] = useState<{ company_name: string | null; role: string | null } | null>(null);
+
+  // Look up the invite (anon-safe) so we can show "You've been invited to X".
+  useEffect(() => {
+    if (!invite) return;
+    (async () => {
+      const { data } = await (supabase as any).rpc("preview_company_invite", { _code: invite });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row && row.status === "active") {
+        setInvitePreview({ company_name: row.company_name, role: row.role });
+      }
+    })();
+  }, [invite]);
 
   useEffect(() => {
     if (oauth !== "google") return;
@@ -65,7 +80,7 @@ function AuthPage() {
     return () => {
       active = false;
     };
-  }, [oauth, navigate]);
+  }, [oauth, navigate, dest]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -81,8 +96,9 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created — welcome to Fleetflow!");
-        navigate({ to: "/onboarding" });
+        toast.success("Account created — welcome to FleetFlow!");
+        // Invite path skips onboarding/billing entirely.
+        navigate({ to: invite ? `/join/${invite}` : "/onboarding" } as any);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -99,7 +115,7 @@ function AuthPage() {
   async function handleGoogle() {
     setLoading(true);
     const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: window.location.origin + (invite ? `/join/${invite}` : ""),
       extraParams: { prompt: "select_account" },
     });
     if (res.error) {
@@ -110,6 +126,7 @@ function AuthPage() {
     if (res.redirected) return;
     navigate({ to: dest as any });
   }
+
 
   return (
     <div className="relative grid min-h-screen place-items-center bg-background px-4 py-12">
