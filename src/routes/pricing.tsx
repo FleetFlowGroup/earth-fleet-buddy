@@ -82,6 +82,7 @@ function PricingPage() {
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
             Pay per asset, not per user. 14-day free trial on any plan. Cancel anytime.
           </p>
+          <p className="mt-2 text-xs text-muted-foreground">Prices in AUD.</p>
         </div>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-4">
@@ -99,7 +100,7 @@ function PricingPage() {
               )}
               <div className="text-sm font-medium text-muted-foreground">{t.name}</div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold">${t.price}</span>
+                <span className="text-4xl font-semibold">${t.price} AUD</span>
                 <span className="text-sm text-muted-foreground">/mo</span>
               </div>
               <div className="mt-1 text-sm text-foreground/80">{t.limit}</div>
@@ -140,7 +141,7 @@ function PricingPage() {
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          Prices in USD. Taxes calculated at checkout where applicable. By subscribing you agree to our{" "}
+          Prices in AUD. Taxes calculated at checkout where applicable. By subscribing you agree to our{" "}
           <Link to="/terms" className="underline">Terms</Link>,{" "}
           <Link to="/privacy" className="underline">Privacy Notice</Link> and{" "}
           <Link to="/refund" className="underline">Refund Policy</Link>.

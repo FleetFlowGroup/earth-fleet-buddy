@@ -274,6 +274,7 @@ function Landing() {
             <p className="mt-3 text-muted-foreground">
               Only administrators need a paid plan. Your operators, mechanics, and supervisors join for free under your subscription — no matter how many you have.
             </p>
+            <p className="mt-2 text-xs text-muted-foreground">Prices in AUD.</p>
           </div>
 
           <div className="mt-6 rounded-lg border border-primary/30 bg-primary/5 p-4 text-center text-sm font-medium text-primary">
@@ -303,7 +304,7 @@ function Landing() {
                 "Everything in Starter",
                 "Operator portal + prestarts",
                 "Defect reports & photos",
-                "Up to 5 team members",
+                "Unlimited team members",
               ]}
             />
             <PlanCard
@@ -518,7 +519,7 @@ function PlanCard({
       )}
       <div className="text-sm font-medium text-muted-foreground">{name}</div>
       <div className="mt-2 flex items-baseline gap-1">
-        <span className="text-3xl font-semibold">${price}</span>
+        <span className="text-3xl font-semibold">${price} AUD</span>
         <span className="text-sm text-muted-foreground">/mo</span>
       </div>
       <div className="mt-1 text-sm text-foreground/80">{limit}</div>
