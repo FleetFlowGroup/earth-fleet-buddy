@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useOperatorSelf, useOperatorTargetAsset } from "@/lib/operator-data";
+import { useOperatorSelf, useOperatorTargetAsset, realOperatorId } from "@/lib/operator-data";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
