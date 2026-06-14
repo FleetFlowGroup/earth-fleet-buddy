@@ -19,6 +19,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MIdRouteImport } from './routes/m.$id'
+import { Route as JoinCodeRouteImport } from './routes/join.$code'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -39,7 +40,6 @@ import { Route as AuthenticatedOperatorPrestartRouteImport } from './routes/_aut
 import { Route as AuthenticatedOperatorPhotosRouteImport } from './routes/_authenticated/operator.photos'
 import { Route as AuthenticatedOperatorHoursRouteImport } from './routes/_authenticated/operator.hours'
 import { Route as AuthenticatedOperatorDefectRouteImport } from './routes/_authenticated/operator.defect'
-import { Route as AuthenticatedJoinCodeRouteImport } from './routes/_authenticated/join.$code'
 import { Route as AuthenticatedAssetsIdRouteImport } from './routes/_authenticated/assets/$id'
 import { Route as AuthenticatedAdminPrestartsRouteImport } from './routes/_authenticated/admin.prestarts'
 import { Route as AuthenticatedAdminEnquiriesRouteImport } from './routes/_authenticated/admin.enquiries'
@@ -96,6 +96,11 @@ const IndexRoute = IndexRouteImport.update({
 const MIdRoute = MIdRouteImport.update({
   id: '/m/$id',
   path: '/m/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinCodeRoute = JoinCodeRouteImport.update({
+  id: '/join/$code',
+  path: '/join/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
@@ -208,11 +213,6 @@ const AuthenticatedOperatorDefectRoute =
     path: '/defect',
     getParentRoute: () => AuthenticatedOperatorRoute,
   } as any)
-const AuthenticatedJoinCodeRoute = AuthenticatedJoinCodeRouteImport.update({
-  id: '/join/$code',
-  path: '/join/$code',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedAssetsIdRoute = AuthenticatedAssetsIdRouteImport.update({
   id: '/assets/$id',
   path: '/assets/$id',
@@ -278,11 +278,11 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
   '/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
-  '/join/$code': typeof AuthenticatedJoinCodeRoute
   '/operator/defect': typeof AuthenticatedOperatorDefectRoute
   '/operator/hours': typeof AuthenticatedOperatorHoursRoute
   '/operator/photos': typeof AuthenticatedOperatorPhotosRoute
@@ -317,11 +317,11 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
   '/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
-  '/join/$code': typeof AuthenticatedJoinCodeRoute
   '/operator/defect': typeof AuthenticatedOperatorDefectRoute
   '/operator/hours': typeof AuthenticatedOperatorHoursRoute
   '/operator/photos': typeof AuthenticatedOperatorPhotosRoute
@@ -359,11 +359,11 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
   '/_authenticated/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/_authenticated/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/_authenticated/assets/$id': typeof AuthenticatedAssetsIdRoute
-  '/_authenticated/join/$code': typeof AuthenticatedJoinCodeRoute
   '/_authenticated/operator/defect': typeof AuthenticatedOperatorDefectRoute
   '/_authenticated/operator/hours': typeof AuthenticatedOperatorHoursRoute
   '/_authenticated/operator/photos': typeof AuthenticatedOperatorPhotosRoute
@@ -401,11 +401,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/team'
     | '/email/unsubscribe'
+    | '/join/$code'
     | '/m/$id'
     | '/admin/enquiries'
     | '/admin/prestarts'
     | '/assets/$id'
-    | '/join/$code'
     | '/operator/defect'
     | '/operator/hours'
     | '/operator/photos'
@@ -440,11 +440,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/team'
     | '/email/unsubscribe'
+    | '/join/$code'
     | '/m/$id'
     | '/admin/enquiries'
     | '/admin/prestarts'
     | '/assets/$id'
-    | '/join/$code'
     | '/operator/defect'
     | '/operator/hours'
     | '/operator/photos'
@@ -481,11 +481,11 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/team'
     | '/email/unsubscribe'
+    | '/join/$code'
     | '/m/$id'
     | '/_authenticated/admin/enquiries'
     | '/_authenticated/admin/prestarts'
     | '/_authenticated/assets/$id'
-    | '/_authenticated/join/$code'
     | '/_authenticated/operator/defect'
     | '/_authenticated/operator/hours'
     | '/_authenticated/operator/photos'
@@ -516,6 +516,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  JoinCodeRoute: typeof JoinCodeRoute
   MIdRoute: typeof MIdRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
@@ -596,6 +597,13 @@ declare module '@tanstack/react-router' {
       path: '/m/$id'
       fullPath: '/m/$id'
       preLoaderRoute: typeof MIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join/$code': {
+      id: '/join/$code'
+      path: '/join/$code'
+      fullPath: '/join/$code'
+      preLoaderRoute: typeof JoinCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
@@ -738,13 +746,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperatorDefectRouteImport
       parentRoute: typeof AuthenticatedOperatorRoute
     }
-    '/_authenticated/join/$code': {
-      id: '/_authenticated/join/$code'
-      path: '/join/$code'
-      fullPath: '/join/$code'
-      preLoaderRoute: typeof AuthenticatedJoinCodeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/assets/$id': {
       id: '/_authenticated/assets/$id'
       path: '/assets/$id'
@@ -840,7 +841,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminEnquiriesRoute: typeof AuthenticatedAdminEnquiriesRoute
   AuthenticatedAdminPrestartsRoute: typeof AuthenticatedAdminPrestartsRoute
   AuthenticatedAssetsIdRoute: typeof AuthenticatedAssetsIdRoute
-  AuthenticatedJoinCodeRoute: typeof AuthenticatedJoinCodeRoute
   AuthenticatedOperatorsIdRoute: typeof AuthenticatedOperatorsIdRoute
   AuthenticatedAssetsIndexRoute: typeof AuthenticatedAssetsIndexRoute
   AuthenticatedOperatorsIndexRoute: typeof AuthenticatedOperatorsIndexRoute
@@ -857,7 +857,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminEnquiriesRoute: AuthenticatedAdminEnquiriesRoute,
   AuthenticatedAdminPrestartsRoute: AuthenticatedAdminPrestartsRoute,
   AuthenticatedAssetsIdRoute: AuthenticatedAssetsIdRoute,
-  AuthenticatedJoinCodeRoute: AuthenticatedJoinCodeRoute,
   AuthenticatedOperatorsIdRoute: AuthenticatedOperatorsIdRoute,
   AuthenticatedAssetsIndexRoute: AuthenticatedAssetsIndexRoute,
   AuthenticatedOperatorsIndexRoute: AuthenticatedOperatorsIndexRoute,
@@ -877,6 +876,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  JoinCodeRoute: JoinCodeRoute,
   MIdRoute: MIdRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,

@@ -11,7 +11,7 @@ export type CurrentUserData = {
     company_id: string | null;
   } | null;
   company: { id: string; name: string; abn: string | null } | null;
-  role: "admin" | "manager" | "office_staff" | "workshop" | "viewer" | "operator" | null;
+  role: "super_admin" | "admin" | "manager" | "supervisor" | "office_staff" | "workshop" | "mechanic" | "viewer" | "operator" | null;
 };
 
 export function useCurrentUser() {
@@ -62,5 +62,6 @@ export function useCurrentUser() {
 }
 
 export function canEdit(role: CurrentUserData["role"]) {
-  return role === "admin" || role === "manager";
+  return role === "admin" || role === "manager" || role === "super_admin" || role === "supervisor";
 }
+
