@@ -13,6 +13,7 @@ import { Truck, Loader2 } from "lucide-react";
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
   oauth: z.enum(["google"]).optional(),
+  redirect: z.string().optional(),
 });
 
 export const Route = createFileRoute("/auth")({
