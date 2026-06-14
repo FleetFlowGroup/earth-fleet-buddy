@@ -9,6 +9,7 @@ import {
   X,
   FileBarChart,
   IdCard,
+  CreditCard,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { navFor, ROLE_LABELS } from "@/lib/permissions";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
@@ -25,6 +27,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   "/operators": IdCard,
   "/reports": FileBarChart,
   "/team": Users,
+  "/billing": CreditCard,
   "/settings": Settings,
 };
 

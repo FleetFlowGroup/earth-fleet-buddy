@@ -92,6 +92,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/operators", label: "Operators", perm: "operators.view" },
   { to: "/reports", label: "Reports", perm: "reports.view" },
   { to: "/team", label: "Team", perm: "team.view" },
+  { to: "/billing", label: "Billing", perm: "billing.view" },
   { to: "/settings", label: "Settings", perm: "settings.view" },
 ];
 
