@@ -724,8 +724,8 @@ function UpdateMeterDialog({
   const [saving, setSaving] = useState(false);
 
   const nextServiceMeter =
-    form.last_service_meter && form.interval_meter
-      ? Number(form.last_service_meter) + Number(form.interval_meter)
+    form.current && form.interval_meter
+      ? Number(form.current) + Number(form.interval_meter)
       : null;
   const nextServiceDate =
     form.last_service_date && form.interval_days
