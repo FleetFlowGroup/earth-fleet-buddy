@@ -313,6 +313,56 @@ export type Database = {
         }
         Relationships: []
       }
+      company_invites: {
+        Row: {
+          code: string
+          company_id: string
+          created_at: string
+          created_by: string
+          email: string | null
+          expires_at: string
+          id: string
+          revoked_at: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_invites_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_records: {
         Row: {
           asset_id: string
@@ -1384,6 +1434,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_company_invite: { Args: { _code: string }; Returns: string }
       can_edit_company: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
@@ -1404,6 +1455,16 @@ export type Database = {
       contact_enquiry_rate_check: {
         Args: { _ip: string; _max: number; _window_minutes: number }
         Returns: boolean
+      }
+      create_company_invite: {
+        Args: {
+          _email?: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: {
+          code: string
+          id: string
+        }[]
       }
       create_company_with_admin: {
         Args: { _abn: string; _name: string }
