@@ -320,6 +320,87 @@ export type Database = {
           },
         ]
       }
+      contact_enquiries: {
+        Row: {
+          admin_notes: string | null
+          company_name: string
+          created_at: string
+          current_system: string
+          email: string
+          employee_count: string
+          enquiry_type: string
+          full_name: string
+          heard_about: string
+          id: string
+          industry: string
+          machine_count: string
+          message: string
+          phone: string
+          state: string
+          status: Database["public"]["Enums"]["contact_enquiry_status"]
+          submitter_ip: string | null
+          submitter_user_agent: string | null
+          survey_biggest_challenge: string | null
+          survey_current_system: string | null
+          survey_time_saving_feature: string | null
+          survey_wants_contact: boolean | null
+          survey_wants_demo: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          company_name: string
+          created_at?: string
+          current_system: string
+          email: string
+          employee_count: string
+          enquiry_type: string
+          full_name: string
+          heard_about: string
+          id?: string
+          industry: string
+          machine_count: string
+          message: string
+          phone: string
+          state: string
+          status?: Database["public"]["Enums"]["contact_enquiry_status"]
+          submitter_ip?: string | null
+          submitter_user_agent?: string | null
+          survey_biggest_challenge?: string | null
+          survey_current_system?: string | null
+          survey_time_saving_feature?: string | null
+          survey_wants_contact?: boolean | null
+          survey_wants_demo?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          company_name?: string
+          created_at?: string
+          current_system?: string
+          email?: string
+          employee_count?: string
+          enquiry_type?: string
+          full_name?: string
+          heard_about?: string
+          id?: string
+          industry?: string
+          machine_count?: string
+          message?: string
+          phone?: string
+          state?: string
+          status?: Database["public"]["Enums"]["contact_enquiry_status"]
+          submitter_ip?: string | null
+          submitter_user_agent?: string | null
+          survey_biggest_challenge?: string | null
+          survey_current_system?: string | null
+          survey_time_saving_feature?: string | null
+          survey_wants_contact?: boolean | null
+          survey_wants_demo?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       defect_photos: {
         Row: {
           caption: string | null
@@ -1249,6 +1330,10 @@ export type Database = {
           trial_ends_at: string
         }[]
       }
+      contact_enquiry_rate_check: {
+        Args: { _ip: string; _max: number; _window_minutes: number }
+        Returns: boolean
+      }
       create_company_with_admin: {
         Args: { _abn: string; _name: string }
         Returns: string
@@ -1280,6 +1365,7 @@ export type Database = {
       }
       is_office: { Args: { _company_id: string }; Returns: boolean }
       is_operator: { Args: { _company_id: string }; Returns: boolean }
+      is_platform_admin: { Args: never; Returns: boolean }
       is_workshop: { Args: { _company_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
@@ -1345,6 +1431,7 @@ export type Database = {
         | "operator_licence"
         | "fire_extinguisher"
         | "warranty"
+      contact_enquiry_status: "new" | "in_progress" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1515,6 +1602,7 @@ export const Constants = {
         "fire_extinguisher",
         "warranty",
       ],
+      contact_enquiry_status: ["new", "in_progress", "completed"],
     },
   },
 } as const
