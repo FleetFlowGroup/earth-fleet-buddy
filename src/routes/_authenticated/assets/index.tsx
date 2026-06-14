@@ -206,33 +206,37 @@ function AssetsPage() {
             {filtered.map((a: any) => {
               const next = nextExpiry(a.compliance_records ?? []);
               return (
-                <Link
+                <div
                   key={a.id}
-                  to="/assets/$id"
-                  params={{ id: a.id }}
                   className="flex items-center justify-between gap-3 px-5 py-4 transition hover:bg-accent/30"
                 >
-                  <AssetPrimaryThumb assetId={a.id} className="size-12 shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="truncate text-sm font-semibold">{a.name}</span>
-                      {a.asset_number && (
-                        <span className="text-xs text-muted-foreground">#{a.asset_number}</span>
-                      )}
-                      <span className="rounded border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                        {ASSET_TYPE_LABELS[a.type] ?? a.type}
-                      </span>
-                      {a.status && a.status !== "active" && (
-                        <span className={`rounded-full border px-2 py-0.5 text-[10px] ${statusBadgeColor(a.status)}`}>
-                          {ASSET_STATUS_LABELS[a.status] ?? a.status}
+                  <Link
+                    to="/assets/$id"
+                    params={{ id: a.id }}
+                    className="flex min-w-0 flex-1 items-center gap-3"
+                  >
+                    <AssetPrimaryThumb assetId={a.id} className="size-12 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="truncate text-sm font-semibold">{a.name}</span>
+                        {a.asset_number && (
+                          <span className="text-xs text-muted-foreground">#{a.asset_number}</span>
+                        )}
+                        <span className="rounded border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                          {ASSET_TYPE_LABELS[a.type] ?? a.type}
                         </span>
-                      )}
+                        {a.status && a.status !== "active" && (
+                          <span className={`rounded-full border px-2 py-0.5 text-[10px] ${statusBadgeColor(a.status)}`}>
+                            {ASSET_STATUS_LABELS[a.status] ?? a.status}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {a.registration ? `Rego ${a.registration} · ` : ""}
+                        {[a.year, a.make, a.model].filter(Boolean).join(" ")}
+                      </div>
                     </div>
-                    <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {a.registration ? `Rego ${a.registration} · ` : ""}
-                      {[a.year, a.make, a.model].filter(Boolean).join(" ")}
-                    </div>
-                  </div>
+                  </Link>
                   {next ? (
                     <span className={`shrink-0 rounded-full border px-2 py-0.5 text-xs ${statusColor(expiryStatus(next))}`}>
                       {statusLabel(expiryStatus(next), daysUntil(next))}
@@ -240,8 +244,11 @@ function AssetsPage() {
                   ) : (
                     <span className="shrink-0 text-xs text-muted-foreground">No dates</span>
                   )}
-                  <ChevronRight className="size-4 text-muted-foreground" />
-                </Link>
+                  {editable && <AssetQrButton assetId={a.id} label={a.name} />}
+                  <Link to="/assets/$id" params={{ id: a.id }} className="text-muted-foreground">
+                    <ChevronRight className="size-4" />
+                  </Link>
+                </div>
               );
             })}
           </div>
