@@ -100,7 +100,7 @@ function PricingPage() {
               )}
               <div className="text-sm font-medium text-muted-foreground">{t.name}</div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold">${t.price}</span>
+                <span className="text-4xl font-semibold">${t.price} AUD</span>
                 <span className="text-sm text-muted-foreground">/mo</span>
               </div>
               <div className="mt-1 text-sm text-foreground/80">{t.limit}</div>
