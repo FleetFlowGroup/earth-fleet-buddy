@@ -1546,6 +1546,16 @@ export type Database = {
         Returns: number
       }
       operator_asset_ids: { Args: never; Returns: string[] }
+      preview_company_invite: {
+        Args: { _code: string }
+        Returns: {
+          company_name: string
+          invited_email: string
+          invited_name: string
+          role: string
+          status: string
+        }[]
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
