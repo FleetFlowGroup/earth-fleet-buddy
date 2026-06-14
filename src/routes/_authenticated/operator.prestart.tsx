@@ -122,6 +122,7 @@ function PrestartScreen() {
         }
       } catch { /* ignore */ }
 
+      const ua = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : null;
       const { data: ps, error } = await (supabase as any).from("prestart_checks").insert({
         company_id: me.company.id,
         asset_id: asset.id,
@@ -132,15 +133,15 @@ function PrestartScreen() {
         status: anyFail ? "fail" : "pass",
         meter_reading: meterReading ? Number(meterReading) : null,
         signature_path: signaturePath,
+        submitter_user_agent: ua,
       }).select("id").single();
       if (error) throw error;
 
-      // Bump asset meter if higher
+      // Bump asset meter via SECURITY DEFINER helper (operators cannot UPDATE assets directly)
       if (meterReading && meter) {
         const v = Number(meterReading);
         if (meter.value == null || v > meter.value) {
-          const patch: any = meter.mode === "km" ? { odometer: Math.round(v) } : { engine_hours: v };
-          await (supabase as any).from("assets").update(patch).eq("id", asset.id);
+          await (supabase as any).rpc("record_operator_meter", { _asset_id: asset.id, _new_value: v });
         }
       }
 
