@@ -14,7 +14,10 @@ const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
   oauth: z.enum(["google"]).optional(),
   redirect: z.string().optional(),
+  invite: z.string().optional(),
+  email: z.string().optional(),
 });
+
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
