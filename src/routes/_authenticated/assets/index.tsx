@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { AppShell, PageHeader } from "@/components/app-shell";
@@ -34,8 +34,19 @@ import {
   statusLabel,
 } from "@/lib/expiry";
 import { toast } from "sonner";
-import { Plus, Search, Truck, Loader2, ChevronRight } from "lucide-react";
+import { Plus, Search, Truck, Loader2, ChevronRight, AlertTriangle } from "lucide-react";
 import { AssetPrimaryThumb } from "@/lib/asset-photos";
+import {
+  useBillingState,
+  useAssetCount,
+  PLAN_LABEL,
+  PLAN_LIMIT,
+  PLAN_ORDER,
+  PLAN_PRICE_ID,
+  PLAN_PRICE_USD,
+} from "@/hooks/use-subscription";
+import { changeSubscriptionPlan } from "@/utils/payments.functions";
+import { getPaddleEnvironment } from "@/lib/paddle";
 
 export const Route = createFileRoute("/_authenticated/assets/")({
   head: () => ({ meta: [{ title: "Assets · FleetFlow" }] }),
