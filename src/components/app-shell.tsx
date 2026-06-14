@@ -12,6 +12,7 @@ import {
   CreditCard,
   Eye,
   Inbox,
+  ClipboardCheck,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +31,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
   "/assets": Truck,
   "/operators": IdCard,
+  "/admin/prestarts": ClipboardCheck,
   "/reports": FileBarChart,
   "/team": Users,
   "/billing": CreditCard,
