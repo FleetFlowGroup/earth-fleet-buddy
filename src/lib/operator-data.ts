@@ -15,7 +15,22 @@ export function useOperatorSelf(userId?: string, companyId?: string) {
         .eq("user_id", userId!)
         .eq("company_id", companyId!)
         .maybeSingle();
-      return data as any;
+      if (data) return data as any;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", userId!)
+        .maybeSingle();
+      if (!profile?.email) return null;
+
+      const { data: byEmail } = await (supabase as any)
+        .from("operators")
+        .select("*")
+        .eq("company_id", companyId!)
+        .ilike("email", profile.email)
+        .maybeSingle();
+      return byEmail as any;
     },
   });
 }
