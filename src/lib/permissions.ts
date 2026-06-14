@@ -3,14 +3,18 @@
 // will swap this static table for a DB-driven matrix without touching callers.
 
 export type Role =
+  | "super_admin"
   | "admin"
   | "manager"
+  | "supervisor"
   | "office_staff"
   | "workshop"
+  | "mechanic"
   | "viewer"
   | "operator"
   | null
   | undefined;
+
 
 export type Permission =
   | "dashboard.view"
