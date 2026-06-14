@@ -180,11 +180,8 @@ export function computeServiceDue(asset: any): ServiceDue | null {
   if (mode === "km") {
     const interval = asset.service_interval_km;
     const current = asset.odometer;
-    // If we never recorded a "last service" reading, assume the cycle starts
-    // from the current meter — otherwise the asset looks wildly overdue.
-    const last = asset.last_service_odometer ?? current;
     if (interval != null && current != null) {
-      const dueAt = Number(last) + Number(interval);
+      const dueAt = Number(current) + Number(interval);
       const remaining = dueAt - Number(current);
       const overdue = remaining < 0;
       const warning = !overdue && remaining <= SERVICE_WARN_KM;
@@ -198,9 +195,8 @@ export function computeServiceDue(asset: any): ServiceDue | null {
   } else {
     const interval = asset.service_interval_hours;
     const current = asset.engine_hours;
-    const last = asset.last_service_hours ?? current;
     if (interval != null && current != null) {
-      const dueAt = Number(last) + Number(interval);
+      const dueAt = Number(current) + Number(interval);
       const remaining = dueAt - Number(current);
       const overdue = remaining < 0;
       const warning = !overdue && remaining <= SERVICE_WARN_HOURS;
