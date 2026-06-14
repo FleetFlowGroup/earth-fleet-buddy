@@ -186,6 +186,10 @@ function PrestartScreen() {
         }
       }
 
+      await logAudit("prestart.submit", {
+        companyId: me.company.id, entityType: "prestart_checks", entityId: ps.id,
+        metadata: { asset_id: asset.id, status: anyFail ? "fail" : "pass", failed_count: failed.length },
+      });
       toast.success(anyFail ? "Prestart submitted — defect logged" : "Prestart passed");
       navigate({ to: "/operator" });
     } catch (e: any) {
