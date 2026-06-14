@@ -141,7 +141,7 @@ function PricingPage() {
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          Prices in USD. Taxes calculated at checkout where applicable. By subscribing you agree to our{" "}
+          Prices in AUD. Taxes calculated at checkout where applicable. By subscribing you agree to our{" "}
           <Link to="/terms" className="underline">Terms</Link>,{" "}
           <Link to="/privacy" className="underline">Privacy Notice</Link> and{" "}
           <Link to="/refund" className="underline">Refund Policy</Link>.
