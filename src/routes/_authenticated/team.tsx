@@ -30,7 +30,7 @@ function TeamPage() {
   const { data: me } = useCurrentUser();
   const qc = useQueryClient();
   const companyId = me?.company?.id;
-  const canManage = !!me?.roles?.some((r: string) => ["admin", "manager"].includes(r));
+  const canManage = me?.role === "admin" || me?.role === "manager";
 
   const { data: members } = useQuery({
     queryKey: ["team", companyId],
