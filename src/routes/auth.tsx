@@ -55,7 +55,7 @@ function AuthPage() {
       }
 
       toast.success("Welcome back");
-      navigate({ to: "/dashboard", replace: true });
+      navigate({ to: dest as any, replace: true });
     };
 
     finishGoogleSignIn();
@@ -84,7 +84,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back");
-        navigate({ to: "/dashboard" });
+        navigate({ to: dest as any });
       }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
@@ -105,7 +105,7 @@ function AuthPage() {
       return;
     }
     if (res.redirected) return;
-    navigate({ to: "/dashboard" });
+    navigate({ to: dest as any });
   }
 
   return (
