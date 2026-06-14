@@ -128,7 +128,7 @@ function PrestartScreen() {
       const { data: ps, error } = await (supabase as any).from("prestart_checks").insert({
         company_id: me.company.id,
         asset_id: asset.id,
-        operator_id: op?.id ?? null,
+        operator_id: realOperatorId(op),
         performed_by: me.userId,
         checklist,
         notes: notes || null,
