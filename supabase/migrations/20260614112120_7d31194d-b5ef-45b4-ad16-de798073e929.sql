@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "asset-photos company members delete" ON storage.objects;
