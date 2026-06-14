@@ -319,7 +319,7 @@ function ToggleBtn({ active, tone, onClick, children }: { active: boolean; tone:
 
 export function Shell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-44">
       <header className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-background/95 px-3 py-3 backdrop-blur">
         <Link to="/operator" className="grid size-9 place-items-center rounded-md hover:bg-accent/40"><ArrowLeft className="size-4" /></Link>
         <h1 className="text-base font-semibold">{title}</h1>
