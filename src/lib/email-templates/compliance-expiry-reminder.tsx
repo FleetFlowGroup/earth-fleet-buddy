@@ -20,7 +20,7 @@ const Email = (p: Props) => {
     <Html lang="en">
       <Head />
       <Preview>
-        {p.complianceLabel ?? 'Compliance item'} for {p.assetName ?? 'a machine'} expires in {days} days
+        {`${p.complianceLabel ?? 'Compliance item'} for ${p.assetName ?? 'a machine'} expires in ${days} days`}
       </Preview>
       <Body style={main}>
         <Container style={container}>
