@@ -132,10 +132,14 @@ export function homeFor(role: Role): string {
 }
 
 export const ROLE_LABELS: Record<string, string> = {
-  admin: "Administrator",
+  super_admin: "Super Admin",
+  admin: "Company Admin",
   manager: "Manager",
+  supervisor: "Supervisor",
   office_staff: "Office Staff",
   workshop: "Workshop",
+  mechanic: "Mechanic",
   viewer: "Viewer",
   operator: "Operator",
 };
+
