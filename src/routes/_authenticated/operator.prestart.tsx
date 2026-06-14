@@ -169,7 +169,7 @@ function PrestartScreen() {
         const { data: def, error: defErr } = await (supabase as any).from("defect_reports").insert({
           company_id: me.company.id,
           asset_id: asset.id,
-          operator_id: op?.id ?? null,
+          operator_id: realOperatorId(op),
           reported_by: me.userId,
           severity,
           description,
