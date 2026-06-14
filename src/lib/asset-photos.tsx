@@ -61,13 +61,14 @@ export function AssetPhotoGallery({
   }, [lightbox]);
 
   async function upload(files: FileList | null) {
-    if (!files?.length) return;
+    const selected = Array.from(files ?? []);
+    if (!selected.length) return;
     setBusy(true);
     try {
       const { data: user } = await supabase.auth.getUser();
       const havePrimary = (photos ?? []).some((p) => p.is_primary);
-      for (let i = 0; i < files.length; i++) {
-        const original = files[i];
+      for (let i = 0; i < selected.length; i++) {
+        const original = selected[i];
         if (original.size > 25 * 1024 * 1024) { toast.error(`${original.name} > 25 MB`); continue; }
         const file = await compressImage(original);
         const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
@@ -169,12 +170,13 @@ export default AssetPhotoGallery;
 export function AddPhotosButton({ assetId, companyId, onUploaded }: { assetId: string; companyId: string; onUploaded?: () => void }) {
   const [busy, setBusy] = useState(false);
   async function upload(files: FileList | null) {
-    if (!files?.length) return;
+    const selected = Array.from(files ?? []);
+    if (!selected.length) return;
     setBusy(true);
     try {
       const { data: user } = await supabase.auth.getUser();
-      for (let i = 0; i < files.length; i++) {
-        const file = await compressImage(files[i]);
+      for (let i = 0; i < selected.length; i++) {
+        const file = await compressImage(selected[i]);
         const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
         const path = `${companyId}/${assetId}/${Date.now()}-${i}-${safe}`;
         const { error: upErr } = await supabase.storage.from("asset-photos").upload(path, file, { contentType: file.type, upsert: false });
