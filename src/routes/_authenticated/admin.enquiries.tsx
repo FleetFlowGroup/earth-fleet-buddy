@@ -47,8 +47,8 @@ export const Route = createFileRoute('/_authenticated/admin/enquiries')({
 })
 
 function EnquiriesPage() {
-  const { data: me, isLoading } = useCurrentUser()
-  const isPlatformAdmin = (me?.email ?? '').toLowerCase() === PLATFORM_ADMIN_EMAIL
+  const { data: isPlatformAdmin, isLoading } = useIsPlatformAdmin()
+
 
   if (isLoading) {
     return (
