@@ -304,7 +304,7 @@ function Landing() {
                 "Everything in Starter",
                 "Operator portal + prestarts",
                 "Defect reports & photos",
-                "Up to 5 team members",
+                "Unlimited team members",
               ]}
             />
             <PlanCard
