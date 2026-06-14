@@ -125,10 +125,10 @@ function OperatorHome() {
 
         {/* Big action buttons */}
         <section className="grid grid-cols-2 gap-3">
-          <BigBtn to="/operator/prestart" icon={ClipboardCheck} label="Complete prestart" disabled={!asset} />
-          <BigBtn to="/operator/hours" icon={Gauge} label="Update hours" disabled={!asset} />
-          <BigBtn to="/operator/defect" icon={AlertTriangle} label="Report defect" tone="danger" disabled={!asset} />
-          <BigBtn to="/operator/photos" icon={Camera} label="Upload photos" disabled={!asset} />
+          <BigBtn to="/operator/prestart" icon={ClipboardCheck} label="Complete prestart" disabled={!asset} assetId={asset?.id} />
+          <BigBtn to="/operator/hours" icon={Gauge} label="Update hours" disabled={!asset} assetId={asset?.id} />
+          <BigBtn to="/operator/defect" icon={AlertTriangle} label="Report defect" tone="danger" disabled={!asset} assetId={asset?.id} />
+          <BigBtn to="/operator/photos" icon={Camera} label="Upload photos" disabled={!asset} assetId={asset?.id} />
           <BigBtn to="/operator/tickets" icon={Ticket} label="My tickets" />
           <BigBtn to="/operator/profile" icon={User} label="My profile" />
         </section>
