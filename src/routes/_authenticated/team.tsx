@@ -177,7 +177,7 @@ function InviteDialog({ onCreated }: { onCreated: () => void }) {
     try {
       const { data, error } = await supabase.rpc("create_company_invite", {
         _role: role as any,
-        _email: email || null,
+        _email: email || undefined,
       });
       if (error) throw error;
       const code = (data as any)?.[0]?.code ?? (data as any)?.code;
