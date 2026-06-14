@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useOperatorSelf, useOperatorAsset, meterValue } from "@/lib/operator-data";
+import { useOperatorSelf, useOperatorTargetAsset, meterValue } from "@/lib/operator-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,9 +12,13 @@ import { ArrowLeft, Loader2, Camera, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { uploadPhoto, compressImage } from "@/lib/photo-upload";
 import { SignaturePad, type SignaturePadHandle } from "@/components/signature-pad";
+import { z } from "zod";
+
+const search = z.object({ asset: z.string().uuid().optional() });
 
 export const Route = createFileRoute("/_authenticated/operator/prestart")({
   head: () => ({ meta: [{ title: "Prestart · FleetFlow" }] }),
+  validateSearch: search,
   component: PrestartScreen,
 });
 
