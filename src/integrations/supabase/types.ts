@@ -1463,19 +1463,34 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
-      company_asset_limit: { Args: { _company_id: string }; Returns: number }
-      company_billing_state: {
-        Args: { _company_id: string }
-        Returns: {
-          asset_limit: number
-          cancel_at_period_end: boolean
-          period_end: string
-          product_id: string
-          state: string
-          status: string
-          trial_ends_at: string
-        }[]
-      }
+      company_asset_limit:
+        | { Args: { _company_id: string }; Returns: number }
+        | { Args: { _company_id: string; _env?: string }; Returns: number }
+      company_billing_state:
+        | {
+            Args: { _company_id: string }
+            Returns: {
+              asset_limit: number
+              cancel_at_period_end: boolean
+              period_end: string
+              product_id: string
+              state: string
+              status: string
+              trial_ends_at: string
+            }[]
+          }
+        | {
+            Args: { _company_id: string; _env?: string }
+            Returns: {
+              asset_limit: number
+              cancel_at_period_end: boolean
+              period_end: string
+              product_id: string
+              state: string
+              status: string
+              trial_ends_at: string
+            }[]
+          }
       contact_enquiry_rate_check: {
         Args: { _ip: string; _max: number; _window_minutes: number }
         Returns: boolean
