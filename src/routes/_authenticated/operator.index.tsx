@@ -17,10 +17,14 @@ import {
   Home,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useOperatorSelf, useOperatorAsset, meterValue, nextServiceText, regoExpiryText } from "@/lib/operator-data";
+import { useOperatorSelf, useOperatorTargetAsset, meterValue, nextServiceText, regoExpiryText } from "@/lib/operator-data";
+import { z } from "zod";
+
+const operatorSearch = z.object({ asset: z.string().uuid().optional() });
 
 export const Route = createFileRoute("/_authenticated/operator/")({
   head: () => ({ meta: [{ title: "Operator · FleetFlow" }] }),
+  validateSearch: operatorSearch,
   component: OperatorHome,
 });
 
@@ -28,9 +32,10 @@ function OperatorHome() {
   const { data: me, isLoading } = useCurrentUser();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { asset: assetOverride } = Route.useSearch();
 
   const { data: operatorRow } = useOperatorSelf(me?.userId, me?.company?.id);
-  const { data: asset } = useOperatorAsset(operatorRow?.id);
+  const { data: asset } = useOperatorTargetAsset(operatorRow?.id, assetOverride);
 
   const { data: openDefects } = useQuery({
     queryKey: ["operator-defects-open", asset?.id],
