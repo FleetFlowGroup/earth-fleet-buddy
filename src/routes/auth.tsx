@@ -28,7 +28,9 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { mode, oauth } = useSearch({ from: "/auth" });
+  const { mode, oauth, redirect } = useSearch({ from: "/auth" });
+  const isSafeRedirect = !!redirect && redirect.startsWith("/") && !redirect.startsWith("//");
+  const dest = isSafeRedirect ? redirect! : "/dashboard";
   const navigate = useNavigate();
   const [tab, setTab] = useState<"signin" | "signup">(mode ?? "signin");
   const [loading, setLoading] = useState(false);
