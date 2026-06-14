@@ -140,10 +140,25 @@ function PublicJoinPage() {
               </div>
 
               {signedIn ? (
-                <Button className="mt-6 w-full" onClick={accept} disabled={busy}>
-                  {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
-                  Accept invitation
-                </Button>
+                preview.invited_email && currentEmail && currentEmail !== preview.invited_email.toLowerCase() ? (
+                  <div className="mt-6 space-y-3">
+                    <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-foreground">
+                      <p className="font-medium text-destructive">Wrong account</p>
+                      <p className="mt-1 text-muted-foreground">
+                        This invite was sent to <strong className="text-foreground">{preview.invited_email}</strong>,
+                        but you're signed in as <strong className="text-foreground">{currentEmail}</strong>.
+                      </p>
+                    </div>
+                    <Button className="w-full" onClick={switchAccount} disabled={busy}>
+                      Sign out and switch to {preview.invited_email}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button className="mt-6 w-full" onClick={accept} disabled={busy}>
+                    {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
+                    Accept invitation
+                  </Button>
+                )
               ) : (
                 <div className="mt-6 space-y-2">
                   <Button asChild className="w-full">
@@ -159,12 +174,20 @@ function PublicJoinPage() {
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="w-full">
-                    <Link to="/auth" search={{ mode: "signin", invite: code } as any}>
+                    <Link
+                      to="/auth"
+                      search={{
+                        mode: "signin",
+                        invite: code,
+                        ...(preview.invited_email ? { email: preview.invited_email } : {}),
+                      } as any}
+                    >
                       I already have an account
                     </Link>
                   </Button>
                 </div>
               )}
+
             </>
           )}
         </div>
