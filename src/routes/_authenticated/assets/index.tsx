@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { AppShell, PageHeader } from "@/components/app-shell";
@@ -34,8 +34,19 @@ import {
   statusLabel,
 } from "@/lib/expiry";
 import { toast } from "sonner";
-import { Plus, Search, Truck, Loader2, ChevronRight } from "lucide-react";
+import { Plus, Search, Truck, Loader2, ChevronRight, AlertTriangle } from "lucide-react";
 import { AssetPrimaryThumb } from "@/lib/asset-photos";
+import {
+  useBillingState,
+  useAssetCount,
+  PLAN_LABEL,
+  PLAN_LIMIT,
+  PLAN_ORDER,
+  PLAN_PRICE_ID,
+  PLAN_PRICE_USD,
+} from "@/hooks/use-subscription";
+import { changeSubscriptionPlan } from "@/utils/payments.functions";
+import { getPaddleEnvironment } from "@/lib/paddle";
 
 export const Route = createFileRoute("/_authenticated/assets/")({
   head: () => ({ meta: [{ title: "Assets · FleetFlow" }] }),
@@ -88,6 +99,8 @@ function AssetsPage() {
   }, [assets, q, typeFilter, statusFilter, expiryFilter]);
 
   const [open, setOpen] = useState(false);
+  const { data: billing } = useBillingState(companyId);
+  const { data: assetCount = 0 } = useAssetCount(companyId);
 
   return (
     <AppShell>
@@ -96,19 +109,35 @@ function AssetsPage() {
         description="Vehicles, plant and machinery in your fleet."
         actions={
           editable && (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button><Plus className="mr-2 size-4" /> Add asset</Button>
-              </DialogTrigger>
-              <AddAssetDialog
-                companyId={companyId!}
-                onCreated={() => {
-                  setOpen(false);
-                  qc.invalidateQueries({ queryKey: ["assets"] });
-                  qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
-                }}
-              />
-            </Dialog>
+            <div className="flex items-center gap-3">
+              {billing && (
+                <Link
+                  to="/billing"
+                  className={`hidden sm:inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${
+                    assetCount >= billing.asset_limit
+                      ? "border-destructive/40 bg-destructive/10 text-destructive"
+                      : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Plan & usage"
+                >
+                  {assetCount} / {billing.asset_limit} assets
+                </Link>
+              )}
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button><Plus className="mr-2 size-4" /> Add asset</Button>
+                </DialogTrigger>
+                <AddAssetDialog
+                  companyId={companyId!}
+                  onCreated={() => {
+                    setOpen(false);
+                    qc.invalidateQueries({ queryKey: ["assets"] });
+                    qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+                    qc.invalidateQueries({ queryKey: ["asset-count"] });
+                  }}
+                />
+              </Dialog>
+            </div>
           )
         }
       />
@@ -235,7 +264,15 @@ function AddAssetDialog({
   companyId: string;
   onCreated: () => void;
 }) {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { data: billing } = useBillingState(companyId);
+  const { data: assetCount = 0 } = useAssetCount(companyId);
+
   const [saving, setSaving] = useState(false);
+  const [quotaBlocked, setQuotaBlocked] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     asset_number: "",
@@ -258,46 +295,170 @@ function AddAssetDialog({
     service_interval_days: "",
   });
 
+  function buildPayload() {
+    return {
+      company_id: companyId,
+      name: form.name,
+      type: form.type,
+      status: form.status,
+      asset_number: form.asset_number || null,
+      registration: form.registration || null,
+      vin_serial: form.vin_serial || null,
+      serial_number: form.serial_number || null,
+      make: form.make || null,
+      model: form.model || null,
+      year: form.year ? Number(form.year) : null,
+      location: form.location || null,
+      operator_name: form.operator_name || null,
+      purchase_date: form.purchase_date || null,
+      purchase_price: form.purchase_price ? Number(form.purchase_price) : null,
+      odometer: form.odometer ? Number(form.odometer) : null,
+      engine_hours: form.engine_hours ? Number(form.engine_hours) : null,
+      service_interval_km: form.service_interval_km ? Number(form.service_interval_km) : null,
+      service_interval_hours: form.service_interval_hours ? Number(form.service_interval_hours) : null,
+      service_interval_days: form.service_interval_days ? Number(form.service_interval_days) : null,
+    };
+  }
+
+  async function tryInsert(): Promise<{ ok: true } | { ok: false; quota: boolean; message: string }> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).from("assets").insert(buildPayload());
+    if (!error) return { ok: true };
+    const isQuota = (error.message ?? "").includes("asset_quota_exceeded");
+    return { ok: false, quota: isQuota, message: error.message ?? "Could not add asset" };
+  }
+
+  // Pick the next plan up from current that fits the new asset count.
+  function nextPlan(): string | null {
+    const target = assetCount + 1;
+    const currentIdx = billing?.product_id ? PLAN_ORDER.indexOf(billing.product_id as (typeof PLAN_ORDER)[number]) : -1;
+    for (let i = currentIdx + 1; i < PLAN_ORDER.length; i++) {
+      if (target <= PLAN_LIMIT[PLAN_ORDER[i]]) return PLAN_ORDER[i];
+    }
+    return null;
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     try {
-      const payload: any = {
-        company_id: companyId,
-        name: form.name,
-        type: form.type,
-        status: form.status,
-        asset_number: form.asset_number || null,
-        registration: form.registration || null,
-        vin_serial: form.vin_serial || null,
-        serial_number: form.serial_number || null,
-        make: form.make || null,
-        model: form.model || null,
-        year: form.year ? Number(form.year) : null,
-        location: form.location || null,
-        operator_name: form.operator_name || null,
-        purchase_date: form.purchase_date || null,
-        purchase_price: form.purchase_price ? Number(form.purchase_price) : null,
-        odometer: form.odometer ? Number(form.odometer) : null,
-        engine_hours: form.engine_hours ? Number(form.engine_hours) : null,
-        service_interval_km: form.service_interval_km ? Number(form.service_interval_km) : null,
-        service_interval_hours: form.service_interval_hours ? Number(form.service_interval_hours) : null,
-        service_interval_days: form.service_interval_days ? Number(form.service_interval_days) : null,
-      };
-      const { error } = await (supabase as any).from("assets").insert(payload);
-      if (error) throw error;
-      toast.success("Asset added");
-      onCreated();
-    } catch (err: any) {
-      toast.error(err.message ?? "Could not add asset");
+      const result = await tryInsert();
+      if (result.ok) {
+        toast.success("Asset added");
+        onCreated();
+      } else if (result.quota) {
+        setQuotaBlocked(true);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Could not add asset");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function upgradeAndAdd() {
+    const target = nextPlan();
+    if (!target) {
+      toast.message("You need an Enterprise plan", { description: "Contact sales for 100+ assets." });
+      return;
+    }
+    if (!billing || billing.state === "trial" || billing.state === "none") {
+      // No existing subscription — send them to pricing to subscribe.
+      setQuotaBlocked(false);
+      navigate({ to: "/pricing" });
+      return;
+    }
+    setUpgrading(true);
+    try {
+      await changeSubscriptionPlan({
+        data: { companyId, newPriceId: PLAN_PRICE_ID[target], environment: getPaddleEnvironment() },
+      });
+      toast.success(`Upgraded to ${PLAN_LABEL[target]}`);
+      await qc.invalidateQueries({ queryKey: ["billing-state"] });
+      const result = await tryInsert();
+      if (result.ok) {
+        toast.success("Asset added");
+        setQuotaBlocked(false);
+        onCreated();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Upgrade failed");
+    } finally {
+      setUpgrading(false);
     }
   }
 
   function set<K extends keyof typeof form>(k: K, v: string) {
     setForm({ ...form, [k]: v });
   }
+
+  // Render quota blocker overlay
+  if (quotaBlocked) {
+    const target = nextPlan();
+    const noSub = !billing || billing.state === "trial" || billing.state === "none";
+    return (
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="size-5 text-destructive" />
+            You're at your asset limit
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-sm">
+          <p>
+            You're using <strong>{assetCount} of {billing?.asset_limit ?? 0}</strong> assets on the{" "}
+            <strong>
+              {billing?.state === "trial"
+                ? "free trial"
+                : billing?.product_id
+                  ? PLAN_LABEL[billing.product_id]
+                  : "current"}
+            </strong>{" "}
+            plan.
+          </p>
+          {target ? (
+            noSub ? (
+              <p>
+                Start a subscription on <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_USD[target]}/mo,
+                up to {PLAN_LIMIT[target]} assets) to add this asset.
+              </p>
+            ) : (
+              <p>
+                Upgrading to <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_USD[target]}/mo, up to{" "}
+                {PLAN_LIMIT[target]} assets) will be prorated immediately and lets you add this asset right
+                now.
+              </p>
+            )
+          ) : (
+            <p>
+              You're at the largest standard plan (Business — 100 assets). Contact sales for an Enterprise
+              quote.
+            </p>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setQuotaBlocked(false)} disabled={upgrading}>
+            Cancel
+          </Button>
+          {target ? (
+            <Button onClick={upgradeAndAdd} disabled={upgrading}>
+              {upgrading && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {noSub ? "Choose a plan" : `Upgrade to ${PLAN_LABEL[target]} & add asset`}
+            </Button>
+          ) : (
+            <Button asChild>
+              <a href="mailto:sales@fleetflow.app?subject=Enterprise%20quote">Contact sales</a>
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    );
+  }
+
 
   return (
     <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">

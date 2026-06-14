@@ -186,38 +186,70 @@ function Landing() {
 
       {/* Pricing */}
       <section id="pricing" className="border-t border-border/60 py-20">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Simple pricing</h2>
-          <p className="mt-3 text-muted-foreground">
-            Free during beta. Pay per asset later — no per-user fees.
-          </p>
-          <div className="surface-card mx-auto mt-8 max-w-md p-8 text-left">
-            <div className="flex items-baseline justify-between">
-              <div className="text-xl font-semibold">Beta access</div>
-              <div className="text-3xl font-bold">Free</div>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="text-center">
+            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Simple per-asset pricing</h2>
+            <p className="mt-3 text-muted-foreground">
+              14-day free trial on every plan. Cancel anytime. No per-user fees.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { name: "Starter", price: 99, limit: "1–10 assets" },
+              { name: "Growth", price: 199, limit: "11–25 assets", featured: true },
+              { name: "Pro", price: 299, limit: "26–50 assets" },
+              { name: "Business", price: 499, limit: "51–100 assets" },
+            ].map((t) => (
+              <div
+                key={t.name}
+                className={`surface-card relative p-6 ${t.featured ? "border-primary/60 ring-1 ring-primary/40" : ""}`}
+              >
+                {t.featured && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary-foreground">
+                    Most popular
+                  </div>
+                )}
+                <div className="text-sm font-medium text-muted-foreground">{t.name}</div>
+                <div className="mt-2 flex items-baseline gap-1">
+                  <span className="text-3xl font-semibold">${t.price}</span>
+                  <span className="text-sm text-muted-foreground">/mo</span>
+                </div>
+                <div className="mt-1 text-sm text-foreground/80">{t.limit}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="surface-card mt-4 flex flex-wrap items-center justify-between gap-4 p-6">
+            <div>
+              <div className="text-sm font-medium text-muted-foreground">Enterprise</div>
+              <div className="text-lg font-semibold">100+ assets — custom quote</div>
             </div>
-            <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
-              <li>✓ Unlimited vehicles & machinery</li>
-              <li>✓ Unlimited team members</li>
-              <li>✓ Document uploads</li>
-              <li>✓ Automatic 30/14/7-day reminders</li>
-            </ul>
-            <Button asChild className="mt-8 w-full" size="lg">
-              <Link to="/auth" search={{ mode: "signup" }}>
-                Create your account
-              </Link>
+            <Button asChild variant="outline" size="sm">
+              <a href="mailto:sales@fleetflow.app?subject=Enterprise%20quote">Contact sales</a>
+            </Button>
+          </div>
+
+          <div className="mt-8 text-center">
+            <Button asChild size="lg">
+              <Link to="/pricing">See full plan details</Link>
             </Button>
           </div>
         </div>
       </section>
 
       <footer className="border-t border-border/60 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 text-xs text-muted-foreground sm:flex-row sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-xs text-muted-foreground sm:flex-row sm:px-6">
           <div className="flex items-center gap-2">
             <Logo size={16} />
-            <span>© {new Date().getFullYear()} Fleetflow</span>
+            <span>© {new Date().getFullYear()} FleetFlow</span>
           </div>
-          <div>Made for Australian operators · ABN-ready</div>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
+            <Link to="/terms" className="hover:text-foreground">Terms</Link>
+            <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+            <Link to="/refund" className="hover:text-foreground">Refunds</Link>
+          </div>
         </div>
       </footer>
     </div>

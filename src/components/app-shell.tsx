@@ -9,6 +9,7 @@ import {
   X,
   FileBarChart,
   IdCard,
+  CreditCard,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { navFor, ROLE_LABELS } from "@/lib/permissions";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
@@ -25,6 +27,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   "/operators": IdCard,
   "/reports": FileBarChart,
   "/team": Users,
+  "/billing": CreditCard,
   "/settings": Settings,
 };
 
@@ -49,6 +52,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
+        <PaymentTestModeBanner />
         <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur lg:hidden">
           <Link to="/dashboard" className="flex items-center gap-2">
             <div className="grid size-7 place-items-center rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
