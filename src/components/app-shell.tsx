@@ -24,8 +24,8 @@ import { NotificationsBell } from "@/components/notifications-bell";
 import { navFor, ROLE_LABELS } from "@/lib/permissions";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { setOperatorPreview } from "@/lib/operator-preview";
+import { useIsPlatformAdmin } from "@/hooks/use-is-platform-admin";
 
-const PLATFORM_ADMIN_EMAIL = "fleetflow.group@gmail.com";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
