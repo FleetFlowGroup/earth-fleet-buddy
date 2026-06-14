@@ -181,8 +181,9 @@ function SidebarInner({
   );
 }
 
-function PlatformAdminNav({ email, path, onNavigate }: { email?: string; path: string; onNavigate?: () => void }) {
-  const isPlatformAdmin = (email ?? "").toLowerCase() === PLATFORM_ADMIN_EMAIL;
+function PlatformAdminNav({ path, onNavigate }: { email?: string; path: string; onNavigate?: () => void }) {
+  const { data: isPlatformAdmin = false } = useIsPlatformAdmin();
+
   const { data: newCount } = useQuery({
     queryKey: ["contact-enquiries-new-count"],
     enabled: isPlatformAdmin,
