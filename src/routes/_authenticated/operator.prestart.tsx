@@ -36,8 +36,9 @@ type TemplateItem = {
 function PrestartScreen() {
   const { data: me } = useCurrentUser();
   const navigate = useNavigate();
+  const { asset: assetOverride } = Route.useSearch();
   const { data: op } = useOperatorSelf(me?.userId, me?.company?.id);
-  const { data: asset } = useOperatorAsset(op?.id);
+  const { data: asset } = useOperatorTargetAsset(op?.id, assetOverride);
   const meter = asset ? meterValue(asset) : null;
 
   const { data: items, isLoading: itemsLoading } = useQuery({
