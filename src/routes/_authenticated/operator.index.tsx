@@ -41,7 +41,9 @@ function OperatorHome() {
   const { asset: assetOverride } = Route.useSearch();
 
   const { data: operatorRow } = useOperatorSelf(me?.userId, me?.company?.id);
-  const { data: asset } = useOperatorTargetAsset(operatorRow?.id, assetOverride);
+  // Always start with the machine picker each session — only show the selected
+  // machine when an explicit ?asset=<id> is in the URL.
+  const { data: asset } = useOperatorTargetAsset(undefined, assetOverride);
 
   async function signOut() {
     await qc.cancelQueries(); qc.clear();
@@ -294,9 +296,18 @@ function SelectedMachine({ me, asset, operatorRow, greeting, name, onSignOut }: 
             <Tile label="Rego" value={rego?.text ?? "—"} sub="" tone={rego?.tone} />
           </div>
           <div className="mt-3 flex justify-end">
-            <Link to="/operator" search={{ asset: undefined } as any} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+            <button
+              type="button"
+              onClick={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.delete("asset");
+                window.history.replaceState({}, "", url.toString());
+                window.location.reload();
+              }}
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
               <RefreshCw className="size-3.5" /> Change machine
-            </Link>
+            </button>
           </div>
         </section>
 
