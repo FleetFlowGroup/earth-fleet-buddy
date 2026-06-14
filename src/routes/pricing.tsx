@@ -82,6 +82,7 @@ function PricingPage() {
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
             Pay per asset, not per user. 14-day free trial on any plan. Cancel anytime.
           </p>
+          <p className="mt-2 text-xs text-muted-foreground">Prices in AUD.</p>
         </div>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-4">
