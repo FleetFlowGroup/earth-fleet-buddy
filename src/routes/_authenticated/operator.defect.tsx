@@ -2,18 +2,21 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useOperatorSelf, useOperatorAsset } from "@/lib/operator-data";
+import { useOperatorSelf, useOperatorTargetAsset } from "@/lib/operator-data";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { uploadPhoto, compressImage } from "@/lib/photo-upload";
 import { Shell, Empty } from "./operator.prestart";
+import { z } from "zod";
+
+const search = z.object({ asset: z.string().uuid().optional() });
 
 export const Route = createFileRoute("/_authenticated/operator/defect")({
   head: () => ({ meta: [{ title: "Report defect · FleetFlow" }] }),
+  validateSearch: search,
   component: DefectScreen,
 });
 
@@ -27,8 +30,9 @@ const SEVERITIES = [
 function DefectScreen() {
   const { data: me } = useCurrentUser();
   const navigate = useNavigate();
+  const { asset: assetOverride } = Route.useSearch();
   const { data: op } = useOperatorSelf(me?.userId, me?.company?.id);
-  const { data: asset } = useOperatorAsset(op?.id);
+  const { data: asset } = useOperatorTargetAsset(op?.id, assetOverride);
   const [severity, setSeverity] = useState<"low"|"medium"|"high"|"critical">("medium");
   const [description, setDescription] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
@@ -39,12 +43,18 @@ function DefectScreen() {
     if (description.trim().length < 5) { toast.error("Add a description"); return; }
     setSaving(true);
     try {
+      const ua = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : null;
       const { data: rep, error } = await (supabase as any).from("defect_reports").insert({
         company_id: me.company.id, asset_id: asset.id,
         operator_id: op?.id ?? null, reported_by: me.userId,
         severity, description: description.trim(), status: "open",
+        submitter_user_agent: ua,
       }).select("id").single();
       if (error) throw error;
+      // Flag asset as needing attention so admins see it immediately
+      try {
+        await (supabase as any).from("assets").update({ requires_attention: true }).eq("id", asset.id);
+      } catch { /* RLS may block — trigger on prestart_after_insert covers prestart-driven defects */ }
       for (const f of photos) {
         const compressed = await compressImage(f);
         const u = await uploadPhoto({ file: compressed, companyId: me.company.id, kind: "defect", parentId: rep.id });

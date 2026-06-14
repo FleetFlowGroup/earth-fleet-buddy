@@ -18,6 +18,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MIdRouteImport } from './routes/m.$id'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -88,6 +89,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MIdRoute = MIdRouteImport.update({
+  id: '/m/$id',
+  path: '/m/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
@@ -259,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/m/$id': typeof MIdRoute
   '/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/operator/defect': typeof AuthenticatedOperatorDefectRoute
@@ -295,6 +302,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/m/$id': typeof MIdRoute
   '/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/operator/defect': typeof AuthenticatedOperatorDefectRoute
@@ -334,6 +342,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/m/$id': typeof MIdRoute
   '/_authenticated/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/_authenticated/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/_authenticated/operator/defect': typeof AuthenticatedOperatorDefectRoute
@@ -373,6 +382,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/team'
     | '/email/unsubscribe'
+    | '/m/$id'
     | '/admin/enquiries'
     | '/assets/$id'
     | '/operator/defect'
@@ -409,6 +419,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/team'
     | '/email/unsubscribe'
+    | '/m/$id'
     | '/admin/enquiries'
     | '/assets/$id'
     | '/operator/defect'
@@ -447,6 +458,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/team'
     | '/email/unsubscribe'
+    | '/m/$id'
     | '/_authenticated/admin/enquiries'
     | '/_authenticated/assets/$id'
     | '/_authenticated/operator/defect'
@@ -479,6 +491,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  MIdRoute: typeof MIdRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksCheckExpiriesRoute: typeof ApiPublicHooksCheckExpiriesRoute
@@ -551,6 +564,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/m/$id': {
+      id: '/m/$id'
+      path: '/m/$id'
+      fullPath: '/m/$id'
+      preLoaderRoute: typeof MIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
@@ -814,6 +834,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  MIdRoute: MIdRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksCheckExpiriesRoute: ApiPublicHooksCheckExpiriesRoute,

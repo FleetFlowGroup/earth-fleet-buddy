@@ -13,6 +13,7 @@ import { Truck, Loader2 } from "lucide-react";
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
   oauth: z.enum(["google"]).optional(),
+  redirect: z.string().optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -27,7 +28,9 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { mode, oauth } = useSearch({ from: "/auth" });
+  const { mode, oauth, redirect } = useSearch({ from: "/auth" });
+  const isSafeRedirect = !!redirect && redirect.startsWith("/") && !redirect.startsWith("//");
+  const dest = isSafeRedirect ? redirect! : "/dashboard";
   const navigate = useNavigate();
   const [tab, setTab] = useState<"signin" | "signup">(mode ?? "signin");
   const [loading, setLoading] = useState(false);
@@ -52,7 +55,7 @@ function AuthPage() {
       }
 
       toast.success("Welcome back");
-      navigate({ to: "/dashboard", replace: true });
+      navigate({ to: dest as any, replace: true });
     };
 
     finishGoogleSignIn();
@@ -81,7 +84,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back");
-        navigate({ to: "/dashboard" });
+        navigate({ to: dest as any });
       }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
@@ -102,7 +105,7 @@ function AuthPage() {
       return;
     }
     if (res.redirected) return;
-    navigate({ to: "/dashboard" });
+    navigate({ to: dest as any });
   }
 
   return (

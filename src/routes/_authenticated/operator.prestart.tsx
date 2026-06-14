@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useOperatorSelf, useOperatorAsset, meterValue } from "@/lib/operator-data";
+import { useOperatorSelf, useOperatorTargetAsset, meterValue } from "@/lib/operator-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,9 +12,13 @@ import { ArrowLeft, Loader2, Camera, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { uploadPhoto, compressImage } from "@/lib/photo-upload";
 import { SignaturePad, type SignaturePadHandle } from "@/components/signature-pad";
+import { z } from "zod";
+
+const search = z.object({ asset: z.string().uuid().optional() });
 
 export const Route = createFileRoute("/_authenticated/operator/prestart")({
   head: () => ({ meta: [{ title: "Prestart · FleetFlow" }] }),
+  validateSearch: search,
   component: PrestartScreen,
 });
 
@@ -32,8 +36,9 @@ type TemplateItem = {
 function PrestartScreen() {
   const { data: me } = useCurrentUser();
   const navigate = useNavigate();
+  const { asset: assetOverride } = Route.useSearch();
   const { data: op } = useOperatorSelf(me?.userId, me?.company?.id);
-  const { data: asset } = useOperatorAsset(op?.id);
+  const { data: asset } = useOperatorTargetAsset(op?.id, assetOverride);
   const meter = asset ? meterValue(asset) : null;
 
   const { data: items, isLoading: itemsLoading } = useQuery({
@@ -117,6 +122,7 @@ function PrestartScreen() {
         }
       } catch { /* ignore */ }
 
+      const ua = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : null;
       const { data: ps, error } = await (supabase as any).from("prestart_checks").insert({
         company_id: me.company.id,
         asset_id: asset.id,
@@ -127,15 +133,15 @@ function PrestartScreen() {
         status: anyFail ? "fail" : "pass",
         meter_reading: meterReading ? Number(meterReading) : null,
         signature_path: signaturePath,
+        submitter_user_agent: ua,
       }).select("id").single();
       if (error) throw error;
 
-      // Bump asset meter if higher
+      // Bump asset meter via SECURITY DEFINER helper (operators cannot UPDATE assets directly)
       if (meterReading && meter) {
         const v = Number(meterReading);
         if (meter.value == null || v > meter.value) {
-          const patch: any = meter.mode === "km" ? { odometer: Math.round(v) } : { engine_hours: v };
-          await (supabase as any).from("assets").update(patch).eq("id", asset.id);
+          await (supabase as any).rpc("record_operator_meter", { _asset_id: asset.id, _new_value: v });
         }
       }
 
@@ -164,6 +170,7 @@ function PrestartScreen() {
           description,
           status: "open",
           prestart_id: ps.id,
+          submitter_user_agent: ua,
         }).select("id").single();
         if (!defErr && def?.id) {
           for (const path of uploadedPaths) {

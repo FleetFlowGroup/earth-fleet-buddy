@@ -17,10 +17,14 @@ import {
   Home,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useOperatorSelf, useOperatorAsset, meterValue, nextServiceText, regoExpiryText } from "@/lib/operator-data";
+import { useOperatorSelf, useOperatorTargetAsset, meterValue, nextServiceText, regoExpiryText } from "@/lib/operator-data";
+import { z } from "zod";
+
+const operatorSearch = z.object({ asset: z.string().uuid().optional() });
 
 export const Route = createFileRoute("/_authenticated/operator/")({
   head: () => ({ meta: [{ title: "Operator · FleetFlow" }] }),
+  validateSearch: operatorSearch,
   component: OperatorHome,
 });
 
@@ -28,9 +32,10 @@ function OperatorHome() {
   const { data: me, isLoading } = useCurrentUser();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { asset: assetOverride } = Route.useSearch();
 
   const { data: operatorRow } = useOperatorSelf(me?.userId, me?.company?.id);
-  const { data: asset } = useOperatorAsset(operatorRow?.id);
+  const { data: asset } = useOperatorTargetAsset(operatorRow?.id, assetOverride);
 
   const { data: openDefects } = useQuery({
     queryKey: ["operator-defects-open", asset?.id],
@@ -120,10 +125,10 @@ function OperatorHome() {
 
         {/* Big action buttons */}
         <section className="grid grid-cols-2 gap-3">
-          <BigBtn to="/operator/prestart" icon={ClipboardCheck} label="Complete prestart" disabled={!asset} />
-          <BigBtn to="/operator/hours" icon={Gauge} label="Update hours" disabled={!asset} />
-          <BigBtn to="/operator/defect" icon={AlertTriangle} label="Report defect" tone="danger" disabled={!asset} />
-          <BigBtn to="/operator/photos" icon={Camera} label="Upload photos" disabled={!asset} />
+          <BigBtn to="/operator/prestart" icon={ClipboardCheck} label="Complete prestart" disabled={!asset} assetId={asset?.id} />
+          <BigBtn to="/operator/hours" icon={Gauge} label="Update hours" disabled={!asset} assetId={asset?.id} />
+          <BigBtn to="/operator/defect" icon={AlertTriangle} label="Report defect" tone="danger" disabled={!asset} assetId={asset?.id} />
+          <BigBtn to="/operator/photos" icon={Camera} label="Upload photos" disabled={!asset} assetId={asset?.id} />
           <BigBtn to="/operator/tickets" icon={Ticket} label="My tickets" />
           <BigBtn to="/operator/profile" icon={User} label="My profile" />
         </section>
@@ -163,12 +168,12 @@ function Tile({ label, value, sub, tone }: { label: string; value: string; sub: 
   );
 }
 
-function BigBtn({ to, icon: Icon, label, tone = "default", disabled }: { to: string; icon: any; label: string; tone?: "default" | "danger"; disabled?: boolean }) {
+function BigBtn({ to, icon: Icon, label, tone = "default", disabled, assetId }: { to: string; icon: any; label: string; tone?: "default" | "danger"; disabled?: boolean; assetId?: string }) {
   const cls = `flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border p-4 text-center transition disabled:opacity-50 ${
     tone === "danger" ? "border-destructive/30 bg-destructive/5 hover:bg-destructive/10 text-destructive" : "border-border bg-card hover:bg-accent/30"
   }`;
   if (disabled) return <button type="button" disabled className={cls}><Icon className="size-8" /><span className="text-sm font-medium leading-tight">{label}</span></button>;
-  return <Link to={to as any} className={cls}><Icon className="size-8" /><span className="text-sm font-medium leading-tight">{label}</span></Link>;
+  return <Link to={to as any} search={assetId ? { asset: assetId } as any : undefined} className={cls}><Icon className="size-8" /><span className="text-sm font-medium leading-tight">{label}</span></Link>;
 }
 
 function greetingFor(d: Date) {
