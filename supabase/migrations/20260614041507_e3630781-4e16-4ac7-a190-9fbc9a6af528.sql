@@ -1,0 +1,1 @@
+CREATE POLICY "Members insert asset_photos" ON public.asset_photos FOR INSERT TO authenticated WITH CHECK (is_company_member(auth.uid(), company_id));
