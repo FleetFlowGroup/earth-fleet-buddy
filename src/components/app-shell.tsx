@@ -10,6 +10,7 @@ import {
   FileBarChart,
   IdCard,
   CreditCard,
+  Eye,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { navFor, ROLE_LABELS } from "@/lib/permissions";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { setOperatorPreview } from "@/lib/operator-preview";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
@@ -147,6 +149,19 @@ function SidebarInner({
           <div className="truncate text-xs font-medium">{email}</div>
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{role ? (ROLE_LABELS[role] ?? role) : "—"}</div>
         </div>
+        {(role === "admin" || role === "manager") && (
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="mt-2 w-full justify-start"
+            onClick={() => setOperatorPreview(true)}
+          >
+            <Link to="/operator">
+              <Eye className="mr-2 size-4" /> Preview operator view
+            </Link>
+          </Button>
+        )}
         <Button
           onClick={onSignOut}
           variant="ghost"
