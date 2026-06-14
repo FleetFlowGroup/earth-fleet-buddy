@@ -43,6 +43,14 @@ export type Permission =
   | "operator.portal";
 
 const PERMS: Record<Exclude<Role, null | undefined>, Permission[]> = {
+  super_admin: [
+    "dashboard.view", "assets.view", "assets.edit", "assets.delete", "assets.value.view",
+    "operators.view", "operators.edit", "services.view", "services.edit",
+    "defects.view", "defects.edit", "compliance.view", "compliance.edit",
+    "documents.view", "documents.edit", "reports.view",
+    "team.view", "team.manage", "settings.view", "settings.edit",
+    "billing.view", "billing.manage", "audit.view",
+  ],
   admin: [
     "dashboard.view", "assets.view", "assets.edit", "assets.delete", "assets.value.view",
     "operators.view", "operators.edit", "services.view", "services.edit",
@@ -56,7 +64,13 @@ const PERMS: Record<Exclude<Role, null | undefined>, Permission[]> = {
     "operators.view", "operators.edit", "services.view", "services.edit",
     "defects.view", "defects.edit", "compliance.view", "compliance.edit",
     "documents.view", "documents.edit", "reports.view",
-    "team.view", "settings.view",
+    "team.view", "team.manage", "settings.view",
+  ],
+  supervisor: [
+    "dashboard.view", "assets.view", "assets.edit",
+    "operators.view", "operators.edit", "services.view", "services.edit",
+    "defects.view", "defects.edit", "compliance.view",
+    "documents.view", "reports.view", "team.view",
   ],
   office_staff: [
     "dashboard.view", "assets.view", "assets.edit",
@@ -68,12 +82,17 @@ const PERMS: Record<Exclude<Role, null | undefined>, Permission[]> = {
     "assets.view", "services.view", "services.edit",
     "defects.view", "defects.edit", "documents.view",
   ],
+  mechanic: [
+    "assets.view", "services.view", "services.edit",
+    "defects.view", "defects.edit", "documents.view",
+  ],
   viewer: [
     "dashboard.view", "assets.view", "operators.view", "services.view",
     "defects.view", "compliance.view", "documents.view", "reports.view",
   ],
   operator: ["operator.portal"],
 };
+
 
 export function can(role: Role, perm: Permission): boolean {
   if (!role) return false;
