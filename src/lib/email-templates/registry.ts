@@ -4,6 +4,7 @@ import { template as contactConfirmation } from './contact-confirmation'
 import { template as teamInvite } from './team-invite'
 import { template as complianceExpiry } from './compliance-expiry-reminder'
 import { template as licenceExpiry } from './licence-expiry-reminder'
+import { template as serviceDue } from './service-due-reminder'
 
 export interface TemplateEntry {
   component: ComponentType<any>
