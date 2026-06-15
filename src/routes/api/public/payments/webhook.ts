@@ -48,7 +48,16 @@ async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
       },
       { onConflict: "paddle_subscription_id" },
     );
+
+  // The paying user must be an admin of the company they paid for.
+  // Replace any existing role (including operator) in that company.
+  if (userId) {
+    const sb = getSupabase();
+    await sb.from("user_roles").delete().eq("user_id", userId).eq("company_id", companyId);
+    await sb.from("user_roles").insert({ user_id: userId, company_id: companyId, role: "admin" });
+  }
 }
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
