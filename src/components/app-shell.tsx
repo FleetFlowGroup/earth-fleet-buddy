@@ -187,6 +187,16 @@ function SidebarInner({
           </Button>
         )}
         <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="mt-2 w-full justify-start text-muted-foreground hover:text-foreground"
+        >
+          <Link to="/feedback">
+            <LifeBuoy className="mr-2 size-4" /> Contact & Feedback
+          </Link>
+        </Button>
+        <Button
           onClick={onSignOut}
           variant="ghost"
           size="sm"
