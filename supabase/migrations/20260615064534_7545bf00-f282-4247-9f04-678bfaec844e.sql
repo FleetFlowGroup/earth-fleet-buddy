@@ -1,0 +1,2 @@
+ALTER TABLE public.reminder_log ADD COLUMN IF NOT EXISTS asset_id uuid REFERENCES public.assets(id) ON DELETE CASCADE;
+CREATE UNIQUE INDEX IF NOT EXISTS reminder_log_asset_unique_idx ON public.reminder_log (asset_id, days_before, recipient_email) WHERE asset_id IS NOT NULL;
