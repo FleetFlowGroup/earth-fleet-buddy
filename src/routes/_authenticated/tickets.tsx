@@ -32,7 +32,7 @@ type Ticket = {
   issue_date: string | null;
   expiry_date: string | null;
   notes: string | null;
-  file_path: string;
+  file_path: string | null;
   file_type: string | null;
   file_size: number | null;
   uploaded_by: string | null;
@@ -71,7 +71,9 @@ function TicketsPage() {
 
   async function deleteTicket(t: Ticket) {
     if (!confirm(`Delete ticket "${t.title}"?`)) return;
-    await supabase.storage.from("asset-photos").remove([t.file_path]).catch(() => {});
+    if (t.file_path) {
+      await supabase.storage.from("asset-photos").remove([t.file_path]).catch(() => {});
+    }
     const { error } = await (supabase as any).from("tickets").delete().eq("id", t.id);
     if (error) return toast.error(error.message);
     toast.success("Ticket deleted");
@@ -79,6 +81,7 @@ function TicketsPage() {
   }
 
   async function download(t: Ticket) {
+    if (!t.file_path) return toast.error("No file attached");
     const { data, error } = await supabase.storage
       .from("asset-photos").createSignedUrl(t.file_path, 300);
     if (error || !data?.signedUrl) return toast.error("Could not open file");
@@ -145,9 +148,13 @@ function TicketsPage() {
                     : <span className="truncate">{t.ticket_assignments!.map((a) => a.operators?.full_name).filter(Boolean).join(", ")}</span>}
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => download(t)}>
-                    <Download className="mr-1.5 size-4" />View
-                  </Button>
+                  {t.file_path ? (
+                    <Button size="sm" variant="outline" className="flex-1" onClick={() => download(t)}>
+                      <Download className="mr-1.5 size-4" />View
+                    </Button>
+                  ) : (
+                    <span className="flex-1 text-xs text-muted-foreground flex items-center">No file attached</span>
+                  )}
                   {editable && (
                     <>
                       <AssignDialog ticket={t} companyId={me!.company!.id} onDone={() => qc.invalidateQueries({ queryKey: ["tickets"] })} />
@@ -189,16 +196,24 @@ function UploadDialog({ companyId, onDone }: { companyId: string; onDone: () => 
   });
 
   async function submit() {
-    if (!title.trim() || !file) return toast.error("Title and file are required");
+    if (!title.trim()) return toast.error("Title is required");
     setBusy(true);
     try {
-      const compressed = file.type.startsWith("image/") ? await compressImage(file) : file;
-      const safe = compressed.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
-      const path = `${companyId}/tickets/${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${safe}`;
-      const up = await supabase.storage.from("asset-photos").upload(path, compressed, {
-        contentType: compressed.type, upsert: false, cacheControl: "3600",
-      });
-      if (up.error) throw up.error;
+      let path: string | null = null;
+      let fileType: string | null = null;
+      let fileSize: number | null = null;
+
+      if (file) {
+        const compressed = file.type.startsWith("image/") ? await compressImage(file) : file;
+        const safe = compressed.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
+        path = `${companyId}/tickets/${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${safe}`;
+        const up = await supabase.storage.from("asset-photos").upload(path, compressed, {
+          contentType: compressed.type, upsert: false, cacheControl: "3600",
+        });
+        if (up.error) throw up.error;
+        fileType = compressed.type;
+        fileSize = compressed.size;
+      }
 
       const ins = await (supabase as any).from("tickets").insert({
         company_id: companyId,
@@ -210,8 +225,8 @@ function UploadDialog({ companyId, onDone }: { companyId: string; onDone: () => 
         description: description.trim() || null,
         notes: notes.trim() || null,
         file_path: path,
-        file_type: compressed.type,
-        file_size: compressed.size,
+        file_type: fileType,
+        file_size: fileSize,
       }).select("id").single();
       if (ins.error) throw ins.error;
 

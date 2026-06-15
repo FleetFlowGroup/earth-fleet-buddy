@@ -1486,7 +1486,7 @@ export type Database = {
           created_at: string
           description: string | null
           expiry_date: string | null
-          file_path: string
+          file_path: string | null
           file_size: number | null
           file_type: string | null
           id: string
@@ -1503,7 +1503,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           expiry_date?: string | null
-          file_path: string
+          file_path?: string | null
           file_size?: number | null
           file_type?: string | null
           id?: string
@@ -1520,7 +1520,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           expiry_date?: string | null
-          file_path?: string
+          file_path?: string | null
           file_size?: number | null
           file_type?: string | null
           id?: string
