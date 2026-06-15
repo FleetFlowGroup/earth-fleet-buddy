@@ -50,7 +50,7 @@ export function OperatorTicketsMenu({ userId, companyId, email }: Props) {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("operator_licences")
-        .select("id, licence_type, licence_name, licence_number, expiry_date")
+        .select("id, licence_type, licence_name, licence_number, expiry_date, certificate_path")
         .eq("operator_id", operatorId)
         .order("expiry_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
