@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useOperatorSelf } from "@/lib/operator-data";
@@ -30,6 +30,7 @@ function TicketsScreen() {
   const { data: op } = useOperatorSelf(me?.userId, me?.company?.id);
   const qc = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
+  const [selected, setSelected] = useState<any | null>(null);
 
   const { data: licences } = useQuery({
     queryKey: ["operator-licences", op?.id],
@@ -80,12 +81,11 @@ function TicketsScreen() {
                 const d = l.expiry_date ? daysUntil(l.expiry_date) : null;
                 const tone =
                   d == null ? "muted" : d < 0 ? "danger" : d <= 30 ? "warn" : "ok";
-                const hasCert = !!l.certificate_path;
                 return (
                   <li key={l.id}>
                     <button
                       type="button"
-                      onClick={() => openLicenceCertificate(l.certificate_path)}
+                      onClick={() => setSelected(l)}
                       className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-accent/30"
                     >
                       <div className="flex min-w-0 items-center gap-3">
@@ -99,7 +99,6 @@ function TicketsScreen() {
                           <div className="truncate text-xs text-muted-foreground">
                             {l.licence_number ? `#${l.licence_number}` : "—"}
                             {l.expiry_date ? ` · Expires ${fmtDate(l.expiry_date)}` : ""}
-                            {!hasCert ? " · No photo" : ""}
                           </div>
                         </div>
                       </div>
@@ -122,9 +121,175 @@ function TicketsScreen() {
               })}
             </ul>
           )}
+
+          {selected && (
+            <TicketDetailDialog
+              ticket={selected}
+              companyId={op.company_id}
+              operatorId={op.id}
+              onClose={() => setSelected(null)}
+              onChanged={() => {
+                refresh();
+                setSelected(null);
+              }}
+            />
+          )}
         </>
       )}
     </Shell>
+  );
+}
+
+function TicketDetailDialog({
+  ticket,
+  companyId,
+  operatorId,
+  onClose,
+  onChanged,
+}: {
+  ticket: any;
+  companyId: string;
+  operatorId: string;
+  onClose: () => void;
+  onChanged: () => void;
+}) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const d = ticket.expiry_date ? daysUntil(ticket.expiry_date) : null;
+  const isImage =
+    !!ticket.certificate_path &&
+    /\.(jpe?g|png|webp|gif|heic)$/i.test(ticket.certificate_path);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (ticket.certificate_path) {
+      supabase.storage
+        .from("compliance-docs")
+        .createSignedUrl(ticket.certificate_path, 600)
+        .then(({ data }) => {
+          if (!cancelled) setUrl(data?.signedUrl ?? null);
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [ticket.certificate_path]);
+
+  async function handleUpload(file: File) {
+    setUploading(true);
+    try {
+      if (file.size > 20 * 1024 * 1024) throw new Error("File too large (max 20 MB)");
+      const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
+      const path = `${companyId}/operators/${operatorId}/${Date.now()}-${safe}`;
+      const { error } = await supabase.storage
+        .from("compliance-docs")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+      if (ticket.certificate_path) {
+        await supabase.storage.from("compliance-docs").remove([ticket.certificate_path]);
+      }
+      const { error: e2 } = await (supabase as any)
+        .from("operator_licences")
+        .update({ certificate_path: path })
+        .eq("id", ticket.id);
+      if (e2) throw e2;
+      toast.success("Photo uploaded");
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{licenceDisplayName(ticket.licence_type, ticket.licence_name)}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-sm">
+          <div className="grid grid-cols-2 gap-2">
+            <Detail label="Number" value={ticket.licence_number ?? "—"} />
+            <Detail label="Issued" value={ticket.issue_date ? fmtDate(ticket.issue_date) : "—"} />
+            <Detail label="Expires" value={ticket.expiry_date ? fmtDate(ticket.expiry_date) : "—"} />
+            <Detail
+              label="Status"
+              value={d == null ? "—" : d < 0 ? `Expired ${-d}d ago` : `${d} days left`}
+            />
+          </div>
+          {ticket.notes && (
+            <div>
+              <div className="text-xs text-muted-foreground">Notes</div>
+              <div className="whitespace-pre-wrap">{ticket.notes}</div>
+            </div>
+          )}
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground">Certificate / photo</div>
+            {ticket.certificate_path ? (
+              <div className="overflow-hidden rounded-md border border-border bg-muted/30">
+                {isImage && url ? (
+                  <img src={url} alt="Certificate" className="max-h-72 w-full object-contain" />
+                ) : (
+                  <div className="p-4 text-center text-xs text-muted-foreground">
+                    {url ? (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary underline"
+                      >
+                        Open document
+                      </a>
+                    ) : (
+                      "Loading…"
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">No photo uploaded yet.</p>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              disabled={uploading}
+              onClick={() => inputRef.current?.click()}
+            >
+              {uploading ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : (
+                <Upload className="mr-2 size-4" />
+              )}
+              {ticket.certificate_path ? "Replace photo" : "Upload photo"}
+            </Button>
+            <input
+              ref={inputRef}
+              type="file"
+              hidden
+              accept="application/pdf,image/*"
+              capture="environment"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleUpload(f);
+              }}
+            />
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="font-medium">{value}</div>
+    </div>
   );
 }
 
