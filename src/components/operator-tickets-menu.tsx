@@ -12,6 +12,7 @@ import {
 import { Ticket, FileText } from "lucide-react";
 import { licenceDisplayName } from "@/lib/operators";
 import { daysUntil, fmtDate } from "@/lib/expiry";
+import { openLicenceCertificate } from "@/lib/licence-cert";
 
 type Props = { userId?: string; companyId?: string; email?: string };
 
@@ -49,7 +50,7 @@ export function OperatorTicketsMenu({ userId, companyId, email }: Props) {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("operator_licences")
-        .select("id, licence_type, licence_name, licence_number, expiry_date")
+        .select("id, licence_type, licence_name, licence_number, expiry_date, certificate_path")
         .eq("operator_id", operatorId)
         .order("expiry_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
@@ -96,7 +97,12 @@ export function OperatorTicketsMenu({ userId, companyId, email }: Props) {
                       ? "warn"
                       : "ok";
               return (
-                <div key={l.id} className="flex items-start gap-2 px-2 py-2">
+                <button
+                  type="button"
+                  key={l.id}
+                  onClick={() => openLicenceCertificate(l.certificate_path)}
+                  className="flex w-full items-start gap-2 rounded px-2 py-2 text-left hover:bg-accent/40"
+                >
                   <div className="grid size-8 shrink-0 place-items-center rounded bg-primary/10 text-primary">
                     <FileText className="size-4" />
                   </div>
@@ -122,7 +128,7 @@ export function OperatorTicketsMenu({ userId, companyId, email }: Props) {
                       {d! < 0 ? "Expired" : `${d}d`}
                     </span>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>

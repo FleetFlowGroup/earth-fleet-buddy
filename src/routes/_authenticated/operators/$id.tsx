@@ -18,6 +18,7 @@ import { daysUntil, expiryStatus, fmtDate, statusColor, statusLabel } from "@/li
 import { LICENCE_TYPES, licenceDisplayName, OPERATOR_STATUS_LABELS } from "@/lib/operators";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { openLicenceCertificate } from "@/lib/licence-cert";
 
 export const Route = createFileRoute("/_authenticated/operators/$id")({
   head: () => ({ meta: [{ title: "Operator · FleetFlow" }] }),
@@ -138,11 +139,9 @@ function OperatorDetail() {
                         <span className={`rounded-full border px-2 py-0.5 text-xs ${statusColor(status)}`}>{statusLabel(status, days)}</span>
                       )}
                       {l.certificate_path && (
-                        <Button variant="ghost" size="icon" onClick={async () => {
-                          const { data, error } = await supabase.storage.from("compliance-docs").createSignedUrl(l.certificate_path, 60);
-                          if (error) return toast.error(error.message);
-                          window.open(data.signedUrl, "_blank");
-                        }}><Download className="size-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => openLicenceCertificate(l.certificate_path)}>
+                          <Download className="size-4" />
+                        </Button>
                       )}
                       {editable && (
                         <Button variant="ghost" size="icon" onClick={async () => {
