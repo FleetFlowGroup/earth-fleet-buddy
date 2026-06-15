@@ -13,7 +13,7 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "Simple per-asset pricing for FleetFlow. From $99/month for up to 10 assets. 14-day free trial, cancel anytime.",
+          "Simple per-asset pricing for FleetFlow. From $99 AUD/month for up to 10 assets. First month $9.99 AUD on any plan. Cancel anytime.",
       },
     ],
   }),
