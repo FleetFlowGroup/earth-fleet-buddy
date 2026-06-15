@@ -295,9 +295,25 @@ function Dashboard() {
         to: { to: "/operators/$id", params: { id: l.operator_id } },
       });
     }
+    for (const d of defects) {
+      const tone: AttentionItem["tone"] =
+        d.severity === "critical" || d.severity === "high" ? "danger" : "warning";
+      const sevLabel = d.severity.charAt(0).toUpperCase() + d.severity.slice(1);
+      const kindLabel = d.prestart_id ? "Prestart defect" : "Defect";
+      const desc = (d.description ?? "").split("\n")[0].slice(0, 80);
+      items.push({
+        kind: `${kindLabel} · ${sevLabel}`,
+        key: `def-${d.id}`,
+        title: (d as any).assets?.name ?? "Asset",
+        sub: desc || `Reported ${fmtDate(d.reported_at)}`,
+        tone,
+        to: { to: "/assets/$id", params: { id: d.asset_id } },
+      });
+    }
     items.sort((a, b) => (a.tone === b.tone ? 0 : a.tone === "danger" ? -1 : 1));
     return items;
-  }, [overdueServices, dueSoonServices, compliance, licences]);
+  }, [overdueServices, dueSoonServices, compliance, licences, defects]);
+
 
   // ---------- Quick stats ----------
   const expiringIn30 = useMemo(() => {
