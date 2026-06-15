@@ -15,20 +15,29 @@ interface Props {
 
 const Email = (p: Props) => {
   const days = p.daysBefore ?? 0
+  const actionNow = days <= 0
   const urgent = days <= 14
   return (
     <Html lang="en">
       <Head />
       <Preview>
-        {`${p.complianceLabel ?? 'Compliance item'} for ${p.assetName ?? 'a machine'} expires in ${days} days`}
+        {actionNow
+          ? `ACTION NOW: ${p.complianceLabel ?? 'Compliance item'} for ${p.assetName ?? 'a machine'} expires today`
+          : `${p.complianceLabel ?? 'Compliance item'} for ${p.assetName ?? 'a machine'} expires in ${days} days`}
       </Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>
-            {urgent ? 'Action needed: expiry approaching' : 'Upcoming compliance expiry'}
+          <Heading style={actionNow ? h1Urgent : h1}>
+            {actionNow
+              ? 'ACTION NOW: compliance item expires today'
+              : urgent
+                ? 'Action needed: expiry approaching'
+                : 'Upcoming compliance expiry'}
           </Heading>
           <Text style={lead}>
-            The following compliance item is due to expire in <strong>{days} day{days === 1 ? '' : 's'}</strong>.
+            {actionNow
+              ? <>The following compliance item <strong>expires today</strong> and must be actioned immediately.</>
+              : <>The following compliance item is due to expire in <strong>{days} day{days === 1 ? '' : 's'}</strong>.</>}
           </Text>
 
           <Section style={card}>
@@ -37,12 +46,15 @@ const Email = (p: Props) => {
             <Text style={{ ...cardLabel, marginTop: '12px' }}>Compliance item</Text>
             <Text style={cardValue}>{p.complianceLabel ?? '—'}</Text>
             <Text style={{ ...cardLabel, marginTop: '12px' }}>Expires</Text>
-            <Text style={cardValue}>{p.expiryDate ?? '—'} ({days} day{days === 1 ? '' : 's'})</Text>
+            <Text style={cardValue}>{p.expiryDate ?? '—'} {actionNow ? '(today)' : `(${days} day${days === 1 ? '' : 's'})`}</Text>
           </Section>
 
           <Text style={body}>
-            Log in to FleetFlow to update or renew this record so it doesn't lapse.
+            {actionNow
+              ? 'Log in to FleetFlow now to renew this record. The machine may not be compliant to operate until this is updated.'
+              : "Log in to FleetFlow to update or renew this record so it doesn't lapse."}
           </Text>
+
 
           <Hr style={hr} />
           <Text style={footer}>
@@ -56,8 +68,13 @@ const Email = (p: Props) => {
 
 export const template = {
   component: Email,
-  subject: (d: Record<string, any>) =>
-    `${d?.complianceLabel ?? 'Compliance item'} for ${d?.assetName ?? 'a machine'} expires in ${d?.daysBefore ?? 'a few'} days`,
+  subject: (d: Record<string, any>) => {
+    const days = d?.daysBefore
+    if (typeof days === 'number' && days <= 0) {
+      return `ACTION NOW: ${d?.complianceLabel ?? 'Compliance item'} for ${d?.assetName ?? 'a machine'} expires today`
+    }
+    return `${d?.complianceLabel ?? 'Compliance item'} for ${d?.assetName ?? 'a machine'} expires in ${days ?? 'a few'} days`
+  },
   displayName: 'Compliance expiry reminder',
   previewData: {
     assetName: 'Excavator 12',
@@ -72,6 +89,7 @@ export const template = {
 const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
 const container = { maxWidth: '560px', margin: '0 auto', padding: '32px 24px' }
 const h1 = { fontSize: '22px', fontWeight: 700, margin: '0 0 12px', color: '#0f172a' }
+const h1Urgent = { fontSize: '22px', fontWeight: 800, margin: '0 0 12px', color: '#b91c1c', textTransform: 'uppercase' as const, letterSpacing: '0.02em' }
 const lead = { fontSize: '15px', lineHeight: '22px', color: '#334155', margin: '0 0 16px' }
 const body = { fontSize: '14px', lineHeight: '22px', color: '#334155', margin: '16px 0' }
 const card = { background: '#f1f5f9', borderRadius: '8px', padding: '16px 18px', margin: '16px 0' }

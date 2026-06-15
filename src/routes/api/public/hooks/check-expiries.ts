@@ -13,8 +13,8 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
         const { sendTransactionalServer } = await import("@/lib/email/send-server");
         const { LICENCE_LABELS } = await import("@/lib/operators");
 
-        const COMPLIANCE_THRESHOLDS = [90, 60, 30, 14, 7];
-        const LICENCE_THRESHOLDS = [90, 60, 30, 14, 7];
+        const COMPLIANCE_THRESHOLDS = [90, 60, 30, 14, 7, 0];
+        const LICENCE_THRESHOLDS = [90, 60, 30, 14, 7, 0];
 
         const today = new Date();
         const upper = new Date();
