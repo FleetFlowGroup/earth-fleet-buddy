@@ -98,7 +98,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         )}
 
-        <main key={path} className="min-w-0 flex-1 animate-fade-in">{children}</main>
+        <main key={path} className="min-w-0 flex-1 animate-in fade-in duration-200">{children}</main>
       </div>
     </div>
   );
