@@ -121,7 +121,6 @@ function OperatorDetail() {
                 const expiry = l.expiry_date;
                 const status = expiry ? expiryStatus(expiry) : null;
                 const days = expiry ? daysUntil(expiry) : null;
-                const missingCert = !l.certificate_path;
                 return (
                   <li key={l.id} className="flex items-center justify-between gap-3 px-5 py-3">
                     <div className="min-w-0">
