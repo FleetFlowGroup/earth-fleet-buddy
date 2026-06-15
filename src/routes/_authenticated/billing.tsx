@@ -40,10 +40,11 @@ function BillingPage() {
     );
   }
 
-  async function subscribe(priceId: string) {
+  async function subscribe(productId: string) {
     if (!me?.userId || !companyId) return;
     await openCheckout({
-      priceId,
+      priceId: PLAN_PRICE_ID[productId],
+      discountId: PLAN_INTRO_DISCOUNT_ID[productId],
       customerEmail: me.email,
       companyId,
       userId: me.userId,
