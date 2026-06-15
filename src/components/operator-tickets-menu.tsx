@@ -97,7 +97,12 @@ export function OperatorTicketsMenu({ userId, companyId, email }: Props) {
                       ? "warn"
                       : "ok";
               return (
-                <div key={l.id} className="flex items-start gap-2 px-2 py-2">
+                <button
+                  type="button"
+                  key={l.id}
+                  onClick={() => openLicenceCertificate(l.certificate_path)}
+                  className="flex w-full items-start gap-2 rounded px-2 py-2 text-left hover:bg-accent/40"
+                >
                   <div className="grid size-8 shrink-0 place-items-center rounded bg-primary/10 text-primary">
                     <FileText className="size-4" />
                   </div>
