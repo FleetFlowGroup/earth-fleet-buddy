@@ -31,7 +31,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "earth-fleet-buddy"
+const SITE_NAME = "FleetFlow"
 const SENDER_DOMAIN = "notify.fleetflow.group"
 const ROOT_DOMAIN = "fleetflow.group"
 const FROM_DOMAIN = "fleetflow.group"
