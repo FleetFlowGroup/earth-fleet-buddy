@@ -93,7 +93,7 @@ function Dashboard() {
     queryKey: ["dashboard-stats-v2", companyId],
     enabled: !!companyId,
     queryFn: async () => {
-      const [assetsRes, complianceRes, docsRes, opsRes, licencesRes, serviceHistRes] = await Promise.all([
+      const [assetsRes, complianceRes, docsRes, opsRes, licencesRes, serviceHistRes, defectsRes] = await Promise.all([
         supabase
           .from("assets")
           .select(
@@ -119,7 +119,14 @@ function Dashboard() {
           .select("id,asset_id,service_date,cost")
           .eq("company_id", companyId!)
           .order("service_date", { ascending: false }),
+        (supabase as any)
+          .from("defect_reports")
+          .select("id,asset_id,severity,description,status,reported_at,prestart_id,assets(name)")
+          .eq("company_id", companyId!)
+          .neq("status", "resolved")
+          .order("reported_at", { ascending: false }),
       ]);
+
 
       const assets = (assetsRes.data ?? []) as any[];
       const compliance = complianceRes.data ?? [];
