@@ -39,15 +39,25 @@ export function useCurrentUser() {
           .maybeSingle();
         company = c ?? null;
 
-        const { data: r } = await supabase
+        const { data: rs } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", user.id)
-          .eq("company_id", profile.company_id)
-          .order("role")
-          .limit(1)
-          .maybeSingle();
-        role = (r?.role as any) ?? null;
+          .eq("company_id", profile.company_id);
+        const priority: Record<string, number> = {
+          super_admin: 1,
+          admin: 2,
+          manager: 3,
+          supervisor: 4,
+          office_staff: 5,
+          workshop: 6,
+          mechanic: 7,
+          viewer: 8,
+          operator: 9,
+        };
+        const roles = (rs ?? []).map((x: any) => x.role as string);
+        roles.sort((a, b) => (priority[a] ?? 99) - (priority[b] ?? 99));
+        role = (roles[0] as any) ?? null;
       }
 
       return {
