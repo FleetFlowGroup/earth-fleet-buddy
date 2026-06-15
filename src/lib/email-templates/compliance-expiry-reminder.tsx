@@ -6,6 +6,7 @@ import type { TemplateEntry } from './registry'
 
 interface Props {
   assetName?: string
+  assetNumber?: string
   registration?: string
   complianceLabel?: string
   expiryDate?: string
