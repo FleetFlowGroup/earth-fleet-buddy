@@ -1684,6 +1684,7 @@ export type Database = {
         Args: { _company_id: string }
         Returns: undefined
       }
+      set_active_company: { Args: { _company_id: string }; Returns: undefined }
       update_member_role: {
         Args: {
           _company_id: string
