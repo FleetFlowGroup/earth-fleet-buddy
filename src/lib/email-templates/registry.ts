@@ -5,6 +5,7 @@ import { template as teamInvite } from './team-invite'
 import { template as complianceExpiry } from './compliance-expiry-reminder'
 import { template as licenceExpiry } from './licence-expiry-reminder'
 import { template as serviceDue } from './service-due-reminder'
+import { template as appFeedbackNotification } from './app-feedback-notification'
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -22,4 +23,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'compliance-expiry-reminder': complianceExpiry,
   'licence-expiry-reminder': licenceExpiry,
   'service-due-reminder': serviceDue,
+  'app-feedback-notification': appFeedbackNotification,
 }
