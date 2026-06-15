@@ -420,23 +420,19 @@ function AddAssetDialog({
           <p>
             You're using <strong>{assetCount} of {billing?.asset_limit ?? 0}</strong> assets on the{" "}
             <strong>
-              {billing?.state === "trial"
-                ? "free trial"
-                : billing?.product_id
-                  ? PLAN_LABEL[billing.product_id]
-                  : "current"}
+              {billing?.product_id ? PLAN_LABEL[billing.product_id] : "current"}
             </strong>{" "}
             plan.
           </p>
           {target ? (
             noSub ? (
               <p>
-                Start a subscription on <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_AUD[target]}/mo,
-                up to {PLAN_LIMIT[target]} assets) to add this asset.
+                Start a subscription on <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_AUD[target]} AUD/mo,
+                first month $9.99 AUD, up to {PLAN_LIMIT[target]} assets) to add this asset.
               </p>
             ) : (
               <p>
-                Upgrading to <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_AUD[target]}/mo, up to{" "}
+                Upgrading to <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_AUD[target]} AUD/mo, up to{" "}
                 {PLAN_LIMIT[target]} assets) will be prorated immediately and lets you add this asset right
                 now.
               </p>
