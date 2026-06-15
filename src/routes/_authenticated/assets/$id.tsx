@@ -778,14 +778,6 @@ function UpdateMeterDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Last service date</Label>
-            <Input
-              type="date"
-              value={form.last_service_date}
-              onChange={(e) => setForm({ ...form, last_service_date: e.target.value })}
-            />
-          </div>
-          <div className="space-y-1.5">
             <Label>Last service {mode === "km" ? "odometer" : "hours"} ({unit})</Label>
             <Input
               type="number" min={0} step={mode === "km" ? 1 : 0.1}
