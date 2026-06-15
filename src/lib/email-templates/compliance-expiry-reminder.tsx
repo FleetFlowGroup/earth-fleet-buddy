@@ -84,6 +84,7 @@ export const template = {
 const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
 const container = { maxWidth: '560px', margin: '0 auto', padding: '32px 24px' }
 const h1 = { fontSize: '22px', fontWeight: 700, margin: '0 0 12px', color: '#0f172a' }
+const h1Urgent = { fontSize: '22px', fontWeight: 800, margin: '0 0 12px', color: '#b91c1c', textTransform: 'uppercase' as const, letterSpacing: '0.02em' }
 const lead = { fontSize: '15px', lineHeight: '22px', color: '#334155', margin: '0 0 16px' }
 const body = { fontSize: '14px', lineHeight: '22px', color: '#334155', margin: '16px 0' }
 const card = { background: '#f1f5f9', borderRadius: '8px', padding: '16px 18px', margin: '16px 0' }
