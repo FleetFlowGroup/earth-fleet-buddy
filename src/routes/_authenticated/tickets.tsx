@@ -71,7 +71,9 @@ function TicketsPage() {
 
   async function deleteTicket(t: Ticket) {
     if (!confirm(`Delete ticket "${t.title}"?`)) return;
-    await supabase.storage.from("asset-photos").remove([t.file_path]).catch(() => {});
+    if (t.file_path) {
+      await supabase.storage.from("asset-photos").remove([t.file_path]).catch(() => {});
+    }
     const { error } = await (supabase as any).from("tickets").delete().eq("id", t.id);
     if (error) return toast.error(error.message);
     toast.success("Ticket deleted");
@@ -79,6 +81,7 @@ function TicketsPage() {
   }
 
   async function download(t: Ticket) {
+    if (!t.file_path) return toast.error("No file attached");
     const { data, error } = await supabase.storage
       .from("asset-photos").createSignedUrl(t.file_path, 300);
     if (error || !data?.signedUrl) return toast.error("Could not open file");
