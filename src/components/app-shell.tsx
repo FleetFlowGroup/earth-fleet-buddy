@@ -26,6 +26,7 @@ import { navFor, ROLE_LABELS } from "@/lib/permissions";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { setOperatorPreview } from "@/lib/operator-preview";
 import { useIsPlatformAdmin } from "@/hooks/use-is-platform-admin";
+import { GlobalSearchTrigger } from "@/components/global-search";
 
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
@@ -70,6 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="text-sm font-semibold">FleetFlow</span>
           </Link>
           <div className="flex items-center gap-1">
+            <GlobalSearchTrigger />
             <NotificationsBell />
             <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open menu">
@@ -78,10 +80,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
+        <header className="sticky top-0 z-20 hidden h-14 items-center gap-3 border-b border-border bg-background/80 px-6 backdrop-blur lg:flex">
+          <div className="flex-1">
+            <GlobalSearchTrigger />
+          </div>
+        </header>
+
         {open && (
           <div className="fixed inset-0 z-40 lg:hidden">
             <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-            <aside className="absolute left-0 top-0 flex h-full w-72 flex-col border-r border-sidebar-border bg-sidebar">
+            <aside className="absolute left-0 top-0 flex h-full w-72 flex-col border-r border-sidebar-border bg-sidebar animate-in slide-in-from-left duration-200">
               <div className="flex justify-end p-2">
                 <Button variant="ghost" size="icon" onClick={() => setOpen(false)}><X className="size-5" /></Button>
               </div>
@@ -90,7 +98,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         )}
 
-        <main className="min-w-0 flex-1">{children}</main>
+        <main key={path} className="min-w-0 flex-1 animate-fade-in">{children}</main>
       </div>
     </div>
   );
