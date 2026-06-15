@@ -148,9 +148,13 @@ function TicketsPage() {
                     : <span className="truncate">{t.ticket_assignments!.map((a) => a.operators?.full_name).filter(Boolean).join(", ")}</span>}
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => download(t)}>
-                    <Download className="mr-1.5 size-4" />View
-                  </Button>
+                  {t.file_path ? (
+                    <Button size="sm" variant="outline" className="flex-1" onClick={() => download(t)}>
+                      <Download className="mr-1.5 size-4" />View
+                    </Button>
+                  ) : (
+                    <span className="flex-1 text-xs text-muted-foreground flex items-center">No file attached</span>
+                  )}
                   {editable && (
                     <>
                       <AssignDialog ticket={t} companyId={me!.company!.id} onDone={() => qc.invalidateQueries({ queryKey: ["tickets"] })} />
