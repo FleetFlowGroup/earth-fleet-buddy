@@ -75,7 +75,7 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
             stats.attempted++;
             // Try to insert dedupe row first
             const { error: insErr } = await supabaseAdmin.from("reminder_log").insert({
-              compliance_id: rec.id, days_before: days, recipient_email: email, status: "queued",
+              company_id: rec.company_id, compliance_id: rec.id, days_before: days, recipient_email: email, status: "queued",
             });
             if (insErr) {
               // duplicate (unique index) → already sent
@@ -120,7 +120,7 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
           for (const email of emails) {
             stats.attempted++;
             const { error: insErr } = await (supabaseAdmin as any).from("reminder_log").insert({
-              operator_licence_id: lic.id, days_before: days, recipient_email: email, status: "queued",
+              company_id: lic.company_id, operator_licence_id: lic.id, days_before: days, recipient_email: email, status: "queued",
             });
             if (insErr) {
               if ((insErr as any).code === "23505") { stats.skippedDup++; continue; }
@@ -170,7 +170,7 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
           for (const email of emails) {
             stats.attempted++;
             const { error: insErr } = await (supabaseAdmin as any).from("reminder_log").insert({
-              asset_id: a.id, days_before: days, recipient_email: email, status: "queued",
+              company_id: a.company_id, asset_id: a.id, days_before: days, recipient_email: email, status: "queued",
             });
             if (insErr) {
               if ((insErr as any).code === "23505") { stats.skippedDup++; continue; }
