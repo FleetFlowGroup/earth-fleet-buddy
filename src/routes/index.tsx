@@ -367,6 +367,10 @@ function Landing() {
               answer="Pick any plan and your first month is just $9.99 AUD. After that, your plan renews at its standard monthly price (in AUD). Cancel anytime from Billing."
             />
             <FaqItem
+              question="Can I cancel my subscription?"
+              answer="Yes — any plan can be cancelled at any time, directly from the Billing page in your account. There are no contracts, no lock-ins, and no cancellation fees. You keep access until the end of your current billing period."
+            />
+
               question="Is FleetFlow suitable for small businesses?"
               answer="Yes. FleetFlow is designed to scale — whether you're running 3 machines or 300, the platform works the same way."
             />
