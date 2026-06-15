@@ -114,12 +114,13 @@ function BillingPage() {
                     </div>
                   )}
                 </div>
-                {billing.state === "subscribed" && (
+                {(billing.state === "subscribed" || billing.state === "canceled_grace" || billing.status === "past_due") && (
                   <Button variant="outline" disabled={busy === "portal"} onClick={openPortal}>
                     {busy === "portal" ? <Loader2 className="mr-2 size-4 animate-spin" /> : <ExternalLink className="mr-2 size-4" />}
                     Manage payment / cancel
                   </Button>
                 )}
+
               </div>
 
               {/* Usage */}
