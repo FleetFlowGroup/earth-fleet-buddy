@@ -43,7 +43,7 @@ const Email = (p: Props) => {
 
           <Section style={card}>
             <Text style={cardLabel}>Machine</Text>
-            <Text style={cardValue}>{p.assetName ?? '—'}{p.registration ? ` · ${p.registration}` : ''}</Text>
+            <Text style={cardValue}>{p.assetName ?? '—'}{p.assetNumber ? ` · #${p.assetNumber}` : ''}{p.registration ? ` · ${p.registration}` : ''}</Text>
             <Text style={{ ...cardLabel, marginTop: '12px' }}>Compliance item</Text>
             <Text style={cardValue}>{p.complianceLabel ?? '—'}</Text>
             <Text style={{ ...cardLabel, marginTop: '12px' }}>Expires</Text>
