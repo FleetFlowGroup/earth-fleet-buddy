@@ -69,6 +69,7 @@ function OperatorHome() {
         companyId={me?.company?.id}
         companyName={me?.company?.name}
         userId={me?.userId}
+        email={me?.email}
         greeting={greeting}
         name={name}
         onSignOut={signOut}
@@ -84,9 +85,9 @@ function OperatorHome() {
 }
 
 function MachinePicker({
-  companyId, companyName, userId, greeting, name, onSignOut, onPick,
+  companyId, companyName, userId, email, greeting, name, onSignOut, onPick,
 }: {
-  companyId?: string; companyName?: string; userId?: string;
+  companyId?: string; companyName?: string; userId?: string; email?: string;
   greeting: string; name: string;
   onSignOut: () => void;
   onPick: (id: string) => void;
@@ -148,7 +149,7 @@ function MachinePicker({
             <h1 className="mt-1 truncate text-xl font-semibold"><Home className="mr-1 inline size-4 align-[-2px]" />{greeting}, {name}</h1>
           </div>
           <div className="flex items-center gap-2">
-            <OperatorTicketsMenu userId={userId} />
+            <OperatorTicketsMenu userId={userId} companyId={companyId} email={email} />
             <Button variant="ghost" size="sm" onClick={onSignOut}><LogOut className="mr-1.5 size-4" /> Sign out</Button>
           </div>
         </div>
@@ -278,7 +279,7 @@ function SelectedMachine({ me, asset, operatorRow, greeting, name, onSignOut }: 
             <h1 className="mt-1 truncate text-xl font-semibold"><Home className="mr-1 inline size-4 align-[-2px]" />{greeting}, {name}</h1>
           </div>
           <div className="flex items-center gap-2">
-            <OperatorTicketsMenu userId={me?.userId} />
+            <OperatorTicketsMenu userId={me?.userId} companyId={me?.company?.id} email={me?.email} />
             <Button variant="ghost" size="sm" onClick={onSignOut}><LogOut className="mr-1.5 size-4" /> Sign out</Button>
           </div>
         </div>
