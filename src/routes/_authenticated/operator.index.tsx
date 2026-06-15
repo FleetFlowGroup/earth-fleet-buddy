@@ -26,6 +26,7 @@ import { format } from "date-fns";
 import { useOperatorSelf, useOperatorTargetAsset, meterValue, nextServiceText, regoExpiryText } from "@/lib/operator-data";
 import { logAudit } from "@/lib/audit-log";
 import { CompanySwitcher } from "@/components/company-switcher";
+import { OperatorTicketsMenu } from "@/components/operator-tickets-menu";
 import { z } from "zod";
 
 const operatorSearch = z.object({ asset: z.string().uuid().optional() });
