@@ -96,20 +96,16 @@ function BillingPage() {
                 <div>
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">Current plan</div>
                   <div className="mt-1 text-2xl font-semibold">
-                    {billing.state === "trial"
-                      ? "Free trial"
-                      : billing.state === "none"
-                        ? "No active plan"
-                        : PLAN_LABEL[billing.product_id ?? ""] ?? "—"}
+                    {billing.state === "none"
+                      ? "No active plan"
+                      : PLAN_LABEL[billing.product_id ?? ""] ?? "—"}
                   </div>
                   <div className="mt-1 text-sm text-muted-foreground">
-                    {billing.state === "trial" && billing.trial_ends_at
-                      ? `Trial ends ${new Date(billing.trial_ends_at).toLocaleDateString()}`
-                      : billing.state === "subscribed" && billing.period_end
-                        ? `Renews ${new Date(billing.period_end).toLocaleDateString()}`
-                        : billing.state === "canceled_grace" && billing.period_end
-                          ? `Access ends ${new Date(billing.period_end).toLocaleDateString()}`
-                          : "Subscribe to keep adding assets after your trial."}
+                    {billing.state === "subscribed" && billing.period_end
+                      ? `Renews ${new Date(billing.period_end).toLocaleDateString()}`
+                      : billing.state === "canceled_grace" && billing.period_end
+                        ? `Access ends ${new Date(billing.period_end).toLocaleDateString()}`
+                        : "Subscribe to start using FleetFlow — first month $9.99 AUD."}
                   </div>
                   {billing.status === "past_due" && (
                     <div className="mt-2 inline-block rounded-md bg-destructive/15 px-2 py-0.5 text-xs text-destructive">
