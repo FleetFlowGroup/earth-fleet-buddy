@@ -32,12 +32,21 @@ export const PLAN_PRICE_ID: Record<string, string> = {
   pro_plan: "pro_monthly",
   business_plan: "business_monthly",
 };
-export const PLAN_PRICE_USD: Record<string, number> = {
+export const PLAN_PRICE_AUD: Record<string, number> = {
   starter_plan: 99,
   growth_plan: 199,
   pro_plan: 299,
   business_plan: 499,
 };
+/** First-month $9.99 AUD intro discount IDs (Paddle sandbox). */
+export const PLAN_INTRO_DISCOUNT_ID: Record<string, string> = {
+  starter_plan: "dsc_01kv4q005p3v92v2hdkv1g8fd7",
+  growth_plan: "dsc_01kv4q0q6w00r8tw85141tkcvm",
+  pro_plan: "dsc_01kv4q1k4x8yav12fz36ywb169",
+  business_plan: "dsc_01kv4q2yk0198zeh4z7ntg1bgd",
+};
+/** Intro promo price in AUD for the first month. */
+export const INTRO_FIRST_MONTH_PRICE_AUD = 9.99;
 
 // Pick the smallest plan that covers the given asset count.
 export function planForAssetCount(count: number): string | null {
