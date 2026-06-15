@@ -152,6 +152,56 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
           }
         }
 
+        // Asset scheduled services (date-based: last_service_date + service_interval_days)
+        const SERVICE_THRESHOLDS = [90, 60, 30, 14, 7, 0];
+        const { data: assetsData } = await (supabaseAdmin as any)
+          .from("assets")
+          .select("id, company_id, name, registration, asset_number, last_service_date, service_interval_days, companies(name)")
+          .not("last_service_date", "is", null)
+          .not("service_interval_days", "is", null)
+          .gt("service_interval_days", 0);
+        for (const a of ((assetsData ?? []) as any[])) {
+          const last = new Date(a.last_service_date);
+          const due = new Date(last);
+          due.setDate(due.getDate() + Number(a.service_interval_days));
+          const days = Math.ceil((due.getTime() - today.getTime()) / 86400000);
+          if (!SERVICE_THRESHOLDS.includes(days)) continue;
+          const emails = await recipientsFor(a.company_id);
+          for (const email of emails) {
+            stats.attempted++;
+            const { error: insErr } = await (supabaseAdmin as any).from("reminder_log").insert({
+              asset_id: a.id, days_before: days, recipient_email: email, status: "queued",
+            });
+            if (insErr) {
+              if ((insErr as any).code === "23505") { stats.skippedDup++; continue; }
+              stats.failed++;
+              continue;
+            }
+            const result = await sendTransactionalServer({
+              templateName: "service-due-reminder",
+              recipientEmail: email,
+              idempotencyKey: `service-${a.id}-${days}-${email}`,
+              templateData: {
+                assetName: a.name ?? "Machine",
+                assetNumber: a.asset_number ?? "",
+                registration: a.registration ?? "",
+                dueDate: fmtDate(due.toISOString().slice(0, 10)),
+                daysBefore: days,
+                companyName: a.companies?.name ?? "",
+              },
+            });
+            if (result.ok) {
+              stats.sent++;
+              await (supabaseAdmin as any).from("reminder_log").update({ status: "sent" })
+                .eq("asset_id", a.id).eq("days_before", days).eq("recipient_email", email);
+            } else {
+              stats.failed++;
+              await (supabaseAdmin as any).from("reminder_log").update({ status: "failed" })
+                .eq("asset_id", a.id).eq("days_before", days).eq("recipient_email", email);
+            }
+          }
+        }
+
         return new Response(JSON.stringify({ ok: true, ...stats }), {
           status: 200, headers: { "Content-Type": "application/json" },
         });

@@ -1184,6 +1184,7 @@ export type Database = {
       }
       reminder_log: {
         Row: {
+          asset_id: string | null
           compliance_id: string | null
           days_before: number
           id: string
@@ -1193,6 +1194,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          asset_id?: string | null
           compliance_id?: string | null
           days_before: number
           id?: string
@@ -1202,6 +1204,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          asset_id?: string | null
           compliance_id?: string | null
           days_before?: number
           id?: string
@@ -1211,6 +1214,13 @@ export type Database = {
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reminder_log_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reminder_log_compliance_id_fkey"
             columns: ["compliance_id"]
