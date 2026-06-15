@@ -208,7 +208,7 @@ function AssetsPage() {
               return (
                 <div
                   key={a.id}
-                  className="flex items-center justify-between gap-3 px-5 py-4 transition hover:bg-accent/30"
+                  className="flex flex-col gap-3 px-5 py-4 transition hover:bg-accent/30 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <Link
                     to="/assets/$id"
@@ -237,17 +237,19 @@ function AssetsPage() {
                       </div>
                     </div>
                   </Link>
-                  {next ? (
-                    <span className={`shrink-0 rounded-full border px-2 py-0.5 text-xs ${statusColor(expiryStatus(next))}`}>
-                      {statusLabel(expiryStatus(next), daysUntil(next))}
-                    </span>
-                  ) : (
-                    <span className="shrink-0 text-xs text-muted-foreground">No dates</span>
-                  )}
-                  {editable && <AssetQrButton assetId={a.id} label={a.name} />}
-                  <Link to="/assets/$id" params={{ id: a.id }} className="text-muted-foreground">
-                    <ChevronRight className="size-4" />
-                  </Link>
+                  <div className="flex flex-wrap items-center justify-end gap-2 pl-15 sm:pl-0">
+                    {next ? (
+                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-xs ${statusColor(expiryStatus(next))}`}>
+                        {statusLabel(expiryStatus(next), daysUntil(next))}
+                      </span>
+                    ) : (
+                      <span className="shrink-0 text-xs text-muted-foreground">No dates</span>
+                    )}
+                    {editable && <AssetQrButton assetId={a.id} label={a.name} />}
+                    <Link to="/assets/$id" params={{ id: a.id }} className="text-muted-foreground">
+                      <ChevronRight className="size-4" />
+                    </Link>
+                  </div>
                 </div>
               );
             })}
