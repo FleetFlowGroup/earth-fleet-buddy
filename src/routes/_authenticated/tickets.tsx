@@ -27,6 +27,11 @@ type Ticket = {
   company_id: string;
   title: string;
   description: string | null;
+  ticket_type: string | null;
+  ticket_number: string | null;
+  issue_date: string | null;
+  expiry_date: string | null;
+  notes: string | null;
   file_path: string;
   file_type: string | null;
   file_size: number | null;
@@ -34,6 +39,15 @@ type Ticket = {
   created_at: string;
   ticket_assignments?: { operator_id: string; operators: { full_name: string } | null }[];
 };
+
+const TICKET_TYPES = [
+  "HR Licence", "MR Licence", "MC Licence", "LR Licence",
+  "Forklift", "EWP / Boom", "Scissor Lift", "White Card",
+  "Working at Heights", "First Aid", "Confined Space",
+  "Dogman", "Rigger", "Crane Operator",
+  "Excavator", "Skid Steer", "Loader", "Roller",
+  "Traffic Control", "Asbestos Awareness", "Other",
+];
 
 function TicketsPage() {
   const { data: me } = useCurrentUser();
