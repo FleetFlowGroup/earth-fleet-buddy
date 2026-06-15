@@ -89,6 +89,7 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
               idempotencyKey: `compliance-${rec.id}-${days}-${email}`,
               templateData: {
                 assetName: rec.assets?.name ?? "Machine",
+                assetNumber: rec.assets?.asset_number ?? "",
                 registration: rec.assets?.registration ?? "",
                 complianceLabel: rec.label ?? rec.type,
                 expiryDate: fmtDate(rec.expiry_date),
