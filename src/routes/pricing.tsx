@@ -102,9 +102,10 @@ function PricingPage() {
               )}
               <div className="text-sm font-medium text-muted-foreground">{t.name}</div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold">${t.price} AUD</span>
-                <span className="text-sm text-muted-foreground">/mo</span>
+                <span className="text-4xl font-semibold">${t.price}</span>
+                <span className="text-sm text-muted-foreground">AUD/mo</span>
               </div>
+              <div className="mt-1 text-xs font-medium text-primary">First month $9.99 AUD</div>
               <div className="mt-1 text-sm text-foreground/80">{t.limit}</div>
               <ul className="mt-6 flex-1 space-y-2 text-sm text-muted-foreground">
                 {FEATURES.map((f) => (
@@ -118,9 +119,9 @@ function PricingPage() {
                 className="mt-6 w-full"
                 variant={t.featured ? "default" : "outline"}
                 disabled={loading}
-                onClick={() => subscribe(t.priceId)}
+                onClick={() => subscribe(t.id, t.priceId)}
               >
-                {me ? "Subscribe" : "Start free trial"}
+                {me ? "Subscribe" : "Get started — $9.99 AUD"}
               </Button>
             </div>
           ))}
