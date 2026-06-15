@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useBillingState, useAssetCount, PLAN_LABEL, PLAN_LIMIT, PLAN_ORDER, PLAN_PRICE_ID, PLAN_PRICE_USD } from "@/hooks/use-subscription";
+import { useBillingState, useAssetCount, PLAN_LABEL, PLAN_LIMIT, PLAN_ORDER, PLAN_PRICE_ID, PLAN_PRICE_AUD } from "@/hooks/use-subscription";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { changeSubscriptionPlan, createPortalSession } from "@/utils/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
@@ -162,7 +162,7 @@ function BillingPage() {
                     >
                       <div className="text-sm font-medium">{PLAN_LABEL[id]}</div>
                       <div className="mt-1 text-xs text-muted-foreground">Up to {PLAN_LIMIT[id]} assets</div>
-                      <div className="mt-3 text-xl font-semibold">${PLAN_PRICE_USD[id]}<span className="text-xs font-normal text-muted-foreground">/mo</span></div>
+                      <div className="mt-3 text-xl font-semibold">${PLAN_PRICE_AUD[id]}<span className="text-xs font-normal text-muted-foreground">/mo</span></div>
                       <Button
                         size="sm"
                         variant={isCurrent ? "outline" : "default"}

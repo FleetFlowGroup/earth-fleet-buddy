@@ -44,7 +44,7 @@ import {
   PLAN_LIMIT,
   PLAN_ORDER,
   PLAN_PRICE_ID,
-  PLAN_PRICE_USD,
+  PLAN_PRICE_AUD,
 } from "@/hooks/use-subscription";
 import { changeSubscriptionPlan } from "@/utils/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
@@ -431,12 +431,12 @@ function AddAssetDialog({
           {target ? (
             noSub ? (
               <p>
-                Start a subscription on <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_USD[target]}/mo,
+                Start a subscription on <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_AUD[target]}/mo,
                 up to {PLAN_LIMIT[target]} assets) to add this asset.
               </p>
             ) : (
               <p>
-                Upgrading to <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_USD[target]}/mo, up to{" "}
+                Upgrading to <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_AUD[target]}/mo, up to{" "}
                 {PLAN_LIMIT[target]} assets) will be prorated immediately and lets you add this asset right
                 now.
               </p>
