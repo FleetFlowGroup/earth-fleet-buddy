@@ -270,8 +270,8 @@ function SelectedMachine({ me, asset, operatorRow, greeting, name, onSignOut }: 
       <header className="border-b border-border bg-card/40 px-5 py-4">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">{me?.company?.name}</div>
-            <h1 className="truncate text-xl font-semibold"><Home className="mr-1 inline size-4 align-[-2px]" />{greeting}, {name}</h1>
+            <CompanySwitcher userId={me?.userId} activeCompanyId={me?.company?.id} activeCompanyName={me?.company?.name} />
+            <h1 className="mt-1 truncate text-xl font-semibold"><Home className="mr-1 inline size-4 align-[-2px]" />{greeting}, {name}</h1>
           </div>
           <Button variant="ghost" size="sm" onClick={onSignOut}><LogOut className="mr-1.5 size-4" /> Sign out</Button>
         </div>
