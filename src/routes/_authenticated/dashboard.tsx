@@ -203,11 +203,14 @@ function Dashboard() {
   const compliance = stats?.compliance ?? [];
   const licences = stats?.licences ?? [];
   const serviceHistory = stats?.services ?? [];
+  const defects = (stats?.defects ?? []) as any[];
+  const urgentDefects = defects.filter((d) => d.severity === "critical" || d.severity === "high");
+  const minorDefects = defects.filter((d) => d.severity !== "critical" && d.severity !== "high");
 
   // ---------- Fleet Health Score ----------
   const health = useMemo(() => {
     const totalChecks =
-      compliance.length + licences.length + services.length;
+      compliance.length + licences.length + services.length + defects.length;
     if (totalChecks === 0) return { score: 100, urgent: 0, total: 0 };
     const expired = compliance.filter((c: any) => daysUntil(c.expiry_date) < 0).length;
     const expiredLic = licences.filter((l: any) => daysUntil(l.expiry_date) < 0).length;
@@ -221,13 +224,15 @@ function Dashboard() {
         const d = daysUntil(l.expiry_date);
         return d >= 0 && d <= 30;
       }).length +
-      dueSoonServices.length;
+      dueSoonServices.length +
+      minorDefects.length;
 
-    const urgent = expired + expiredLic + overdue;
+    const urgent = expired + expiredLic + overdue + urgentDefects.length;
     const penalty = urgent * 5 + soon * 1.5;
     const score = Math.max(0, Math.min(100, Math.round(100 - penalty)));
     return { score, urgent, total: totalChecks };
-  }, [compliance, licences, services, overdueServices, dueSoonServices]);
+  }, [compliance, licences, services, overdueServices, dueSoonServices, defects, urgentDefects, minorDefects]);
+
 
   const healthTone =
     health.score >= 90
