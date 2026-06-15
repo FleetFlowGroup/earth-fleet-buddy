@@ -277,7 +277,10 @@ function SelectedMachine({ me, asset, operatorRow, greeting, name, onSignOut }: 
             <CompanySwitcher userId={me?.userId} activeCompanyId={me?.company?.id} activeCompanyName={me?.company?.name} />
             <h1 className="mt-1 truncate text-xl font-semibold"><Home className="mr-1 inline size-4 align-[-2px]" />{greeting}, {name}</h1>
           </div>
-          <Button variant="ghost" size="sm" onClick={onSignOut}><LogOut className="mr-1.5 size-4" /> Sign out</Button>
+          <div className="flex items-center gap-2">
+            <OperatorTicketsMenu userId={me?.userId} />
+            <Button variant="ghost" size="sm" onClick={onSignOut}><LogOut className="mr-1.5 size-4" /> Sign out</Button>
+          </div>
         </div>
       </header>
 
