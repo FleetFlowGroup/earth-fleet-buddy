@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import { Truck, Loader2 } from "lucide-react";
+import { getLastRoute } from "@/lib/last-route";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
@@ -35,8 +36,8 @@ function AuthPage() {
   const { mode, oauth, redirect, invite, email: prefillEmail } = search;
   const isSafeRedirect = !!redirect && redirect.startsWith("/") && !redirect.startsWith("//");
   // If we arrived from an invite link, after sign-in/up land on the join page to accept.
-  // Otherwise, prefer the explicit ?redirect=, then the user's last remembered route, then /dashboard.
-  const lastRoute = typeof window !== "undefined" ? (require("@/lib/last-route") as typeof import("@/lib/last-route")).getLastRoute() : null;
+  // Otherwise prefer explicit ?redirect=, then the user's last remembered route, then /dashboard.
+  const lastRoute = getLastRoute();
   const dest = invite ? `/join/${invite}` : (isSafeRedirect ? redirect! : (lastRoute ?? "/dashboard"));
   const navigate = useNavigate();
   const [tab, setTab] = useState<"signin" | "signup">(mode ?? (invite ? "signup" : "signin"));
