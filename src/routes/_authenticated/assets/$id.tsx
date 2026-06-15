@@ -709,7 +709,6 @@ function UpdateMeterDialog({
   const unit = mode === "km" ? "km" : "h";
 
   const [form, setForm] = useState({
-    current: current != null ? String(current) : "",
     last_service_date: asset.last_service_date ?? "",
     last_service_meter:
       mode === "km"
@@ -724,8 +723,8 @@ function UpdateMeterDialog({
   const [saving, setSaving] = useState(false);
 
   const nextServiceMeter =
-    form.current && form.interval_meter
-      ? Number(form.current) + Number(form.interval_meter)
+    form.last_service_meter && form.interval_meter
+      ? Number(form.last_service_meter) + Number(form.interval_meter)
       : null;
   const nextServiceDate =
     form.last_service_date && form.interval_days
