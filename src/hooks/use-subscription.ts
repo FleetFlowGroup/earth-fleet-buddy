@@ -38,13 +38,30 @@ export const PLAN_PRICE_AUD: Record<string, number> = {
   pro_plan: 299,
   business_plan: 499,
 };
-/** First-month $9.99 AUD intro discount IDs (Paddle sandbox). */
-export const PLAN_INTRO_DISCOUNT_ID: Record<string, string> = {
-  starter_plan: "dsc_01kv4q005p3v92v2hdkv1g8fd7",
-  growth_plan: "dsc_01kv4q0q6w00r8tw85141tkcvm",
-  pro_plan: "dsc_01kv4q1k4x8yav12fz36ywb169",
-  business_plan: "dsc_01kv4q2yk0198zeh4z7ntg1bgd",
+/** First-month $9.99 AUD intro discount IDs, per Paddle environment. */
+const PLAN_INTRO_DISCOUNT_ID_BY_ENV: Record<"sandbox" | "live", Record<string, string>> = {
+  sandbox: {
+    starter_plan: "dsc_01kv4q005p3v92v2hdkv1g8fd7",
+    growth_plan: "dsc_01kv4q0q6w00r8tw85141tkcvm",
+    pro_plan: "dsc_01kv4q1k4x8yav12fz36ywb169",
+    business_plan: "dsc_01kv4q2yk0198zeh4z7ntg1bgd",
+  },
+  live: {
+    starter_plan: "dsc_01kv5genmtm3sd7v7j8kz9ekvy",
+    growth_plan: "dsc_01kv5gfqqf24twg7yae5srfx0t",
+    pro_plan: "dsc_01kv5ggh289yw177a18epps2kf",
+    business_plan: "dsc_01kv5gh6f0yv70nkh1qdepbmy1",
+  },
 };
+
+export function getIntroDiscountId(productId: string): string | undefined {
+  return PLAN_INTRO_DISCOUNT_ID_BY_ENV[getPaddleEnvironment()]?.[productId];
+}
+
+/** @deprecated Use getIntroDiscountId(productId) — env-aware. */
+export const PLAN_INTRO_DISCOUNT_ID = new Proxy({} as Record<string, string>, {
+  get: (_t, key: string) => PLAN_INTRO_DISCOUNT_ID_BY_ENV[getPaddleEnvironment()]?.[key],
+});
 /** Intro promo price in AUD for the first month. */
 export const INTRO_FIRST_MONTH_PRICE_AUD = 9.99;
 
