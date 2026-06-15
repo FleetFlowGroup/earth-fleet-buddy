@@ -9,39 +9,55 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Ticket, FileText, Download } from "lucide-react";
-import { format } from "date-fns";
-import { toast } from "sonner";
+import { Ticket, FileText } from "lucide-react";
+import { licenceDisplayName } from "@/lib/operators";
+import { daysUntil, fmtDate } from "@/lib/expiry";
 
-type Props = { userId?: string };
+type Props = { userId?: string; companyId?: string; email?: string };
 
-export function OperatorTicketsMenu({ userId }: Props) {
-  const { data: tickets } = useQuery({
-    queryKey: ["operator-tickets-menu", userId],
-    enabled: !!userId,
+export function OperatorTicketsMenu({ userId, companyId, email }: Props) {
+  // Resolve operator id for the signed-in user (by user_id, fallback by email)
+  const { data: operatorId } = useQuery({
+    queryKey: ["operator-id-for-tickets", userId, companyId, email],
+    enabled: !!userId && !!companyId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data: byUser } = await (supabase as any)
+        .from("operators")
+        .select("id")
+        .eq("user_id", userId!)
+        .eq("company_id", companyId!)
+        .maybeSingle();
+      if (byUser?.id) return byUser.id as string;
+      if (email) {
+        const { data: byEmail } = await (supabase as any)
+          .from("operators")
+          .select("id")
+          .eq("company_id", companyId!)
+          .ilike("email", email)
+          .maybeSingle();
+        if (byEmail?.id) return byEmail.id as string;
+      }
+      return null;
+    },
+  });
+
+  const { data: licences } = useQuery({
+    queryKey: ["operator-tickets-menu-licences", operatorId],
+    enabled: !!operatorId,
     staleTime: 30_000,
     queryFn: async () => {
-      // RLS scopes results to tickets assigned to operator profiles linked to
-      // this user by user_id OR by matching email.
       const { data, error } = await (supabase as any)
-        .from("tickets")
-        .select("id, title, description, file_path, created_at")
-        .order("created_at", { ascending: false })
-        .limit(20);
+        .from("operator_licences")
+        .select("id, licence_type, licence_name, licence_number, expiry_date")
+        .eq("operator_id", operatorId)
+        .order("expiry_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
       return (data ?? []) as any[];
     },
   });
 
-  const count = tickets?.length ?? 0;
-
-  async function open(t: any) {
-    const { data, error } = await supabase.storage
-      .from("asset-photos")
-      .createSignedUrl(t.file_path, 300);
-    if (error || !data?.signedUrl) return toast.error("Could not open file");
-    window.open(data.signedUrl, "_blank");
-  }
+  const count = licences?.length ?? 0;
 
   return (
     <DropdownMenu>
@@ -61,46 +77,60 @@ export function OperatorTicketsMenu({ userId }: Props) {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>My tickets & documents</DropdownMenuLabel>
+        <DropdownMenuLabel>My tickets & licences</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {count === 0 ? (
           <div className="px-3 py-6 text-center text-xs text-muted-foreground">
-            No tickets have been shared with you yet.
+            No tickets on file. Ask your manager to add them.
           </div>
         ) : (
           <div className="max-h-80 overflow-y-auto">
-            {tickets!.map((t) => (
-              <DropdownMenuItem
-                key={t.id}
-                onSelect={(e) => {
-                  e.preventDefault();
-                  open(t);
-                }}
-                className="flex items-start gap-2"
-              >
-                <div className="grid size-8 shrink-0 place-items-center rounded bg-primary/10 text-primary">
-                  <FileText className="size-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">{t.title}</div>
-                  {t.description && (
-                    <div className="truncate text-[11px] text-muted-foreground">
-                      {t.description}
-                    </div>
-                  )}
-                  <div className="text-[10px] text-muted-foreground">
-                    {format(new Date(t.created_at), "d MMM yyyy")}
+            {licences!.map((l) => {
+              const d = l.expiry_date ? daysUntil(l.expiry_date) : null;
+              const tone =
+                d == null
+                  ? "muted"
+                  : d < 0
+                    ? "danger"
+                    : d <= 30
+                      ? "warn"
+                      : "ok";
+              return (
+                <div key={l.id} className="flex items-start gap-2 px-2 py-2">
+                  <div className="grid size-8 shrink-0 place-items-center rounded bg-primary/10 text-primary">
+                    <FileText className="size-4" />
                   </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">
+                      {licenceDisplayName(l.licence_type, l.licence_name)}
+                    </div>
+                    <div className="truncate text-[11px] text-muted-foreground">
+                      {l.licence_number ? `#${l.licence_number}` : "—"}
+                      {l.expiry_date ? ` · Expires ${fmtDate(l.expiry_date)}` : " · No expiry"}
+                    </div>
+                  </div>
+                  {l.expiry_date && (
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                        tone === "danger"
+                          ? "bg-destructive/15 text-destructive"
+                          : tone === "warn"
+                            ? "bg-warning/15 text-warning"
+                            : "bg-success/15 text-success"
+                      }`}
+                    >
+                      {d! < 0 ? "Expired" : `${d}d`}
+                    </span>
+                  )}
                 </div>
-                <Download className="mt-1 size-3.5 shrink-0 text-muted-foreground" />
-              </DropdownMenuItem>
-            ))}
+              );
+            })}
           </div>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to="/operator/documents" className="text-xs">
-            View all documents
+          <Link to="/operator/tickets" className="text-xs">
+            View all tickets & licences
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
