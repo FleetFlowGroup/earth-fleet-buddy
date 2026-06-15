@@ -127,7 +127,12 @@ function TicketsPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-semibold">{t.title}</div>
-                    {t.description && <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{t.description}</div>}
+                    <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+                      {t.ticket_type && <span>{t.ticket_type}</span>}
+                      {t.ticket_number && <span>#{t.ticket_number}</span>}
+                      {t.expiry_date && <span>Expires {format(new Date(t.expiry_date), "d MMM yyyy")}</span>}
+                    </div>
+                    {t.description && <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.description}</div>}
                     <div className="mt-1 text-[11px] text-muted-foreground">
                       Uploaded {format(new Date(t.created_at), "d MMM yyyy")}
                     </div>
