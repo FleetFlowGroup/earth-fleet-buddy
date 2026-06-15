@@ -85,9 +85,9 @@ function OperatorHome() {
 }
 
 function MachinePicker({
-  companyId, companyName, userId, greeting, name, onSignOut, onPick,
+  companyId, companyName, userId, email, greeting, name, onSignOut, onPick,
 }: {
-  companyId?: string; companyName?: string; userId?: string;
+  companyId?: string; companyName?: string; userId?: string; email?: string;
   greeting: string; name: string;
   onSignOut: () => void;
   onPick: (id: string) => void;
