@@ -769,11 +769,11 @@ function UpdateMeterDialog({
       <form onSubmit={submit} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label>Current {mode === "km" ? "odometer" : "engine hours"} ({unit})</Label>
+            <Label>Last service date</Label>
             <Input
-              type="number" min={0} step={mode === "km" ? 1 : 0.1}
-              value={form.current}
-              onChange={(e) => setForm({ ...form, current: e.target.value })}
+              type="date"
+              value={form.last_service_date}
+              onChange={(e) => setForm({ ...form, last_service_date: e.target.value })}
               autoFocus
             />
           </div>
