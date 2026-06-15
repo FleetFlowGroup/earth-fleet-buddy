@@ -12,6 +12,7 @@ import {
 import { Ticket, FileText } from "lucide-react";
 import { licenceDisplayName } from "@/lib/operators";
 import { daysUntil, fmtDate } from "@/lib/expiry";
+import { openLicenceCertificate } from "@/lib/licence-cert";
 
 type Props = { userId?: string; companyId?: string; email?: string };
 
