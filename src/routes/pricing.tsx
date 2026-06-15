@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Truck, ArrowRight } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { PLAN_INTRO_DISCOUNT_ID } from "@/hooks/use-subscription";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 export const Route = createFileRoute("/pricing")({
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "Simple per-asset pricing for FleetFlow. From $99/month for up to 10 assets. 14-day free trial, cancel anytime.",
+          "Simple per-asset pricing for FleetFlow. From $99 AUD/month for up to 10 assets. First month $9.99 AUD on any plan. Cancel anytime.",
       },
     ],
   }),
@@ -40,7 +41,7 @@ function PricingPage() {
   const navigate = useNavigate();
   const { openCheckout, loading } = usePaddleCheckout();
 
-  async function subscribe(priceId: string) {
+  async function subscribe(productId: string, priceId: string) {
     if (!me?.userId || !me?.company?.id) {
       navigate({ to: "/auth", search: { mode: "signup" } });
       return;
@@ -52,6 +53,7 @@ function PricingPage() {
     }
     await openCheckout({
       priceId,
+      discountId: PLAN_INTRO_DISCOUNT_ID[productId],
       customerEmail: me.email,
       companyId: me.company.id,
       userId: me.userId,
@@ -80,9 +82,9 @@ function PricingPage() {
         <div className="text-center">
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Pricing</h1>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-            Pay per asset, not per user. 14-day free trial on any plan. Cancel anytime.
+            Pay per asset, not per user. <span className="font-medium text-foreground">First month just $9.99 AUD</span> on any plan. Cancel anytime.
           </p>
-          <p className="mt-2 text-xs text-muted-foreground">Prices in AUD.</p>
+          <p className="mt-2 text-xs text-muted-foreground">All prices in AUD.</p>
         </div>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-4">
@@ -100,9 +102,10 @@ function PricingPage() {
               )}
               <div className="text-sm font-medium text-muted-foreground">{t.name}</div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold">${t.price} AUD</span>
-                <span className="text-sm text-muted-foreground">/mo</span>
+                <span className="text-4xl font-semibold">${t.price}</span>
+                <span className="text-sm text-muted-foreground">AUD/mo</span>
               </div>
+              <div className="mt-1 text-xs font-medium text-primary">First month $9.99 AUD</div>
               <div className="mt-1 text-sm text-foreground/80">{t.limit}</div>
               <ul className="mt-6 flex-1 space-y-2 text-sm text-muted-foreground">
                 {FEATURES.map((f) => (
@@ -116,9 +119,9 @@ function PricingPage() {
                 className="mt-6 w-full"
                 variant={t.featured ? "default" : "outline"}
                 disabled={loading}
-                onClick={() => subscribe(t.priceId)}
+                onClick={() => subscribe(t.id, t.priceId)}
               >
-                {me ? "Subscribe" : "Start free trial"}
+                {me ? "Subscribe" : "Get started — $9.99 AUD"}
               </Button>
             </div>
           ))}

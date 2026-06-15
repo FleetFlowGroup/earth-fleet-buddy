@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useBillingState, useAssetCount, PLAN_LABEL, PLAN_LIMIT, PLAN_ORDER, PLAN_PRICE_ID, PLAN_PRICE_USD } from "@/hooks/use-subscription";
+import { useBillingState, useAssetCount, PLAN_LABEL, PLAN_LIMIT, PLAN_ORDER, PLAN_PRICE_ID, PLAN_PRICE_AUD, PLAN_INTRO_DISCOUNT_ID } from "@/hooks/use-subscription";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { changeSubscriptionPlan, createPortalSession } from "@/utils/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
@@ -40,10 +40,11 @@ function BillingPage() {
     );
   }
 
-  async function subscribe(priceId: string) {
+  async function subscribe(productId: string) {
     if (!me?.userId || !companyId) return;
     await openCheckout({
-      priceId,
+      priceId: PLAN_PRICE_ID[productId],
+      discountId: PLAN_INTRO_DISCOUNT_ID[productId],
       customerEmail: me.email,
       companyId,
       userId: me.userId,
@@ -96,20 +97,16 @@ function BillingPage() {
                 <div>
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">Current plan</div>
                   <div className="mt-1 text-2xl font-semibold">
-                    {billing.state === "trial"
-                      ? "Free trial"
-                      : billing.state === "none"
-                        ? "No active plan"
-                        : PLAN_LABEL[billing.product_id ?? ""] ?? "—"}
+                    {billing.state === "none"
+                      ? "No active plan"
+                      : PLAN_LABEL[billing.product_id ?? ""] ?? "—"}
                   </div>
                   <div className="mt-1 text-sm text-muted-foreground">
-                    {billing.state === "trial" && billing.trial_ends_at
-                      ? `Trial ends ${new Date(billing.trial_ends_at).toLocaleDateString()}`
-                      : billing.state === "subscribed" && billing.period_end
-                        ? `Renews ${new Date(billing.period_end).toLocaleDateString()}`
-                        : billing.state === "canceled_grace" && billing.period_end
-                          ? `Access ends ${new Date(billing.period_end).toLocaleDateString()}`
-                          : "Subscribe to keep adding assets after your trial."}
+                    {billing.state === "subscribed" && billing.period_end
+                      ? `Renews ${new Date(billing.period_end).toLocaleDateString()}`
+                      : billing.state === "canceled_grace" && billing.period_end
+                        ? `Access ends ${new Date(billing.period_end).toLocaleDateString()}`
+                        : "Subscribe to start using FleetFlow — first month $9.99 AUD."}
                   </div>
                   {billing.status === "past_due" && (
                     <div className="mt-2 inline-block rounded-md bg-destructive/15 px-2 py-0.5 text-xs text-destructive">
@@ -162,7 +159,10 @@ function BillingPage() {
                     >
                       <div className="text-sm font-medium">{PLAN_LABEL[id]}</div>
                       <div className="mt-1 text-xs text-muted-foreground">Up to {PLAN_LIMIT[id]} assets</div>
-                      <div className="mt-3 text-xl font-semibold">${PLAN_PRICE_USD[id]}<span className="text-xs font-normal text-muted-foreground">/mo</span></div>
+                      <div className="mt-3 text-xl font-semibold">${PLAN_PRICE_AUD[id]} <span className="text-xs font-normal text-muted-foreground">AUD/mo</span></div>
+                      {billing.state !== "subscribed" && billing.state !== "canceled_grace" && (
+                        <div className="mt-1 text-[11px] font-medium text-primary">First month $9.99 AUD</div>
+                      )}
                       <Button
                         size="sm"
                         variant={isCurrent ? "outline" : "default"}
@@ -171,7 +171,7 @@ function BillingPage() {
                         onClick={() =>
                           billing.state === "subscribed" || billing.state === "canceled_grace"
                             ? changePlan(id)
-                            : subscribe(PLAN_PRICE_ID[id])
+                            : subscribe(id)
                         }
                       >
                         {busy === id ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
