@@ -709,7 +709,6 @@ function UpdateMeterDialog({
   const unit = mode === "km" ? "km" : "h";
 
   const [form, setForm] = useState({
-    current: current != null ? String(current) : "",
     last_service_date: asset.last_service_date ?? "",
     last_service_meter:
       mode === "km"
@@ -724,8 +723,8 @@ function UpdateMeterDialog({
   const [saving, setSaving] = useState(false);
 
   const nextServiceMeter =
-    form.current && form.interval_meter
-      ? Number(form.current) + Number(form.interval_meter)
+    form.last_service_meter && form.interval_meter
+      ? Number(form.last_service_meter) + Number(form.interval_meter)
       : null;
   const nextServiceDate =
     form.last_service_date && form.interval_days
@@ -740,38 +739,14 @@ function UpdateMeterDialog({
     e.preventDefault();
     setSaving(true);
     try {
-      const newCurrent = form.current ? Number(form.current) : null;
-      // Log meter reading only if changed
-      if (newCurrent != null && (current == null || newCurrent !== Number(current))) {
-        if (current != null && newCurrent < Number(current)) {
-          if (!confirm("New reading is lower than the previous one. Continue anyway?")) {
-            setSaving(false);
-            return;
-          }
-        }
-        const { data: user } = await supabase.auth.getUser();
-        const { error: logErr } = await (supabase as any).from("meter_readings").insert({
-          asset_id: assetId,
-          company_id: companyId,
-          meter_type: mode,
-          previous_value: current,
-          new_value: newCurrent,
-          difference: current != null ? newCurrent - Number(current) : null,
-          recorded_by: user.user?.id ?? null,
-        });
-        if (logErr) throw logErr;
-      }
-
       const patch: any = {
         last_service_date: form.last_service_date || null,
         service_interval_days: form.interval_days ? Number(form.interval_days) : null,
       };
       if (mode === "km") {
-        patch.odometer = newCurrent != null ? Math.round(newCurrent) : null;
         patch.last_service_odometer = form.last_service_meter ? Math.round(Number(form.last_service_meter)) : null;
         patch.service_interval_km = form.interval_meter ? Math.round(Number(form.interval_meter)) : null;
       } else {
-        patch.engine_hours = newCurrent;
         patch.last_service_hours = form.last_service_meter ? Number(form.last_service_meter) : null;
         patch.service_interval_hours = form.interval_meter ? Number(form.interval_meter) : null;
       }
@@ -794,20 +769,12 @@ function UpdateMeterDialog({
       <form onSubmit={submit} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label>Current {mode === "km" ? "odometer" : "engine hours"} ({unit})</Label>
-            <Input
-              type="number" min={0} step={mode === "km" ? 1 : 0.1}
-              value={form.current}
-              onChange={(e) => setForm({ ...form, current: e.target.value })}
-              autoFocus
-            />
-          </div>
-          <div className="space-y-1.5">
             <Label>Last service date</Label>
             <Input
               type="date"
               value={form.last_service_date}
               onChange={(e) => setForm({ ...form, last_service_date: e.target.value })}
+              autoFocus
             />
           </div>
           <div className="space-y-1.5">
