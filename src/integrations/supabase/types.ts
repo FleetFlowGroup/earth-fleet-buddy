@@ -1185,6 +1185,7 @@ export type Database = {
       reminder_log: {
         Row: {
           asset_id: string | null
+          company_id: string
           compliance_id: string | null
           days_before: number
           id: string
@@ -1195,6 +1196,7 @@ export type Database = {
         }
         Insert: {
           asset_id?: string | null
+          company_id: string
           compliance_id?: string | null
           days_before: number
           id?: string
@@ -1205,6 +1207,7 @@ export type Database = {
         }
         Update: {
           asset_id?: string | null
+          company_id?: string
           compliance_id?: string | null
           days_before?: number
           id?: string
@@ -1219,6 +1222,13 @@ export type Database = {
             columns: ["asset_id"]
             isOneToOne: false
             referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminder_log_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
