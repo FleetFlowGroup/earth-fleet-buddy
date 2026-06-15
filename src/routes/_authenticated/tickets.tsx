@@ -163,7 +163,12 @@ function TicketsPage() {
 
 function UploadDialog({ companyId, onDone }: { companyId: string; onDone: () => void }) {
   const [title, setTitle] = useState("");
+  const [ticketType, setTicketType] = useState("HR Licence");
+  const [ticketNumber, setTicketNumber] = useState("");
+  const [issueDate, setIssueDate] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
   const [description, setDescription] = useState("");
+  const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
@@ -193,7 +198,12 @@ function UploadDialog({ companyId, onDone }: { companyId: string; onDone: () => 
       const ins = await (supabase as any).from("tickets").insert({
         company_id: companyId,
         title: title.trim(),
+        ticket_type: ticketType,
+        ticket_number: ticketNumber.trim() || null,
+        issue_date: issueDate || null,
+        expiry_date: expiryDate || null,
         description: description.trim() || null,
+        notes: notes.trim() || null,
         file_path: path,
         file_type: compressed.type,
         file_size: compressed.size,
@@ -223,11 +233,39 @@ function UploadDialog({ companyId, onDone }: { companyId: string; onDone: () => 
       <div className="space-y-4">
         <div>
           <Label>Title</Label>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. HR Licence — Sam Jones" />
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. HR Licence — Sam Jones" maxLength={200} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label>Ticket type</Label>
+            <select
+              value={ticketType}
+              onChange={(e) => setTicketType(e.target.value)}
+              className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              {TICKET_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <Label>Ticket / licence number</Label>
+            <Input value={ticketNumber} onChange={(e) => setTicketNumber(e.target.value)} maxLength={100} />
+          </div>
+          <div>
+            <Label>Issue date</Label>
+            <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+          </div>
+          <div>
+            <Label>Expiry date</Label>
+            <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
+          </div>
         </div>
         <div>
           <Label>Description (optional)</Label>
-          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} maxLength={500} />
+        </div>
+        <div>
+          <Label>Notes (optional)</Label>
+          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={500} placeholder="Conditions, endorsements, restrictions…" />
         </div>
         <div>
           <Label>File (image or PDF)</Label>
