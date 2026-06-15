@@ -1600,6 +1600,7 @@ export type Database = {
         Args: { _company_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      current_user_email: { Args: never; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
