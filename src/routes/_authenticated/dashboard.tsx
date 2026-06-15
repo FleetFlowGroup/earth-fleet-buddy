@@ -137,6 +137,7 @@ function Dashboard() {
         operator_name: opMap.get(l.operator_id),
       }));
       const services = (serviceHistRes.data ?? []) as any[];
+      const defects = (defectsRes.data ?? []) as any[];
 
       const buckets = { expired: 0, critical: 0, soon: 0, ok: 0 };
       for (const c of compliance) buckets[expiryStatus(c.expiry_date)]++;
@@ -161,7 +162,9 @@ function Dashboard() {
         buckets,
         serviceRows,
         services,
+        defects,
       };
+
     },
   });
 
