@@ -28,7 +28,7 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
 
         const { data: records, error } = await supabaseAdmin
           .from("compliance_records")
-          .select("id, company_id, asset_id, type, label, expiry_date, assets(name, registration), companies(name)")
+          .select("id, company_id, asset_id, type, label, expiry_date, assets(name, registration, asset_number), companies(name)")
           .lte("expiry_date", upper.toISOString().slice(0, 10))
           .gte("expiry_date", today.toISOString().slice(0, 10));
         if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
@@ -89,6 +89,7 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
               idempotencyKey: `compliance-${rec.id}-${days}-${email}`,
               templateData: {
                 assetName: rec.assets?.name ?? "Machine",
+                assetNumber: rec.assets?.asset_number ?? "",
                 registration: rec.assets?.registration ?? "",
                 complianceLabel: rec.label ?? rec.type,
                 expiryDate: fmtDate(rec.expiry_date),

@@ -6,6 +6,7 @@ import type { TemplateEntry } from './registry'
 
 interface Props {
   assetName?: string
+  assetNumber?: string
   registration?: string
   complianceLabel?: string
   expiryDate?: string
@@ -42,7 +43,7 @@ const Email = (p: Props) => {
 
           <Section style={card}>
             <Text style={cardLabel}>Machine</Text>
-            <Text style={cardValue}>{p.assetName ?? '—'}{p.registration ? ` · ${p.registration}` : ''}</Text>
+            <Text style={cardValue}>{p.assetName ?? '—'}{p.assetNumber ? ` · #${p.assetNumber}` : ''}{p.registration ? ` · ${p.registration}` : ''}</Text>
             <Text style={{ ...cardLabel, marginTop: '12px' }}>Compliance item</Text>
             <Text style={cardValue}>{p.complianceLabel ?? '—'}</Text>
             <Text style={{ ...cardLabel, marginTop: '12px' }}>Expires</Text>
@@ -78,6 +79,7 @@ export const template = {
   displayName: 'Compliance expiry reminder',
   previewData: {
     assetName: 'Excavator 12',
+    assetNumber: 'OPH013',
     registration: 'ABC123',
     complianceLabel: 'Registration',
     expiryDate: '15 Jul 2026',
