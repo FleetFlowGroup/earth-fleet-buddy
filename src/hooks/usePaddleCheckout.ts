@@ -7,6 +7,7 @@ type OpenOptions = {
   companyId: string;
   userId: string;
   successUrl?: string;
+  discountId?: string;
 };
 
 export function usePaddleCheckout() {
@@ -21,6 +22,7 @@ export function usePaddleCheckout() {
         items: [{ priceId: paddlePriceId, quantity: 1 }],
         customer: opts.customerEmail ? { email: opts.customerEmail } : undefined,
         customData: { companyId: opts.companyId, userId: opts.userId },
+        discountId: opts.discountId,
         settings: {
           displayMode: "overlay",
           successUrl: opts.successUrl ?? `${window.location.origin}/billing?checkout=success`,
