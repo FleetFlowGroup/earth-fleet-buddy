@@ -189,16 +189,24 @@ function UploadDialog({ companyId, onDone }: { companyId: string; onDone: () => 
   });
 
   async function submit() {
-    if (!title.trim() || !file) return toast.error("Title and file are required");
+    if (!title.trim()) return toast.error("Title is required");
     setBusy(true);
     try {
-      const compressed = file.type.startsWith("image/") ? await compressImage(file) : file;
-      const safe = compressed.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
-      const path = `${companyId}/tickets/${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${safe}`;
-      const up = await supabase.storage.from("asset-photos").upload(path, compressed, {
-        contentType: compressed.type, upsert: false, cacheControl: "3600",
-      });
-      if (up.error) throw up.error;
+      let path: string | null = null;
+      let fileType: string | null = null;
+      let fileSize: number | null = null;
+
+      if (file) {
+        const compressed = file.type.startsWith("image/") ? await compressImage(file) : file;
+        const safe = compressed.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
+        path = `${companyId}/tickets/${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${safe}`;
+        const up = await supabase.storage.from("asset-photos").upload(path, compressed, {
+          contentType: compressed.type, upsert: false, cacheControl: "3600",
+        });
+        if (up.error) throw up.error;
+        fileType = compressed.type;
+        fileSize = compressed.size;
+      }
 
       const ins = await (supabase as any).from("tickets").insert({
         company_id: companyId,
@@ -210,8 +218,8 @@ function UploadDialog({ companyId, onDone }: { companyId: string; onDone: () => 
         description: description.trim() || null,
         notes: notes.trim() || null,
         file_path: path,
-        file_type: compressed.type,
-        file_size: compressed.size,
+        file_type: fileType,
+        file_size: fileSize,
       }).select("id").single();
       if (ins.error) throw ins.error;
 
