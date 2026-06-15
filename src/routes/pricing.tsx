@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Truck, ArrowRight } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { PLAN_INTRO_DISCOUNT_ID } from "@/hooks/use-subscription";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 export const Route = createFileRoute("/pricing")({
