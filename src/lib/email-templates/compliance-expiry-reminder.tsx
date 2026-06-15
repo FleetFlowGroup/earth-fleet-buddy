@@ -79,6 +79,7 @@ export const template = {
   displayName: 'Compliance expiry reminder',
   previewData: {
     assetName: 'Excavator 12',
+    assetNumber: 'OPH013',
     registration: 'ABC123',
     complianceLabel: 'Registration',
     expiryDate: '15 Jul 2026',
