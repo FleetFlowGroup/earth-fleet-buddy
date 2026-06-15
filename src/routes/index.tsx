@@ -71,9 +71,6 @@ function Landing() {
           </nav>
           <div className="hidden items-center gap-2 md:flex">
             <Button asChild variant="ghost" size="sm"><Link to="/auth">Sign in</Link></Button>
-            <Button asChild size="sm">
-              <Link to="/auth" search={{ mode: "signup" }}>Start free</Link>
-            </Button>
           </div>
           <button
             type="button"
@@ -91,11 +88,8 @@ function Landing() {
               <a href="#how" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">How it works</a>
               <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">Pricing</a>
               <Link to="/contact" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">Contact</Link>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <Button asChild variant="outline" size="sm"><Link to="/auth">Sign in</Link></Button>
-                <Button asChild size="sm">
-                  <Link to="/auth" search={{ mode: "signup" }}>Start free</Link>
-                </Button>
+              <div className="mt-2">
+                <Button asChild variant="outline" size="sm" className="w-full"><Link to="/auth">Sign in</Link></Button>
               </div>
             </div>
           </div>
@@ -118,11 +112,6 @@ function Landing() {
               FleetFlow is the all-in-one platform for earthmoving, civil, and plant hire businesses. Digital pre-starts, fleet management, compliance, and maintenance — all in one place.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Button asChild size="lg" className="glow">
-                <Link to="/auth" search={{ mode: "signup" }}>
-                  Start Free Trial <ArrowRight className="ml-1 size-4" />
-                </Link>
-              </Button>
               <Button asChild size="lg" variant="outline">
                 <a href="#how">See How It Works</a>
               </Button>
