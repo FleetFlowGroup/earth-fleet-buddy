@@ -373,8 +373,8 @@ function Landing() {
               answer="FleetFlow is cloud-based and your data is securely stored and isolated to your company only. No other organisation can see your information."
             />
             <FaqItem
-              question="What happens when my trial ends?"
-              answer="You'll be prompted to choose a plan. Your data is safe and nothing is deleted."
+              question="How does the $9.99 first month work?"
+              answer="Pick any plan and your first month is just $9.99 AUD. After that, your plan renews at its standard monthly price (in AUD). Cancel anytime from Billing."
             />
             <FaqItem
               question="Is FleetFlow suitable for small businesses?"
