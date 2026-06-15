@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { submitAppFeedback } from "@/lib/feedback.functions";
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +47,7 @@ const CATEGORIES: { value: Category; label: string; description: string; icon: t
 function FeedbackPage() {
   const { data: me } = useCurrentUser();
   const qc = useQueryClient();
+  const submitFeedback = useServerFn(submitAppFeedback);
 
   const [category, setCategory] = useState<Category>("contact");
   const [subject, setSubject] = useState("");
@@ -70,46 +73,15 @@ function FeedbackPage() {
     mutationFn: async () => {
       if (!me?.userId || !me?.company?.id) throw new Error("Not signed in");
       if (!subject.trim() || !message.trim()) throw new Error("Subject and message are required");
-      const { data: inserted, error } = await supabase.from("app_feedback" as any).insert({
-        company_id: me.company.id,
-        user_id: me.userId,
-        category,
-        subject: subject.trim(),
-        message: message.trim(),
-        contact_email: contactEmail.trim() || me.email,
-      } as any).select("id, created_at").single();
-      if (error) throw error;
-
-      // Notify FleetFlow team — non-fatal if it fails
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.access_token) {
-          const row: any = inserted;
-          await fetch("/lovable/email/transactional/send", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({
-              templateName: "app-feedback-notification",
-              idempotencyKey: `app-feedback-${row?.id ?? Date.now()}`,
-              templateData: {
-                category,
-                subject: subject.trim(),
-                message: message.trim(),
-                companyName: me.company?.name ?? "",
-                userEmail: me.email,
-                contactEmail: contactEmail.trim() || me.email,
-                submittedAt: row?.created_at ?? new Date().toISOString(),
-                feedbackId: row?.id,
-              },
-            }),
-          });
-        }
-      } catch (e) {
-        console.error("feedback notify email failed", e);
-      }
+      await submitFeedback({
+        data: {
+          companyId: me.company.id,
+          category,
+          subject: subject.trim(),
+          message: message.trim(),
+          contactEmail: contactEmail.trim(),
+        },
+      });
     },
     onSuccess: () => {
       toast.success("Thanks — we've received your message");

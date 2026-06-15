@@ -18,8 +18,8 @@ export const submitAppFeedback = createServerFn({ method: "POST" })
     const fallbackEmail = typeof context.claims?.email === "string" ? context.claims.email : "";
     const contactEmail = data.contactEmail || fallbackEmail;
 
-    const { data: inserted, error } = await context.supabase
-      .from("app_feedback" as any)
+    const { data: insertedRow, error } = await (context.supabase as any)
+      .from("app_feedback")
       .insert({
         company_id: data.companyId,
         user_id: context.userId,
@@ -32,9 +32,10 @@ export const submitAppFeedback = createServerFn({ method: "POST" })
       .single();
 
     if (error) throw new Error(error.message);
+    const inserted = insertedRow as { id: string; created_at: string };
 
-    const { data: company } = await context.supabase
-      .from("companies" as any)
+    const { data: company } = await (context.supabase as any)
+      .from("companies")
       .select("name")
       .eq("id", data.companyId)
       .maybeSingle();
