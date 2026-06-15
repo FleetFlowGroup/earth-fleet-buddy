@@ -1,0 +1,1 @@
+ALTER TABLE public.tickets ALTER COLUMN file_path DROP NOT NULL;
