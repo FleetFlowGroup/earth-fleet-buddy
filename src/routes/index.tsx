@@ -370,10 +370,11 @@ function Landing() {
               question="Can I cancel my subscription?"
               answer="Yes — any plan can be cancelled at any time, directly from the Billing page in your account. There are no contracts, no lock-ins, and no cancellation fees. You keep access until the end of your current billing period."
             />
-
+            <FaqItem
               question="Is FleetFlow suitable for small businesses?"
               answer="Yes. FleetFlow is designed to scale — whether you're running 3 machines or 300, the platform works the same way."
             />
+
           </div>
         </div>
       </section>
