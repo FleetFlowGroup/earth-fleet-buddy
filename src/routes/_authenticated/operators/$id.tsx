@@ -121,7 +121,6 @@ function OperatorDetail() {
                 const expiry = l.expiry_date;
                 const status = expiry ? expiryStatus(expiry) : null;
                 const days = expiry ? daysUntil(expiry) : null;
-                const missingCert = !l.certificate_path;
                 return (
                   <li key={l.id} className="flex items-center justify-between gap-3 px-5 py-3">
                     <div className="min-w-0">
@@ -134,7 +133,6 @@ function OperatorDetail() {
                       {l.notes && <div className="mt-1 text-xs text-muted-foreground">{l.notes}</div>}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      {missingCert && <span className="rounded-full border border-warning/30 bg-warning/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-warning">No cert</span>}
                       {status && days !== null && (
                         <span className={`rounded-full border px-2 py-0.5 text-xs ${statusColor(status)}`}>{statusLabel(status, days)}</span>
                       )}
