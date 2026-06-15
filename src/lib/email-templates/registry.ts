@@ -21,4 +21,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'team-invite': teamInvite,
   'compliance-expiry-reminder': complianceExpiry,
   'licence-expiry-reminder': licenceExpiry,
+  'service-due-reminder': serviceDue,
 }
