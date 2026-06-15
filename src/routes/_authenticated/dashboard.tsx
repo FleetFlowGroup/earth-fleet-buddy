@@ -93,7 +93,7 @@ function Dashboard() {
     queryKey: ["dashboard-stats-v2", companyId],
     enabled: !!companyId,
     queryFn: async () => {
-      const [assetsRes, complianceRes, docsRes, opsRes, licencesRes, serviceHistRes] = await Promise.all([
+      const [assetsRes, complianceRes, docsRes, opsRes, licencesRes, serviceHistRes, defectsRes] = await Promise.all([
         supabase
           .from("assets")
           .select(
@@ -119,7 +119,14 @@ function Dashboard() {
           .select("id,asset_id,service_date,cost")
           .eq("company_id", companyId!)
           .order("service_date", { ascending: false }),
+        (supabase as any)
+          .from("defect_reports")
+          .select("id,asset_id,severity,description,status,reported_at,prestart_id,assets(name)")
+          .eq("company_id", companyId!)
+          .neq("status", "resolved")
+          .order("reported_at", { ascending: false }),
       ]);
+
 
       const assets = (assetsRes.data ?? []) as any[];
       const compliance = complianceRes.data ?? [];
@@ -130,6 +137,7 @@ function Dashboard() {
         operator_name: opMap.get(l.operator_id),
       }));
       const services = (serviceHistRes.data ?? []) as any[];
+      const defects = (defectsRes.data ?? []) as any[];
 
       const buckets = { expired: 0, critical: 0, soon: 0, ok: 0 };
       for (const c of compliance) buckets[expiryStatus(c.expiry_date)]++;
@@ -154,7 +162,9 @@ function Dashboard() {
         buckets,
         serviceRows,
         services,
+        defects,
       };
+
     },
   });
 
@@ -193,11 +203,14 @@ function Dashboard() {
   const compliance = stats?.compliance ?? [];
   const licences = stats?.licences ?? [];
   const serviceHistory = stats?.services ?? [];
+  const defects = (stats?.defects ?? []) as any[];
+  const urgentDefects = defects.filter((d) => d.severity === "critical" || d.severity === "high");
+  const minorDefects = defects.filter((d) => d.severity !== "critical" && d.severity !== "high");
 
   // ---------- Fleet Health Score ----------
   const health = useMemo(() => {
     const totalChecks =
-      compliance.length + licences.length + services.length;
+      compliance.length + licences.length + services.length + defects.length;
     if (totalChecks === 0) return { score: 100, urgent: 0, total: 0 };
     const expired = compliance.filter((c: any) => daysUntil(c.expiry_date) < 0).length;
     const expiredLic = licences.filter((l: any) => daysUntil(l.expiry_date) < 0).length;
@@ -211,13 +224,15 @@ function Dashboard() {
         const d = daysUntil(l.expiry_date);
         return d >= 0 && d <= 30;
       }).length +
-      dueSoonServices.length;
+      dueSoonServices.length +
+      minorDefects.length;
 
-    const urgent = expired + expiredLic + overdue;
+    const urgent = expired + expiredLic + overdue + urgentDefects.length;
     const penalty = urgent * 5 + soon * 1.5;
     const score = Math.max(0, Math.min(100, Math.round(100 - penalty)));
     return { score, urgent, total: totalChecks };
-  }, [compliance, licences, services, overdueServices, dueSoonServices]);
+  }, [compliance, licences, services, overdueServices, dueSoonServices, defects, urgentDefects, minorDefects]);
+
 
   const healthTone =
     health.score >= 90
@@ -280,9 +295,25 @@ function Dashboard() {
         to: { to: "/operators/$id", params: { id: l.operator_id } },
       });
     }
+    for (const d of defects) {
+      const tone: AttentionItem["tone"] =
+        d.severity === "critical" || d.severity === "high" ? "danger" : "warning";
+      const sevLabel = d.severity.charAt(0).toUpperCase() + d.severity.slice(1);
+      const kindLabel = d.prestart_id ? "Prestart defect" : "Defect";
+      const desc = (d.description ?? "").split("\n")[0].slice(0, 80);
+      items.push({
+        kind: `${kindLabel} · ${sevLabel}`,
+        key: `def-${d.id}`,
+        title: (d as any).assets?.name ?? "Asset",
+        sub: desc || `Reported ${fmtDate(d.reported_at)}`,
+        tone,
+        to: { to: "/assets/$id", params: { id: d.asset_id } },
+      });
+    }
     items.sort((a, b) => (a.tone === b.tone ? 0 : a.tone === "danger" ? -1 : 1));
     return items;
-  }, [overdueServices, dueSoonServices, compliance, licences]);
+  }, [overdueServices, dueSoonServices, compliance, licences, defects]);
+
 
   // ---------- Quick stats ----------
   const expiringIn30 = useMemo(() => {
