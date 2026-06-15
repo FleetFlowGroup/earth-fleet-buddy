@@ -68,8 +68,13 @@ const Email = (p: Props) => {
 
 export const template = {
   component: Email,
-  subject: (d: Record<string, any>) =>
-    `${d?.complianceLabel ?? 'Compliance item'} for ${d?.assetName ?? 'a machine'} expires in ${d?.daysBefore ?? 'a few'} days`,
+  subject: (d: Record<string, any>) => {
+    const days = d?.daysBefore
+    if (typeof days === 'number' && days <= 0) {
+      return `ACTION NOW: ${d?.complianceLabel ?? 'Compliance item'} for ${d?.assetName ?? 'a machine'} expires today`
+    }
+    return `${d?.complianceLabel ?? 'Compliance item'} for ${d?.assetName ?? 'a machine'} expires in ${days ?? 'a few'} days`
+  },
   displayName: 'Compliance expiry reminder',
   previewData: {
     assetName: 'Excavator 12',
