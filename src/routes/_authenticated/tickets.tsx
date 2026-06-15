@@ -32,7 +32,7 @@ type Ticket = {
   issue_date: string | null;
   expiry_date: string | null;
   notes: string | null;
-  file_path: string;
+  file_path: string | null;
   file_type: string | null;
   file_size: number | null;
   uploaded_by: string | null;
