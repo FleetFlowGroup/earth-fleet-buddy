@@ -18,6 +18,7 @@ import { daysUntil, expiryStatus, fmtDate, statusColor, statusLabel } from "@/li
 import { LICENCE_TYPES, licenceDisplayName, OPERATOR_STATUS_LABELS } from "@/lib/operators";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { openLicenceCertificate } from "@/lib/licence-cert";
 
 export const Route = createFileRoute("/_authenticated/operators/$id")({
   head: () => ({ meta: [{ title: "Operator · FleetFlow" }] }),
