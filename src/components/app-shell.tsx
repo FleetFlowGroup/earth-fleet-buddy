@@ -14,6 +14,7 @@ import {
   Inbox,
   ClipboardCheck,
   FileText,
+  LifeBuoy,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -185,6 +186,16 @@ function SidebarInner({
             </Link>
           </Button>
         )}
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="mt-2 w-full justify-start text-muted-foreground hover:text-foreground"
+        >
+          <Link to="/feedback">
+            <LifeBuoy className="mr-2 size-4" /> Contact & Feedback
+          </Link>
+        </Button>
         <Button
           onClick={onSignOut}
           variant="ghost"
