@@ -146,13 +146,20 @@ function SidebarInner({
               key={item.to}
               to={item.to}
               onClick={onNavigate}
-              className={`flex items-center gap-3 rounded-md px-3 py-2 transition ${
+              aria-current={active ? "page" : undefined}
+              className={`group relative flex items-center gap-3 rounded-md px-3 py-2 transition-colors ${
                 active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground"
                   : "text-sidebar-foreground hover:bg-sidebar-accent/60"
               }`}
             >
-              <Icon className="size-4" />
+              <span
+                aria-hidden
+                className={`absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-primary transition-opacity ${
+                  active ? "opacity-100" : "opacity-0"
+                }`}
+              />
+              <Icon className={`size-4 ${active ? "text-primary" : ""}`} />
               {item.label}
             </Link>
           );
