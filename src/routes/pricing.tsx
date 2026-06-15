@@ -82,9 +82,9 @@ function PricingPage() {
         <div className="text-center">
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Pricing</h1>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-            Pay per asset, not per user. 14-day free trial on any plan. Cancel anytime.
+            Pay per asset, not per user. <span className="font-medium text-foreground">First month just $9.99 AUD</span> on any plan. Cancel anytime.
           </p>
-          <p className="mt-2 text-xs text-muted-foreground">Prices in AUD.</p>
+          <p className="mt-2 text-xs text-muted-foreground">All prices in AUD.</p>
         </div>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-4">
