@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { getRestoredUser } from "@/lib/auth-ready";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { isOperatorPreviewOn } from "@/lib/operator-preview";
+import { rememberRoute } from "@/lib/last-route";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -18,6 +19,12 @@ function AuthedLayout() {
   const { data: me, isLoading } = useCurrentUser();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Remember the user's last authenticated route so we can return them
+  // here after refresh or re-login.
+  useEffect(() => {
+    rememberRoute(location.pathname);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (isLoading || !me) return;
