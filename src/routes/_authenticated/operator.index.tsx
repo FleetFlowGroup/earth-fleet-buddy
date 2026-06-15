@@ -69,6 +69,7 @@ function OperatorHome() {
         companyId={me?.company?.id}
         companyName={me?.company?.name}
         userId={me?.userId}
+        email={me?.email}
         greeting={greeting}
         name={name}
         onSignOut={signOut}
