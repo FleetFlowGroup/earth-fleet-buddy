@@ -26,6 +26,7 @@ import { format } from "date-fns";
 import { useOperatorSelf, useOperatorTargetAsset, meterValue, nextServiceText, regoExpiryText } from "@/lib/operator-data";
 import { logAudit } from "@/lib/audit-log";
 import { CompanySwitcher } from "@/components/company-switcher";
+import { OperatorTicketsMenu } from "@/components/operator-tickets-menu";
 import { z } from "zod";
 
 const operatorSearch = z.object({ asset: z.string().uuid().optional() });
@@ -146,7 +147,10 @@ function MachinePicker({
             <CompanySwitcher userId={userId} activeCompanyId={companyId} activeCompanyName={companyName} />
             <h1 className="mt-1 truncate text-xl font-semibold"><Home className="mr-1 inline size-4 align-[-2px]" />{greeting}, {name}</h1>
           </div>
-          <Button variant="ghost" size="sm" onClick={onSignOut}><LogOut className="mr-1.5 size-4" /> Sign out</Button>
+          <div className="flex items-center gap-2">
+            <OperatorTicketsMenu userId={userId} />
+            <Button variant="ghost" size="sm" onClick={onSignOut}><LogOut className="mr-1.5 size-4" /> Sign out</Button>
+          </div>
         </div>
       </header>
 
@@ -273,7 +277,10 @@ function SelectedMachine({ me, asset, operatorRow, greeting, name, onSignOut }: 
             <CompanySwitcher userId={me?.userId} activeCompanyId={me?.company?.id} activeCompanyName={me?.company?.name} />
             <h1 className="mt-1 truncate text-xl font-semibold"><Home className="mr-1 inline size-4 align-[-2px]" />{greeting}, {name}</h1>
           </div>
-          <Button variant="ghost" size="sm" onClick={onSignOut}><LogOut className="mr-1.5 size-4" /> Sign out</Button>
+          <div className="flex items-center gap-2">
+            <OperatorTicketsMenu userId={me?.userId} />
+            <Button variant="ghost" size="sm" onClick={onSignOut}><LogOut className="mr-1.5 size-4" /> Sign out</Button>
+          </div>
         </div>
       </header>
 
