@@ -128,7 +128,7 @@ export function OperatorTicketsMenu({ userId, companyId, email }: Props) {
                       {d! < 0 ? "Expired" : `${d}d`}
                     </span>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
