@@ -15,20 +15,29 @@ interface Props {
 
 const Email = (p: Props) => {
   const days = p.daysBefore ?? 0
+  const actionNow = days <= 0
   const urgent = days <= 14
   return (
     <Html lang="en">
       <Head />
       <Preview>
-        {`${p.operatorName ?? 'An operator'}'s ${p.licenceLabel ?? 'licence'} expires in ${days} days`}
+        {actionNow
+          ? `ACTION NOW: ${p.operatorName ?? 'An operator'}'s ${p.licenceLabel ?? 'licence'} expires today`
+          : `${p.operatorName ?? 'An operator'}'s ${p.licenceLabel ?? 'licence'} expires in ${days} days`}
       </Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>
-            {urgent ? 'Action needed: operator licence expiring' : 'Upcoming licence expiry'}
+          <Heading style={actionNow ? h1Urgent : h1}>
+            {actionNow
+              ? 'ACTION NOW: operator licence expires today'
+              : urgent
+                ? 'Action needed: operator licence expiring'
+                : 'Upcoming licence expiry'}
           </Heading>
           <Text style={lead}>
-            An operator licence is due to expire in <strong>{days} day{days === 1 ? '' : 's'}</strong>.
+            {actionNow
+              ? <>This operator licence <strong>expires today</strong> and must be actioned immediately.</>
+              : <>An operator licence is due to expire in <strong>{days} day{days === 1 ? '' : 's'}</strong>.</>}
           </Text>
 
           <Section style={card}>
@@ -37,12 +46,15 @@ const Email = (p: Props) => {
             <Text style={{ ...cardLabel, marginTop: '12px' }}>Licence / ticket</Text>
             <Text style={cardValue}>{p.licenceLabel ?? '—'}{p.licenceNumber ? ` · ${p.licenceNumber}` : ''}</Text>
             <Text style={{ ...cardLabel, marginTop: '12px' }}>Expires</Text>
-            <Text style={cardValue}>{p.expiryDate ?? '—'} ({days} day{days === 1 ? '' : 's'})</Text>
+            <Text style={cardValue}>{p.expiryDate ?? '—'} {actionNow ? '(today)' : `(${days} day${days === 1 ? '' : 's'})`}</Text>
           </Section>
 
           <Text style={body}>
-            Log in to FleetFlow to update this licence record so the operator stays compliant.
+            {actionNow
+              ? 'Log in to FleetFlow now to renew this licence. The operator may not be authorised to work until it is updated.'
+              : "Log in to FleetFlow to update this licence record so the operator stays compliant."}
           </Text>
+
 
           <Hr style={hr} />
           <Text style={footer}>
