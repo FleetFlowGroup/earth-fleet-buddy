@@ -533,7 +533,7 @@ function PlanCard({
         ))}
       </ul>
       <Button asChild size="sm" variant={featured ? "default" : "outline"} className="mt-6 w-full">
-        <Link to="/auth" search={{ mode: "signup" }}>Start free trial</Link>
+        <Link to="/auth" search={{ mode: "signup" }}>Get started — $9.99 AUD first month</Link>
       </Button>
     </div>
   );
