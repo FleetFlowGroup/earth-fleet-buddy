@@ -145,7 +145,7 @@ function MachinePicker({
       <header className="border-b border-border bg-card/40 px-5 py-4">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <CompanySwitcher userId={userId} activeCompanyId={companyId} activeCompanyName={companyName} />
+            <CompanySwitcher userId={userId} activeCompanyId={companyId} activeCompanyName={companyName} afterSwitchTo="/dashboard" />
             <h1 className="mt-1 truncate text-xl font-semibold"><Home className="mr-1 inline size-4 align-[-2px]" />{greeting}, {name}</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ function SelectedMachine({ me, asset, operatorRow, greeting, name, onSignOut }: 
       <header className="border-b border-border bg-card/40 px-5 py-4">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <CompanySwitcher userId={me?.userId} activeCompanyId={me?.company?.id} activeCompanyName={me?.company?.name} />
+            <CompanySwitcher userId={me?.userId} activeCompanyId={me?.company?.id} activeCompanyName={me?.company?.name} afterSwitchTo="/dashboard" />
             <h1 className="mt-1 truncate text-xl font-semibold"><Home className="mr-1 inline size-4 align-[-2px]" />{greeting}, {name}</h1>
           </div>
           <div className="flex items-center gap-2">
