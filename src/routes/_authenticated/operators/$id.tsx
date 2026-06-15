@@ -138,11 +138,9 @@ function OperatorDetail() {
                         <span className={`rounded-full border px-2 py-0.5 text-xs ${statusColor(status)}`}>{statusLabel(status, days)}</span>
                       )}
                       {l.certificate_path && (
-                        <Button variant="ghost" size="icon" onClick={async () => {
-                          const { data, error } = await supabase.storage.from("compliance-docs").createSignedUrl(l.certificate_path, 60);
-                          if (error) return toast.error(error.message);
-                          window.open(data.signedUrl, "_blank");
-                        }}><Download className="size-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => openLicenceCertificate(l.certificate_path)}>
+                          <Download className="size-4" />
+                        </Button>
                       )}
                       {editable && (
                         <Button variant="ghost" size="icon" onClick={async () => {
