@@ -171,7 +171,7 @@ function BillingPage() {
                         onClick={() =>
                           billing.state === "subscribed" || billing.state === "canceled_grace"
                             ? changePlan(id)
-                            : subscribe(PLAN_PRICE_ID[id])
+                            : subscribe(id)
                         }
                       >
                         {busy === id ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
