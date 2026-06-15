@@ -1485,10 +1485,15 @@ export type Database = {
           company_id: string
           created_at: string
           description: string | null
+          expiry_date: string | null
           file_path: string
           file_size: number | null
           file_type: string | null
           id: string
+          issue_date: string | null
+          notes: string | null
+          ticket_number: string | null
+          ticket_type: string | null
           title: string
           updated_at: string
           uploaded_by: string | null
@@ -1497,10 +1502,15 @@ export type Database = {
           company_id: string
           created_at?: string
           description?: string | null
+          expiry_date?: string | null
           file_path: string
           file_size?: number | null
           file_type?: string | null
           id?: string
+          issue_date?: string | null
+          notes?: string | null
+          ticket_number?: string | null
+          ticket_type?: string | null
           title: string
           updated_at?: string
           uploaded_by?: string | null
@@ -1509,10 +1519,15 @@ export type Database = {
           company_id?: string
           created_at?: string
           description?: string | null
+          expiry_date?: string | null
           file_path?: string
           file_size?: number | null
           file_type?: string | null
           id?: string
+          issue_date?: string | null
+          notes?: string | null
+          ticket_number?: string | null
+          ticket_type?: string | null
           title?: string
           updated_at?: string
           uploaded_by?: string | null
