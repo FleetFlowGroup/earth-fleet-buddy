@@ -15,20 +15,29 @@ interface Props {
 
 const Email = (p: Props) => {
   const days = p.daysBefore ?? 0
+  const actionNow = days <= 0
   const urgent = days <= 14
   return (
     <Html lang="en">
       <Head />
       <Preview>
-        {`${p.complianceLabel ?? 'Compliance item'} for ${p.assetName ?? 'a machine'} expires in ${days} days`}
+        {actionNow
+          ? `ACTION NOW: ${p.complianceLabel ?? 'Compliance item'} for ${p.assetName ?? 'a machine'} expires today`
+          : `${p.complianceLabel ?? 'Compliance item'} for ${p.assetName ?? 'a machine'} expires in ${days} days`}
       </Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>
-            {urgent ? 'Action needed: expiry approaching' : 'Upcoming compliance expiry'}
+          <Heading style={actionNow ? h1Urgent : h1}>
+            {actionNow
+              ? 'ACTION NOW: compliance item expires today'
+              : urgent
+                ? 'Action needed: expiry approaching'
+                : 'Upcoming compliance expiry'}
           </Heading>
           <Text style={lead}>
-            The following compliance item is due to expire in <strong>{days} day{days === 1 ? '' : 's'}</strong>.
+            {actionNow
+              ? <>The following compliance item <strong>expires today</strong> and must be actioned immediately.</>
+              : <>The following compliance item is due to expire in <strong>{days} day{days === 1 ? '' : 's'}</strong>.</>}
           </Text>
 
           <Section style={card}>
@@ -37,12 +46,15 @@ const Email = (p: Props) => {
             <Text style={{ ...cardLabel, marginTop: '12px' }}>Compliance item</Text>
             <Text style={cardValue}>{p.complianceLabel ?? '—'}</Text>
             <Text style={{ ...cardLabel, marginTop: '12px' }}>Expires</Text>
-            <Text style={cardValue}>{p.expiryDate ?? '—'} ({days} day{days === 1 ? '' : 's'})</Text>
+            <Text style={cardValue}>{p.expiryDate ?? '—'} {actionNow ? '(today)' : `(${days} day${days === 1 ? '' : 's'})`}</Text>
           </Section>
 
           <Text style={body}>
-            Log in to FleetFlow to update or renew this record so it doesn't lapse.
+            {actionNow
+              ? 'Log in to FleetFlow now to renew this record. The machine may not be compliant to operate until this is updated.'
+              : "Log in to FleetFlow to update or renew this record so it doesn't lapse."}
           </Text>
+
 
           <Hr style={hr} />
           <Text style={footer}>
