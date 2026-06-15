@@ -263,12 +263,13 @@ function Landing() {
             <p className="mt-3 text-muted-foreground">
               Only administrators need a paid plan. Your operators, mechanics, and supervisors join for free under your subscription — no matter how many you have.
             </p>
-            <p className="mt-2 text-xs text-muted-foreground">Prices in AUD.</p>
+            <p className="mt-2 text-xs text-muted-foreground">Prices in AUD. Cancel anytime — no contracts, no cancellation fees.</p>
           </div>
 
           <div className="mt-6 rounded-lg border border-primary/30 bg-primary/5 p-4 text-center text-sm font-medium text-primary">
-            Unlimited operators included on every plan. You only pay for admin seats.
+            Unlimited operators included on every plan. You only pay for admin seats. <span className="font-semibold">Cancel anytime from Billing.</span>
           </div>
+
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <PlanCard
@@ -366,9 +367,14 @@ function Landing() {
               answer="Pick any plan and your first month is just $9.99 AUD. After that, your plan renews at its standard monthly price (in AUD). Cancel anytime from Billing."
             />
             <FaqItem
+              question="Can I cancel my subscription?"
+              answer="Yes — any plan can be cancelled at any time, directly from the Billing page in your account. There are no contracts, no lock-ins, and no cancellation fees. You keep access until the end of your current billing period."
+            />
+            <FaqItem
               question="Is FleetFlow suitable for small businesses?"
               answer="Yes. FleetFlow is designed to scale — whether you're running 3 machines or 300, the platform works the same way."
             />
+
           </div>
         </div>
       </section>
