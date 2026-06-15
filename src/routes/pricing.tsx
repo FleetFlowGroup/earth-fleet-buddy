@@ -41,7 +41,7 @@ function PricingPage() {
   const navigate = useNavigate();
   const { openCheckout, loading } = usePaddleCheckout();
 
-  async function subscribe(priceId: string) {
+  async function subscribe(productId: string, priceId: string) {
     if (!me?.userId || !me?.company?.id) {
       navigate({ to: "/auth", search: { mode: "signup" } });
       return;
@@ -53,6 +53,7 @@ function PricingPage() {
     }
     await openCheckout({
       priceId,
+      discountId: PLAN_INTRO_DISCOUNT_ID[productId],
       customerEmail: me.email,
       companyId: me.company.id,
       userId: me.userId,
