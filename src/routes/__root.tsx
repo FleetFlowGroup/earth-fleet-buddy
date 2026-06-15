@@ -36,10 +36,27 @@ function NotFoundComponent() {
   );
 }
 
+function isChunkLoadError(error: unknown): boolean {
+  const msg = error instanceof Error ? `${error.name} ${error.message}` : String(error ?? "");
+  return /Importing a module script failed|Failed to fetch dynamically imported module|ChunkLoadError|Loading chunk [\d]+ failed|error loading dynamically imported module/i.test(
+    msg,
+  );
+}
+
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
+    if (isChunkLoadError(error) && typeof window !== "undefined") {
+      // App was redeployed; old chunks are gone. Hard reload to grab the new bundle.
+      const KEY = "ff-chunk-reload";
+      const last = Number(sessionStorage.getItem(KEY) ?? "0");
+      if (Date.now() - last > 10_000) {
+        sessionStorage.setItem(KEY, String(Date.now()));
+        window.location.reload();
+        return;
+      }
+    }
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
@@ -53,6 +70,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
+              if (isChunkLoadError(error) && typeof window !== "undefined") {
+                window.location.reload();
+                return;
+              }
               router.invalidate();
               reset();
             }}
@@ -71,6 +92,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     </div>
   );
 }
+
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
