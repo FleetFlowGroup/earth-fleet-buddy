@@ -263,12 +263,13 @@ function Landing() {
             <p className="mt-3 text-muted-foreground">
               Only administrators need a paid plan. Your operators, mechanics, and supervisors join for free under your subscription — no matter how many you have.
             </p>
-            <p className="mt-2 text-xs text-muted-foreground">Prices in AUD.</p>
+            <p className="mt-2 text-xs text-muted-foreground">Prices in AUD. Cancel anytime — no contracts, no cancellation fees.</p>
           </div>
 
           <div className="mt-6 rounded-lg border border-primary/30 bg-primary/5 p-4 text-center text-sm font-medium text-primary">
-            Unlimited operators included on every plan. You only pay for admin seats.
+            Unlimited operators included on every plan. You only pay for admin seats. <span className="font-semibold">Cancel anytime from Billing.</span>
           </div>
+
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <PlanCard
