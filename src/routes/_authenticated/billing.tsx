@@ -40,6 +40,29 @@ function BillingPage() {
     );
   }
 
+  const isDemo = me?.company?.abn === "DEMO-SUMMIT";
+
+  if (isDemo) {
+    return (
+      <AppShell>
+        <PageHeader title="Billing" description="Demo account — billing is disabled." />
+        <div className="space-y-6 px-4 py-6 sm:px-8">
+          <div className="surface-card p-6">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Current plan</div>
+            <div className="mt-1 text-2xl font-semibold">Demo — Unlimited</div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              You're exploring the Summit Civil demo workspace. All features are unlocked,
+              no payment required. Subscriptions, plan changes and asset limits are disabled in demo mode.
+            </p>
+            <div className="mt-4">
+              <Button onClick={() => navigate({ to: "/dashboard" })}>Back to dashboard</Button>
+            </div>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
   async function subscribe(productId: string) {
     if (!me?.userId || !companyId) return;
     await openCheckout({
