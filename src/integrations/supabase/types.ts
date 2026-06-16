@@ -1766,6 +1766,7 @@ export type Database = {
         Args: { _invite_id: string }
         Returns: undefined
       }
+      seed_demo_company: { Args: { _admin_user_id: string }; Returns: string }
       seed_prestart_template: {
         Args: { _company_id: string }
         Returns: undefined
