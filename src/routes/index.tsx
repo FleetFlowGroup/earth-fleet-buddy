@@ -1,7 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { startDemoSession } from "@/lib/demo.functions";
+import { toast } from "sonner";
 import {
   Truck,
   ShieldCheck,
@@ -16,8 +19,11 @@ import {
   X,
   HardHat,
   Quote,
+  Play,
+  Loader2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -36,6 +42,8 @@ export const Route = createFileRoute("/")({
 function Landing() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const startDemo = useServerFn(startDemoSession);
 
   useEffect(() => {
     let active = true;
@@ -53,6 +61,27 @@ function Landing() {
       active = false;
     };
   }, [navigate]);
+
+  async function handleStartDemo() {
+    if (demoLoading) return;
+    setDemoLoading(true);
+    try {
+      // Sign out any existing session so the demo user takes over cleanly.
+      await supabase.auth.signOut();
+      const creds = await startDemo();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: creds.email,
+        password: creds.password,
+      });
+      if (error) throw error;
+      toast.success("Welcome to the FleetFlow demo");
+      navigate({ to: "/dashboard", replace: true });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not start demo");
+      setDemoLoading(false);
+    }
+  }
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -112,13 +141,27 @@ function Landing() {
               FleetFlow is the all-in-one platform for earthmoving, civil, and plant hire businesses. Digital pre-starts, fleet management, compliance, and maintenance — all in one place.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Button
+                size="lg"
+                onClick={handleStartDemo}
+                disabled={demoLoading}
+                className="gap-2"
+              >
+                {demoLoading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Play className="size-4" />
+                )}
+                Start Interactive Demo
+              </Button>
               <Button asChild size="lg" variant="outline">
                 <a href="#how">See How It Works</a>
               </Button>
             </div>
             <p className="mt-4 text-xs text-muted-foreground">
-              Built for Australian earthmoving, civil, mining, and plant hire businesses.
+              No sign-up required — explore a fully-populated demo company. Resets regularly.
             </p>
+
           </div>
 
           {/* Right: live-looking compliance surface */}
