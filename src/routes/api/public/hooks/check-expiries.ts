@@ -8,7 +8,16 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/api/public/hooks/check-expiries")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        // Guard: only the pg_cron job (which sends the service-role key as
+        // a bearer token) can trigger this. Without this check, any
+        // anonymous caller could spam reminder emails to every customer.
+        const expected = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const auth = request.headers.get("authorization") ?? "";
+        const presented = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+        if (!expected || presented !== expected) {
+          return new Response("Unauthorized", { status: 401 });
+        }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { sendTransactionalServer } = await import("@/lib/email/send-server");
         const { LICENCE_LABELS } = await import("@/lib/operators");

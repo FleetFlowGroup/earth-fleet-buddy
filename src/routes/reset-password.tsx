@@ -25,13 +25,17 @@ function ResetPasswordPage() {
   const [confirm, setConfirm] = useState("");
 
   useEffect(() => {
-    // Supabase recovery links create a session via the URL hash; wait for it.
+    // Only enable the form when Supabase fires PASSWORD_RECOVERY — do NOT
+    // trust an existing session (a signed-in user landing here by accident
+    // must not be able to silently change their password).
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
+      if (event === "PASSWORD_RECOVERY") setReady(true);
     });
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
-    });
+    // If the page was opened directly from a recovery link, the URL hash
+    // contains type=recovery — accept that as a valid recovery context too.
+    if (typeof window !== "undefined" && window.location.hash.includes("type=recovery")) {
+      setReady(true);
+    }
     return () => sub.subscription.unsubscribe();
   }, []);
 
