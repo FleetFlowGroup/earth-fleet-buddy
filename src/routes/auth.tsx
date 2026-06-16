@@ -141,6 +141,13 @@ function AuthPage() {
           </div>
           <span className="text-lg font-semibold">Fleetflow</span>
         </Link>
+        <Link
+          to="/"
+          className="mb-4 flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <Home className="size-4" />
+          Home
+        </Link>
 
         <div className="surface-card p-6 sm:p-8">
           <Tabs
