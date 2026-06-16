@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
-import { Truck, Loader2 } from "lucide-react";
+import { Truck, Loader2, Home } from "lucide-react";
 import { getLastRoute } from "@/lib/last-route";
 
 const searchSchema = z.object({
