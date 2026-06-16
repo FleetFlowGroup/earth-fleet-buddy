@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
-import { Truck, Loader2 } from "lucide-react";
+import { Truck, Loader2, Home } from "lucide-react";
 import { getLastRoute } from "@/lib/last-route";
 
 const searchSchema = z.object({
@@ -140,6 +140,13 @@ function AuthPage() {
             <Truck className="size-5" />
           </div>
           <span className="text-lg font-semibold">Fleetflow</span>
+        </Link>
+        <Link
+          to="/"
+          className="mb-4 flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <Home className="size-4" />
+          Home
         </Link>
 
         <div className="surface-card p-6 sm:p-8">
