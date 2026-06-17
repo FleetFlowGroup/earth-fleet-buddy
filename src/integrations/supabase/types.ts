@@ -1020,6 +1020,110 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_sessions: {
+        Row: {
+          browser: string | null
+          city: string | null
+          company_id: string | null
+          country: string | null
+          current_path: string | null
+          device: string | null
+          id: string
+          ip: string | null
+          last_seen_at: string
+          os: string | null
+          role: string | null
+          started_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          company_id?: string | null
+          country?: string | null
+          current_path?: string | null
+          device?: string | null
+          id?: string
+          ip?: string | null
+          last_seen_at?: string
+          os?: string | null
+          role?: string | null
+          started_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          company_id?: string | null
+          country?: string | null
+          current_path?: string | null
+          device?: string | null
+          id?: string
+          ip?: string | null
+          last_seen_at?: string
+          os?: string | null
+          role?: string | null
+          started_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_visitors: {
+        Row: {
+          browser: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          device: string | null
+          id: number
+          ip: string | null
+          os: string | null
+          path: string | null
+          referrer: string | null
+          user_agent: string | null
+          visitor_id: string
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          id?: number
+          ip?: string | null
+          os?: string | null
+          path?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_id: string
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          id?: number
+          ip?: string | null
+          os?: string | null
+          path?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       prestart_checks: {
         Row: {
           admin_notes: string | null
@@ -1736,6 +1840,84 @@ export type Database = {
         Returns: number
       }
       operator_asset_ids: { Args: never; Returns: string[] }
+      platform_business_kpis: { Args: never; Returns: Json }
+      platform_company_health: {
+        Args: { _env?: string }
+        Returns: {
+          admin_count: number
+          asset_count: number
+          company_id: string
+          company_name: string
+          compliance_score: number
+          created_at: string
+          last_login: string
+          last_prestart: string
+          licence_expiring: number
+          open_defects: number
+          operator_count: number
+          reg_expiring: number
+          services_overdue: number
+          sub_period_end: string
+          sub_product: string
+          sub_status: string
+        }[]
+      }
+      platform_event_feed: {
+        Args: { _limit?: number }
+        Returns: {
+          action: string
+          company_id: string
+          company_name: string
+          created_at: string
+          id: string
+          ip: string
+          metadata: Json
+          user_agent: string
+          user_email: string
+          user_id: string
+        }[]
+      }
+      platform_live_activity: { Args: { _window_sec?: number }; Returns: Json }
+      platform_record_visit: {
+        Args: {
+          _browser: string
+          _device: string
+          _os: string
+          _path: string
+          _referrer: string
+          _user_agent: string
+          _visitor_id: string
+        }
+        Returns: undefined
+      }
+      platform_security_stats: { Args: never; Returns: Json }
+      platform_session_heartbeat: {
+        Args: {
+          _browser: string
+          _device: string
+          _os: string
+          _path: string
+          _user_agent: string
+        }
+        Returns: undefined
+      }
+      platform_signups_timeseries: {
+        Args: { _days?: number }
+        Returns: {
+          companies: number
+          day: string
+          users: number
+        }[]
+      }
+      platform_subscription_stats: { Args: { _env?: string }; Returns: Json }
+      platform_visitors_timeseries: {
+        Args: { _days?: number }
+        Returns: {
+          day: string
+          pageviews: number
+          visitors: number
+        }[]
+      }
       preview_company_invite: {
         Args: { _code: string }
         Returns: {
@@ -1762,6 +1944,7 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: undefined
       }
+      require_platform_admin: { Args: never; Returns: undefined }
       resend_company_invite: {
         Args: { _invite_id: string }
         Returns: undefined
