@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Shield, Loader2 } from "lucide-react";
+import { isMissionHost } from "@/lib/platform/host";
 
 /**
  * /_platform — pathless layout that gates the entire Mission Control surface.
