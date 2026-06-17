@@ -18,13 +18,31 @@ import { isMissionHost } from "@/lib/platform/host";
 export const Route = createFileRoute("/_platform")({
   ssr: false,
   beforeLoad: async () => {
+    // Hostname gate: on the customer-facing domain the route doesn't exist at all.
+    if (typeof window !== "undefined" && !isMissionHost(window.location.hostname)) {
+      throw notFound();
+    }
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) {
       throw redirect({ to: "/auth" });
     }
   },
+  notFoundComponent: HiddenNotFound,
   component: PlatformGate,
 });
+
+function HiddenNotFound() {
+  // Indistinguishable from a missing page on the customer site.
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-7xl font-bold">404</h1>
+        <p className="mt-4 text-sm text-muted-foreground">Page not found.</p>
+        <a href="/" className="mt-6 inline-block rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">Go home</a>
+      </div>
+    </div>
+  );
+}
 
 function PlatformGate() {
   const [state, setState] = useState<"checking" | "ok" | "denied">("checking");
