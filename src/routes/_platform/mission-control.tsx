@@ -807,7 +807,7 @@ function EventsSection({ query }: { query: string }) {
 function SecuritySection() {
   const fn = useServerFn(getSecurityStats);
   const q = useLive(["mc-security"], () => fn(), 30_000);
-  const d = q.data ?? {};
+  const d: any = q.data ?? {};
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -845,7 +845,7 @@ function SecuritySection() {
 function SystemSection() {
   const fn = useServerFn(getSystemHealth);
   const q = useLive(["mc-system"], () => fn(), 15_000);
-  const d = q.data ?? {};
+  const d: any = q.data ?? {};
   const dbOk = d.db_status === "ok";
 
   return (
