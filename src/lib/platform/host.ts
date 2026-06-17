@@ -12,9 +12,9 @@ export function isMissionHost(hostname?: string | null): boolean {
   if (typeof window === "undefined" && !hostname) return false;
   const h = (hostname ?? window.location.hostname).toLowerCase();
   if ((MISSION_HOSTS as readonly string[]).includes(h)) return true;
-  // Dev + Lovable sandbox/preview convenience.
+  // Local dev only — preview URLs (*.lovable.app) deliberately behave as the
+  // customer site so we can test it without hitting Mission Control.
   if (h === "localhost" || h === "127.0.0.1" || h.endsWith(".localhost")) return true;
-  if (h.endsWith(".lovable.app") || h.endsWith(".lovableproject.com")) return true;
   return false;
 }
 
