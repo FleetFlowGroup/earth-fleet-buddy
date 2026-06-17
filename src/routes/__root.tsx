@@ -161,6 +161,18 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
 
+  // Mission subdomain: force every non-platform request to the Mission Control
+  // entry. The customer marketing app is invisible here. Real access is still
+  // gated by the platform_admins RPC inside /_platform.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!isMissionHost(window.location.hostname)) return;
+    const p = window.location.pathname;
+    // Allow /platform/* and /auth (admins still need to sign in here).
+    if (p.startsWith("/platform") || p.startsWith("/auth")) return;
+    router.navigate({ to: "/platform/mission-control", replace: true });
+  }, [router]);
+
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
