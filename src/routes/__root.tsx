@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PresenceTracker } from "@/components/presence-tracker";
+import { isMissionHost } from "@/lib/platform/host";
 
 function NotFoundComponent() {
   return (
