@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { PresenceTracker } from "@/components/presence-tracker";
 
 function NotFoundComponent() {
   return (
@@ -170,6 +171,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <PresenceTracker />
       <Outlet />
       <Toaster richColors position="top-right" />
     </QueryClientProvider>
