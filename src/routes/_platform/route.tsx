@@ -1,7 +1,8 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Shield, Loader2 } from "lucide-react";
+import { isMissionHost } from "@/lib/platform/host";
 
 /**
  * /_platform — pathless layout that gates the entire Mission Control surface.
@@ -17,13 +18,31 @@ import { Shield, Loader2 } from "lucide-react";
 export const Route = createFileRoute("/_platform")({
   ssr: false,
   beforeLoad: async () => {
+    // Hostname gate: on the customer-facing domain the route doesn't exist at all.
+    if (typeof window !== "undefined" && !isMissionHost(window.location.hostname)) {
+      throw notFound();
+    }
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) {
       throw redirect({ to: "/auth" });
     }
   },
+  notFoundComponent: HiddenNotFound,
   component: PlatformGate,
 });
+
+function HiddenNotFound() {
+  // Indistinguishable from a missing page on the customer site.
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-7xl font-bold">404</h1>
+        <p className="mt-4 text-sm text-muted-foreground">Page not found.</p>
+        <a href="/" className="mt-6 inline-block rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">Go home</a>
+      </div>
+    </div>
+  );
+}
 
 function PlatformGate() {
   const [state, setState] = useState<"checking" | "ok" | "denied">("checking");
