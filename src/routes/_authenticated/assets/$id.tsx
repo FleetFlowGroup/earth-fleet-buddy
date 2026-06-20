@@ -709,7 +709,7 @@ function UpdateMeterDialog({
   const unit = mode === "km" ? "km" : "h";
 
   const [form, setForm] = useState({
-    last_service_date: asset.last_service_date ?? "",
+    current_meter: current != null ? String(current) : "",
     last_service_meter:
       mode === "km"
         ? (asset.last_service_odometer != null ? String(asset.last_service_odometer) : "")
@@ -727,9 +727,9 @@ function UpdateMeterDialog({
       ? Number(form.last_service_meter) + Number(form.interval_meter)
       : null;
   const nextServiceDate =
-    form.last_service_date && form.interval_days
+    asset.last_service_date && form.interval_days
       ? (() => {
-          const d = new Date(form.last_service_date);
+          const d = new Date(asset.last_service_date);
           d.setDate(d.getDate() + Number(form.interval_days));
           return d.toISOString().slice(0, 10);
         })()
@@ -740,13 +740,14 @@ function UpdateMeterDialog({
     setSaving(true);
     try {
       const patch: any = {
-        last_service_date: form.last_service_date || null,
         service_interval_days: form.interval_days ? Number(form.interval_days) : null,
       };
       if (mode === "km") {
+        patch.odometer = form.current_meter ? Math.round(Number(form.current_meter)) : null;
         patch.last_service_odometer = form.last_service_meter ? Math.round(Number(form.last_service_meter)) : null;
         patch.service_interval_km = form.interval_meter ? Math.round(Number(form.interval_meter)) : null;
       } else {
+        patch.engine_hours = form.current_meter ? Number(form.current_meter) : null;
         patch.last_service_hours = form.last_service_meter ? Number(form.last_service_meter) : null;
         patch.service_interval_hours = form.interval_meter ? Number(form.interval_meter) : null;
       }
@@ -769,11 +770,11 @@ function UpdateMeterDialog({
       <form onSubmit={submit} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label>Last service date</Label>
+            <Label>Current {mode === "km" ? "odometer" : "hours"} ({unit})</Label>
             <Input
-              type="date"
-              value={form.last_service_date}
-              onChange={(e) => setForm({ ...form, last_service_date: e.target.value })}
+              type="number" min={0} step={mode === "km" ? 1 : 0.1}
+              value={form.current_meter}
+              onChange={(e) => setForm({ ...form, current_meter: e.target.value })}
               autoFocus
             />
           </div>
