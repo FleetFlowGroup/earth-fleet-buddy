@@ -71,7 +71,7 @@ function HoursScreen() {
   }
 
   return (
-    <Shell title="Update hours">
+    <Shell title={meter?.mode === "km" ? "Update KMs" : "Update hours"}>
       {!asset ? <Empty msg="No machine assigned." /> : (
         <>
           <div className="surface-card p-4">
