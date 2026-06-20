@@ -18,7 +18,7 @@ export const Route = createFileRoute("/refund")({
 
 function Refund() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 prose prose-invert">
+    <main className="mx-auto max-w-3xl px-6 py-12 prose prose-invert">
       <p className="text-sm text-muted-foreground">
         <Link to="/" className="underline">← Back to FleetFlow</Link>
       </p>
@@ -59,6 +59,6 @@ function Refund() {
         Cancel your subscription anytime from the Billing page in FleetFlow, or via the link in any Paddle
         receipt email. Your access continues until the end of the current billing period.
       </p>
-    </div>
+    </main>
   );
 }

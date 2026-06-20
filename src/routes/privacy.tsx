@@ -18,7 +18,7 @@ export const Route = createFileRoute("/privacy")({
 
 function Privacy() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 prose prose-invert">
+    <main className="mx-auto max-w-3xl px-6 py-12 prose prose-invert">
       <p className="text-sm text-muted-foreground">
         <Link to="/" className="underline">← Back to FleetFlow</Link>
       </p>
@@ -90,6 +90,6 @@ function Privacy() {
 
       <h2>10. Changes</h2>
       <p>We may update this notice. The "last updated" date will change when we do.</p>
-    </div>
+    </main>
   );
 }
