@@ -378,7 +378,7 @@ function PrestartDetail({ row, onClose, onSaved, companyId }: { row: Row | null;
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                   {photos.data!.map((p) => (
                     <a key={p.id} href={p.url} target="_blank" rel="noreferrer" className="block aspect-square overflow-hidden rounded-md border border-border">
-                      <img src={p.url} alt="prestart" className="size-full object-cover" />
+                      <img src={p.url} alt="Pre-start inspection photo" className="size-full object-cover" />
                     </a>
                   ))}
                 </div>
@@ -388,7 +388,7 @@ function PrestartDetail({ row, onClose, onSaved, companyId }: { row: Row | null;
             {sigUrl && (
               <section>
                 <h3 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Signature</h3>
-                <img src={sigUrl} alt="signature" className="h-24 rounded-md border border-border bg-white p-1" />
+                <img src={sigUrl} alt="Operator signature" className="h-24 rounded-md border border-border bg-white p-1" />
               </section>
             )}
 

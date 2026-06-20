@@ -44,7 +44,7 @@ export function AssetPrimaryThumb({ assetId, className }: { assetId: string; cla
       </div>
     );
   }
-  return <Thumb path={primary.storage_path} alt="Asset" className={`rounded-md object-cover ${className ?? ""}`} />;
+  return <Thumb path={primary.storage_path} alt="Asset primary photo" className={`rounded-md object-cover ${className ?? ""}`} />;
 }
 
 export function AssetPhotoGallery({
@@ -151,7 +151,7 @@ export function AssetPhotoGallery({
 
       {lightbox && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4" onClick={() => setLightbox(null)}>
-          <button type="button" onClick={() => setLightbox(null)} className="absolute right-4 top-4 rounded-full bg-background/80 p-2"><X className="size-5" /></button>
+          <button type="button" onClick={() => setLightbox(null)} aria-label="Close photo" className="absolute right-4 top-4 rounded-full bg-background/80 p-2"><X className="size-5" /></button>
           {lightboxUrl ? (
             <img src={lightboxUrl} alt={lightbox.caption ?? "Asset"} className="max-h-[90vh] max-w-[95vw] rounded-md object-contain" onClick={(e) => e.stopPropagation()} />
           ) : (

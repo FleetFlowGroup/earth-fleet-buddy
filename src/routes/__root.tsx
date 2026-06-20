@@ -131,6 +131,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://czsvzcysnppmzlyfzrhv.supabase.co", crossOrigin: "anonymous" },
       { rel: "dns-prefetch", href: "https://czsvzcysnppmzlyfzrhv.supabase.co" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "FleetFlow",
+              url: "https://fleetflow.group",
+              logo: "https://fleetflow.group/favicon.ico",
+              description:
+                "Digital pre-starts, fleet management, and compliance for Australian earthmoving, civil, and plant hire businesses.",
+            },
+            { "@type": "WebSite", name: "FleetFlow", url: "https://fleetflow.group" },
+          ],
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,

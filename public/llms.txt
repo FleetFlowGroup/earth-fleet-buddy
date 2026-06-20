@@ -1,0 +1,14 @@
+# FleetFlow
+
+> Digital pre-starts, fleet management, and compliance for Australian earthmoving, civil, and plant hire businesses.
+
+FleetFlow replaces paper pre-start books with mobile-first digital inspections. Operators scan a QR code on each machine to complete checks; managers see fleet status, defects, service history, operator licences, and compliance documents from one dashboard. Unlimited operators are included on every plan — admins are the only paid seats.
+
+## Pages
+
+- [Home](/): Product overview, features, how it works, pricing, and FAQ.
+- [Pricing](/pricing): Per-asset plans from $99 AUD/month, with a $9.99 first month and no contracts.
+- [Contact](/contact): Get in touch with the FleetFlow team.
+- [Terms & Conditions](/terms): Rules governing access to FleetFlow.
+- [Privacy Notice](/privacy): How FleetFlow collects, uses, and protects data.
+- [Refund Policy](/refund): 30-day money-back guarantee details.

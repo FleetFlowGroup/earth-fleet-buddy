@@ -30,7 +30,7 @@ export function AssetQrButton({ assetId, label }: { assetId: string; label: stri
     const safeDataUrl = escapeHtml(dataUrl);
     w.document.write(`<!doctype html><html><head><title>${safeLabel}</title>
       <style>body{font-family:system-ui,sans-serif;text-align:center;padding:40px}img{width:320px;height:320px}h1{font-size:22px;margin:16px 0 4px}p{color:#555;margin:0}</style>
-      </head><body><img src="${safeDataUrl}" alt="QR"/><h1>${safeLabel}</h1><p>${safeUrl}</p></body></html>`);
+      </head><body><img src="${safeDataUrl}" alt="Machine QR code"/><h1>${safeLabel}</h1><p>${safeUrl}</p></body></html>`);
     w.document.close();
     w.focus();
     setTimeout(() => w.print(), 250);
@@ -45,7 +45,7 @@ export function AssetQrButton({ assetId, label }: { assetId: string; label: stri
         <DialogHeader><DialogTitle>{label}</DialogTitle></DialogHeader>
         <div className="grid place-items-center gap-4 py-2">
           {dataUrl ? (
-            <img src={dataUrl} alt="QR code" className="size-64 rounded-md border border-border bg-white p-3" />
+            <img src={dataUrl} alt="Machine QR code" className="size-64 rounded-md border border-border bg-white p-3" />
           ) : (
             <div className="size-64 animate-pulse rounded-md bg-muted" />
           )}

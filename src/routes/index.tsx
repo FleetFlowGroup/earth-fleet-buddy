@@ -25,6 +25,16 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 
+const FAQS: { question: string; answer: string }[] = [
+  { question: "Do my operators need a paid subscription?", answer: "No. Only company administrators require a paid plan. Operators, mechanics, supervisors, and any other staff join under your subscription at no extra cost." },
+  { question: "Do operators need to download an app?", answer: "FleetFlow works in any modern web browser — no app download required. Operators can access it from any phone, tablet, or computer." },
+  { question: "Can I import my existing data?", answer: "Yes. You can add your assets and operator details manually or contact us and we'll help you get set up quickly." },
+  { question: "Where is my data stored?", answer: "FleetFlow is cloud-based and your data is securely stored and isolated to your company only. No other organisation can see your information." },
+  { question: "How does the $9.99 first month work?", answer: "Pick any plan and your first month is just $9.99 AUD. After that, your plan renews at its standard monthly price (in AUD). Cancel anytime from Billing." },
+  { question: "Can I cancel my subscription?", answer: "Yes — any plan can be cancelled at any time, directly from the Billing page in your account. There are no contracts, no lock-ins, and no cancellation fees. You keep access until the end of your current billing period." },
+  { question: "Is FleetFlow suitable for small businesses?", answer: "Yes. FleetFlow is designed to scale — whether you're running 3 machines or 300, the platform works the same way." },
+];
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -40,6 +50,20 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "https://fleetflow.group/" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQS.map((f) => ({
+            "@type": "Question",
+            name: f.question,
+            acceptedAnswer: { "@type": "Answer", text: f.answer },
+          })),
+        }),
+      },
     ],
   }),
   component: Landing,
@@ -131,6 +155,7 @@ function Landing() {
         )}
       </header>
 
+      <main>
       {/* Hero — split */}
       <section className="relative overflow-hidden">
         <div className="hero-glow absolute inset-x-0 top-0 h-[520px]" />
@@ -395,38 +420,13 @@ function Landing() {
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-4xl">Common questions</h2>
           <div className="mt-10 space-y-4">
-            <FaqItem
-              question="Do my operators need a paid subscription?"
-              answer="No. Only company administrators require a paid plan. Operators, mechanics, supervisors, and any other staff join under your subscription at no extra cost."
-            />
-            <FaqItem
-              question="Do operators need to download an app?"
-              answer="FleetFlow works in any modern web browser — no app download required. Operators can access it from any phone, tablet, or computer."
-            />
-            <FaqItem
-              question="Can I import my existing data?"
-              answer="Yes. You can add your assets and operator details manually or contact us and we'll help you get set up quickly."
-            />
-            <FaqItem
-              question="Where is my data stored?"
-              answer="FleetFlow is cloud-based and your data is securely stored and isolated to your company only. No other organisation can see your information."
-            />
-            <FaqItem
-              question="How does the $9.99 first month work?"
-              answer="Pick any plan and your first month is just $9.99 AUD. After that, your plan renews at its standard monthly price (in AUD). Cancel anytime from Billing."
-            />
-            <FaqItem
-              question="Can I cancel my subscription?"
-              answer="Yes — any plan can be cancelled at any time, directly from the Billing page in your account. There are no contracts, no lock-ins, and no cancellation fees. You keep access until the end of your current billing period."
-            />
-            <FaqItem
-              question="Is FleetFlow suitable for small businesses?"
-              answer="Yes. FleetFlow is designed to scale — whether you're running 3 machines or 300, the platform works the same way."
-            />
-
+            {FAQS.map((f) => (
+              <FaqItem key={f.question} question={f.question} answer={f.answer} />
+            ))}
           </div>
         </div>
       </section>
+      </main>
 
       <footer className="border-t border-border/60 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-xs text-muted-foreground sm:flex-row sm:px-6">
