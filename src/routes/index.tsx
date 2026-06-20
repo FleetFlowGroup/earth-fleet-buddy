@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import fleetflowLogo from "@/assets/fleetflow-logo.png.asset.json";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -118,9 +119,8 @@ function Landing() {
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2" aria-label="FleetFlow home">
             <Logo />
-            <span className="text-base font-semibold tracking-tight">Fleetflow</span>
           </Link>
           <nav className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">
             <a href="#features" className="hover:text-foreground">Features</a>
@@ -447,14 +447,14 @@ function Landing() {
   );
 }
 
-function Logo({ size = 22 }: { size?: number }) {
+function Logo({ size = 32 }: { size?: number }) {
   return (
-    <div
-      className="grid place-items-center rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground"
-      style={{ width: size + 8, height: size + 8 }}
-    >
-      <Truck size={size - 4} />
-    </div>
+    <img
+      src={fleetflowLogo.url}
+      alt="FleetFlow"
+      style={{ height: size, width: "auto" }}
+      className="block"
+    />
   );
 }
 
