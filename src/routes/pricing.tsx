@@ -84,6 +84,7 @@ function PricingPage() {
         </div>
       </header>
 
+      <main>
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="text-center">
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Pricing</h1>
@@ -156,6 +157,7 @@ function PricingPage() {
           <Link to="/refund" className="underline">Refund Policy</Link>.
         </p>
       </section>
+      </main>
     </div>
   );
 }
