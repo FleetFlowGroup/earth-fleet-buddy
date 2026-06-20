@@ -230,7 +230,7 @@ function TicketDetailDialog({
             {ticket.certificate_path ? (
               <div className="overflow-hidden rounded-md border border-border bg-muted/30">
                 {isImage && url ? (
-                  <img src={url} alt="Certificate" className="max-h-72 w-full object-contain" />
+                  <img src={url} alt="Operator licence certificate photo" className="max-h-72 w-full object-contain" />
                 ) : (
                   <div className="p-4 text-center text-xs text-muted-foreground">
                     {url ? (
