@@ -125,14 +125,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "FleetFlow helps earthmoving, civil, and plant hire businesses replace paper pre-start books with digital inspections, fleet tracking, and compliance management — all from one platform.",
       },
-      { property: "og:image", content: `https://fleetflow.group${fleetflowLogo.url}` },
+      { property: "og:image", content: "https://fleetflow.group/logo.png" },
       { property: "og:image:alt", content: "FleetFlow logo" },
-      { name: "twitter:image", content: `https://fleetflow.group${fleetflowLogo.url}` },
+      { name: "twitter:image", content: "https://fleetflow.group/logo.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/png", href: fleetflowLogo.url },
-      { rel: "apple-touch-icon", href: fleetflowLogo.url },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "apple-touch-icon", href: "/favicon.png" },
       { rel: "preconnect", href: "https://czsvzcysnppmzlyfzrhv.supabase.co", crossOrigin: "anonymous" },
       { rel: "dns-prefetch", href: "https://czsvzcysnppmzlyfzrhv.supabase.co" },
     ],
@@ -146,7 +146,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               "@type": "Organization",
               name: "FleetFlow",
               url: "https://fleetflow.group",
-              logo: `https://fleetflow.group${fleetflowLogo.url}`,
+              logo: "https://fleetflow.group/logo.png",
               description:
                 "Digital pre-starts, fleet management, and compliance for Australian earthmoving, civil, and plant hire businesses.",
             },
