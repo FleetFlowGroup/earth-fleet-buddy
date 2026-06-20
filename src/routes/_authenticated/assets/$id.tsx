@@ -727,9 +727,9 @@ function UpdateMeterDialog({
       ? Number(form.last_service_meter) + Number(form.interval_meter)
       : null;
   const nextServiceDate =
-    form.last_service_date && form.interval_days
+    asset.last_service_date && form.interval_days
       ? (() => {
-          const d = new Date(form.last_service_date);
+          const d = new Date(asset.last_service_date);
           d.setDate(d.getDate() + Number(form.interval_days));
           return d.toISOString().slice(0, 10);
         })()
