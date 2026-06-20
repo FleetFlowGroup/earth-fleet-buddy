@@ -155,6 +155,7 @@ function Landing() {
         )}
       </header>
 
+      <main>
       {/* Hero — split */}
       <section className="relative overflow-hidden">
         <div className="hero-glow absolute inset-x-0 top-0 h-[520px]" />
