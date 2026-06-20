@@ -709,7 +709,7 @@ function UpdateMeterDialog({
   const unit = mode === "km" ? "km" : "h";
 
   const [form, setForm] = useState({
-    last_service_date: asset.last_service_date ?? "",
+    current_meter: current != null ? String(current) : "",
     last_service_meter:
       mode === "km"
         ? (asset.last_service_odometer != null ? String(asset.last_service_odometer) : "")
