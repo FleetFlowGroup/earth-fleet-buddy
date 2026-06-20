@@ -8,10 +8,15 @@ import { toast } from "sonner";
 import { ROLE_LABELS } from "@/lib/permissions";
 
 export const Route = createFileRoute("/join/$code")({
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
       { title: "Join your team · FleetFlow" },
       { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Join your team · FleetFlow" },
+      { property: "og:url", content: `https://fleetflow.group/join/${params.code}` },
+    ],
+    links: [
+      { rel: "canonical", href: `https://fleetflow.group/join/${params.code}` },
     ],
   }),
   component: PublicJoinPage,

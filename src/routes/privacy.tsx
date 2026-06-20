@@ -4,7 +4,13 @@ export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
       { title: "Privacy Notice — FleetFlow" },
-      { name: "description", content: "FleetFlow Privacy Notice." },
+      { name: "description", content: "FleetFlow privacy notice. Learn how we collect, use, and protect your personal data and fleet information." },
+      { property: "og:title", content: "Privacy Notice — FleetFlow" },
+      { property: "og:description", content: "FleetFlow privacy notice. Learn how we collect, use, and protect your personal data and fleet information." },
+      { property: "og:url", content: "https://fleetflow.group/privacy" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://fleetflow.group/privacy" },
     ],
   }),
   component: Privacy,

@@ -9,6 +9,12 @@ export const Route = createFileRoute('/unsubscribe')({
       { title: 'Unsubscribe — FleetFlow' },
       { name: 'description', content: 'Manage your FleetFlow email preferences.' },
       { name: 'robots', content: 'noindex' },
+      { property: "og:title", content: "Unsubscribe — FleetFlow" },
+      { property: "og:description", content: "Manage your FleetFlow email preferences." },
+      { property: "og:url", content: "https://fleetflow.group/unsubscribe" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://fleetflow.group/unsubscribe" },
     ],
   }),
   component: Unsubscribe,

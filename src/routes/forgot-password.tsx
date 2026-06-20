@@ -12,6 +12,12 @@ export const Route = createFileRoute("/forgot-password")({
     meta: [
       { title: "Forgot password · Fleetflow" },
       { name: "description", content: "Reset your Fleetflow account password." },
+      { property: "og:title", content: "Forgot password · Fleetflow" },
+      { property: "og:description", content: "Reset your Fleetflow account password." },
+      { property: "og:url", content: "https://fleetflow.group/forgot-password" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://fleetflow.group/forgot-password" },
     ],
   }),
   component: ForgotPasswordPage,

@@ -4,7 +4,13 @@ export const Route = createFileRoute("/refund")({
   head: () => ({
     meta: [
       { title: "Refund Policy — FleetFlow" },
-      { name: "description", content: "FleetFlow 30-day money-back refund policy." },
+      { name: "description", content: "FleetFlow 30-day money-back refund policy. Learn how to request a refund on your subscription." },
+      { property: "og:title", content: "Refund Policy — FleetFlow" },
+      { property: "og:description", content: "FleetFlow 30-day money-back refund policy. Learn how to request a refund on your subscription." },
+      { property: "og:url", content: "https://fleetflow.group/refund" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://fleetflow.group/refund" },
     ],
   }),
   component: Refund,

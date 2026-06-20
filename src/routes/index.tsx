@@ -28,12 +28,18 @@ import type { LucideIcon } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FleetFlow — Digital Pre-Starts & Fleet Management for Earthmoving Businesses" },
+      { title: "FleetFlow — Digital Pre-Starts & Fleet Management" },
       {
         name: "description",
         content:
           "FleetFlow helps earthmoving, civil, and plant hire businesses replace paper pre-start books with digital inspections, fleet tracking, and compliance management — all from one platform.",
       },
+      { property: "og:title", content: "FleetFlow — Digital Pre-Starts & Fleet Management" },
+      { property: "og:description", content: "FleetFlow helps earthmoving, civil, and plant hire businesses replace paper pre-start books with digital inspections, fleet tracking, and compliance management — all from one platform." },
+      { property: "og:url", content: "https://fleetflow.group/" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://fleetflow.group/" },
     ],
   }),
   component: Landing,
