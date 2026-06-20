@@ -127,7 +127,7 @@ export function AssetPhotoGallery({
           {photos!.map((p: any) => (
             <div key={p.id} className="group relative overflow-hidden rounded-md border border-border bg-muted">
               <button type="button" onClick={() => setLightbox({ path: p.storage_path, caption: p.caption })} className="block aspect-square w-full">
-                <Thumb path={p.storage_path} alt={p.caption ?? "Asset"} className="size-full object-cover transition group-hover:scale-105" />
+                <Thumb path={p.storage_path} alt={p.caption ?? "Asset photo"} className="size-full object-cover transition group-hover:scale-105" />
               </button>
               {p.is_primary && (
                 <span className="absolute left-1 top-1 rounded bg-warning/90 px-1.5 py-0.5 text-[10px] font-semibold text-warning-foreground">PRIMARY</span>
@@ -153,7 +153,7 @@ export function AssetPhotoGallery({
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4" onClick={() => setLightbox(null)}>
           <button type="button" onClick={() => setLightbox(null)} aria-label="Close photo" className="absolute right-4 top-4 rounded-full bg-background/80 p-2"><X className="size-5" /></button>
           {lightboxUrl ? (
-            <img src={lightboxUrl} alt={lightbox.caption ?? "Asset"} className="max-h-[90vh] max-w-[95vw] rounded-md object-contain" onClick={(e) => e.stopPropagation()} />
+            <img src={lightboxUrl} alt={lightbox.caption ?? "Asset photo"} className="max-h-[90vh] max-w-[95vw] rounded-md object-contain" onClick={(e) => e.stopPropagation()} />
           ) : (
             <Loader2 className="size-6 animate-spin text-white" />
           )}
