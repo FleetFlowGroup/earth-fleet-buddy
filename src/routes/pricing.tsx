@@ -15,6 +15,12 @@ export const Route = createFileRoute("/pricing")({
         content:
           "Simple per-asset pricing for FleetFlow. From $99 AUD/month for up to 10 assets. First month $9.99 AUD on any plan. Cancel anytime.",
       },
+      { property: "og:title", content: "Pricing — FleetFlow" },
+      { property: "og:description", content: "Simple per-asset pricing for FleetFlow. From $99 AUD/month for up to 10 assets. First month $9.99 AUD on any plan. Cancel anytime." },
+      { property: "og:url", content: "https://fleetflow.group/pricing" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://fleetflow.group/pricing" },
     ],
   }),
   component: PricingPage,

@@ -4,7 +4,13 @@ export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
       { title: "Terms & Conditions — FleetFlow" },
-      { name: "description", content: "FleetFlow Terms & Conditions of use." },
+      { name: "description", content: "FleetFlow terms and conditions of use. Read the rules governing your access to our fleet management platform." },
+      { property: "og:title", content: "Terms & Conditions — FleetFlow" },
+      { property: "og:description", content: "FleetFlow terms and conditions of use. Read the rules governing your access to our fleet management platform." },
+      { property: "og:url", content: "https://fleetflow.group/terms" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://fleetflow.group/terms" },
     ],
   }),
   component: Terms,

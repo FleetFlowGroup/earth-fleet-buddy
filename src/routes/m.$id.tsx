@@ -12,7 +12,16 @@ import { logAudit } from "@/lib/audit-log";
 
 export const Route = createFileRoute("/m/$id")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Machine · FleetFlow" }] }),
+  head: ({ params }) => ({
+    meta: [
+      { title: "Machine · FleetFlow" },
+      { property: "og:title", content: "Machine · FleetFlow" },
+      { property: "og:url", content: `https://fleetflow.group/m/${params.id}` },
+    ],
+    links: [
+      { rel: "canonical", href: `https://fleetflow.group/m/${params.id}` },
+    ],
+  }),
   component: MachineDispatcher,
 });
 

@@ -26,6 +26,10 @@ export const Route = createFileRoute('/contact')({
       },
       { property: 'og:title', content: 'Contact FleetFlow' },
       { property: 'og:description', content: 'Book a demo or talk to the FleetFlow team.' },
+      { property: 'og:url', content: 'https://fleetflow.group/contact' },
+    ],
+    links: [
+      { rel: 'canonical', href: 'https://fleetflow.group/contact' },
     ],
   }),
   component: ContactPage,

@@ -27,6 +27,12 @@ export const Route = createFileRoute("/auth")({
     meta: [
       { title: "Sign in · Fleetflow" },
       { name: "description", content: "Sign in or create your Fleetflow account." },
+      { property: "og:title", content: "Sign in · Fleetflow" },
+      { property: "og:description", content: "Sign in or create your Fleetflow account." },
+      { property: "og:url", content: "https://fleetflow.group/auth" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://fleetflow.group/auth" },
     ],
   }),
   component: AuthPage,
