@@ -15,7 +15,7 @@ import { z } from "zod";
 const search = z.object({ asset: z.string().uuid().optional() });
 
 export const Route = createFileRoute("/_authenticated/operator/hours")({
-  head: () => ({ meta: [{ title: "Update hours · FleetFlow" }] }),
+  head: () => ({ meta: [{ title: "Update meter · FleetFlow" }] }),
   validateSearch: search,
   component: HoursScreen,
 });
@@ -71,7 +71,7 @@ function HoursScreen() {
   }
 
   return (
-    <Shell title="Update hours">
+    <Shell title={meter?.mode === "km" ? "Update KMs" : "Update hours"}>
       {!asset ? <Empty msg="No machine assigned." /> : (
         <>
           <div className="surface-card p-4">

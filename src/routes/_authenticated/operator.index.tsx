@@ -323,7 +323,7 @@ function SelectedMachine({ me, asset, operatorRow, greeting, name, onSignOut }: 
 
         <section className="grid grid-cols-2 gap-3">
           <BigBtn to="/operator/prestart" icon={ClipboardCheck} label="Complete prestart" assetId={asset.id} />
-          <BigBtn to="/operator/hours" icon={Gauge} label="Update hours" assetId={asset.id} />
+          <BigBtn to="/operator/hours" icon={Gauge} label={meter.mode === "km" ? "Update KMs" : "Update hours"} assetId={asset.id} />
           <BigBtn to="/operator/defect" icon={AlertTriangle} label="Report defect" tone="danger" assetId={asset.id} />
           <BigBtn to="/operator/photos" icon={Camera} label="Upload photos" assetId={asset.id} />
           <BigBtn to="/operator/tickets" icon={Ticket} label="My tickets" />
