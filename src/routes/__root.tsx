@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import fleetflowLogo from "@/assets/fleetflow-logo.png.asset.json";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -123,11 +124,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "FleetFlow helps earthmoving, civil, and plant hire businesses replace paper pre-start books with digital inspections, fleet tracking, and compliance management — all from one platform.",
       },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f360cb1c-f20d-4db5-9268-af3d0d74f9aa/id-preview-42371e1d--cc35b793-3bf7-4ec1-bb88-1f86d597cc70.lovable.app-1781432685800.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f360cb1c-f20d-4db5-9268-af3d0d74f9aa/id-preview-42371e1d--cc35b793-3bf7-4ec1-bb88-1f86d597cc70.lovable.app-1781432685800.png" },
+      { property: "og:image", content: `https://fleetflow.group${fleetflowLogo.url}` },
+      { property: "og:image:alt", content: "FleetFlow logo" },
+      { name: "twitter:image", content: `https://fleetflow.group${fleetflowLogo.url}` },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: fleetflowLogo.url },
+      { rel: "apple-touch-icon", href: fleetflowLogo.url },
       { rel: "preconnect", href: "https://czsvzcysnppmzlyfzrhv.supabase.co", crossOrigin: "anonymous" },
       { rel: "dns-prefetch", href: "https://czsvzcysnppmzlyfzrhv.supabase.co" },
     ],
@@ -141,7 +145,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               "@type": "Organization",
               name: "FleetFlow",
               url: "https://fleetflow.group",
-              logo: "https://fleetflow.group/favicon.ico",
+              logo: `https://fleetflow.group${fleetflowLogo.url}`,
               description:
                 "Digital pre-starts, fleet management, and compliance for Australian earthmoving, civil, and plant hire businesses.",
             },
