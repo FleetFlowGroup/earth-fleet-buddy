@@ -1878,6 +1878,7 @@ export type Database = {
         }[]
       }
       platform_live_activity: { Args: { _window_sec?: number }; Returns: Json }
+      platform_owner_dashboard: { Args: never; Returns: Json }
       platform_record_visit: {
         Args: {
           _browser: string

@@ -176,3 +176,13 @@ export const recordPlatformView = createServerFn({ method: "POST" })
     await auditView(context.supabase, data.section);
     return { ok: true };
   });
+
+/** Owner Dashboard — single aggregated payload (MRR, funnel, growth, action centre). */
+export const getOwnerDashboard = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertPlatformAdmin(context.supabase, context.userId, "owner_dashboard");
+    const { data, error } = await context.supabase.rpc("platform_owner_dashboard");
+    if (error) throw error;
+    return (data ?? {}) as any;
+  });

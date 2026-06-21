@@ -25,6 +25,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MIdRouteImport } from './routes/m.$id'
 import { Route as JoinCodeRouteImport } from './routes/join.$code'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as PlatformOwnerRouteImport } from './routes/_platform/owner'
 import { Route as PlatformMissionControlRouteImport } from './routes/_platform/mission-control'
 import { Route as AuthenticatedTicketsRouteImport } from './routes/_authenticated/tickets'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
@@ -136,6 +137,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PlatformOwnerRoute = PlatformOwnerRouteImport.update({
+  id: '/owner',
+  path: '/owner',
+  getParentRoute: () => PlatformRouteRoute,
 } as any)
 const PlatformMissionControlRoute = PlatformMissionControlRouteImport.update({
   id: '/mission-control',
@@ -343,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/team': typeof AuthenticatedTeamRoute
   '/tickets': typeof AuthenticatedTicketsRoute
   '/mission-control': typeof PlatformMissionControlRoute
+  '/owner': typeof PlatformOwnerRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
@@ -391,6 +398,7 @@ export interface FileRoutesByTo {
   '/team': typeof AuthenticatedTeamRoute
   '/tickets': typeof AuthenticatedTicketsRoute
   '/mission-control': typeof PlatformMissionControlRoute
+  '/owner': typeof PlatformOwnerRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
@@ -443,6 +451,7 @@ export interface FileRoutesById {
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/tickets': typeof AuthenticatedTicketsRoute
   '/_platform/mission-control': typeof PlatformMissionControlRoute
+  '/_platform/owner': typeof PlatformOwnerRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
@@ -494,6 +503,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/tickets'
     | '/mission-control'
+    | '/owner'
     | '/email/unsubscribe'
     | '/join/$code'
     | '/m/$id'
@@ -542,6 +552,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/tickets'
     | '/mission-control'
+    | '/owner'
     | '/email/unsubscribe'
     | '/join/$code'
     | '/m/$id'
@@ -593,6 +604,7 @@ export interface FileRouteTypes {
     | '/_authenticated/team'
     | '/_authenticated/tickets'
     | '/_platform/mission-control'
+    | '/_platform/owner'
     | '/email/unsubscribe'
     | '/join/$code'
     | '/m/$id'
@@ -762,6 +774,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/email/unsubscribe'
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_platform/owner': {
+      id: '/_platform/owner'
+      path: '/owner'
+      fullPath: '/owner'
+      preLoaderRoute: typeof PlatformOwnerRouteImport
+      parentRoute: typeof PlatformRouteRoute
     }
     '/_platform/mission-control': {
       id: '/_platform/mission-control'
@@ -1065,10 +1084,12 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface PlatformRouteRouteChildren {
   PlatformMissionControlRoute: typeof PlatformMissionControlRoute
+  PlatformOwnerRoute: typeof PlatformOwnerRoute
 }
 
 const PlatformRouteRouteChildren: PlatformRouteRouteChildren = {
   PlatformMissionControlRoute: PlatformMissionControlRoute,
+  PlatformOwnerRoute: PlatformOwnerRoute,
 }
 
 const PlatformRouteRouteWithChildren = PlatformRouteRoute._addFileChildren(
@@ -1105,13 +1126,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
