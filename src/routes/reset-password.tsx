@@ -31,19 +31,36 @@ function ResetPasswordPage() {
   const [confirm, setConfirm] = useState("");
 
   useEffect(() => {
-    // Only enable the form when Supabase fires PASSWORD_RECOVERY — do NOT
-    // trust an existing session (a signed-in user landing here by accident
-    // must not be able to silently change their password).
+    // Recovery links can arrive in two shapes:
+    //   1) Legacy hash flow:  /reset-password#access_token=...&type=recovery
+    //   2) PKCE code flow:    /reset-password?code=...  (modern default)
+    // For (2) we must exchange the code for a session before the user can
+    // call updateUser. Supabase fires PASSWORD_RECOVERY for (1) and
+    // SIGNED_IN for (2), so we accept either as "ready".
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setReady(true);
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
     });
-    // If the page was opened directly from a recovery link, the URL hash
-    // contains type=recovery — accept that as a valid recovery context too.
-    if (typeof window !== "undefined" && window.location.hash.includes("type=recovery")) {
-      setReady(true);
+
+    if (typeof window !== "undefined") {
+      if (window.location.hash.includes("type=recovery")) {
+        setReady(true);
+      }
+      const code = new URLSearchParams(window.location.search).get("code");
+      if (code) {
+        supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+          if (error) {
+            toast.error("This reset link is invalid or has expired");
+          } else {
+            setReady(true);
+            // Clean the code out of the URL so a refresh doesn't re-exchange.
+            window.history.replaceState({}, "", "/reset-password");
+          }
+        });
+      }
     }
     return () => sub.subscription.unsubscribe();
   }, []);
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
