@@ -32,8 +32,15 @@ function ForgotPasswordPage() {
     e.preventDefault();
     setLoading(true);
     try {
+      // Always send the reset link to the stable production domain so the
+      // email keeps working even when the original preview origin is gone
+      // and so it matches the Supabase Site URL / allowed redirect list.
+      const origin =
+        typeof window !== "undefined" && window.location.hostname.endsWith("fleetflow.group")
+          ? window.location.origin
+          : "https://fleetflow.group";
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${origin}/reset-password`,
       });
       if (error) throw error;
       setSent(true);
