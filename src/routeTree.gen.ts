@@ -22,6 +22,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PlatformRouteRouteImport } from './routes/_platform/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlatformOwnerRouteImport } from './routes/platform.owner'
+import { Route as PlatformMissionControlRouteImport } from './routes/platform.mission-control'
+import { Route as PlatformSplatRouteImport } from './routes/platform.$'
 import { Route as MIdRouteImport } from './routes/m.$id'
 import { Route as JoinCodeRouteImport } from './routes/join.$code'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
@@ -121,6 +124,21 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlatformOwnerRoute = PlatformOwnerRouteImport.update({
+  id: '/platform/owner',
+  path: '/platform/owner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlatformMissionControlRoute = PlatformMissionControlRouteImport.update({
+  id: '/platform/mission-control',
+  path: '/platform/mission-control',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlatformSplatRoute = PlatformSplatRouteImport.update({
+  id: '/platform/$',
+  path: '/platform/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MIdRoute = MIdRouteImport.update({
@@ -353,6 +371,9 @@ export interface FileRoutesByFullPath {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
+  '/platform/$': typeof PlatformSplatRoute
+  '/platform/mission-control': typeof PlatformMissionControlRoute
+  '/platform/owner': typeof PlatformOwnerRoute
   '/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
@@ -402,6 +423,9 @@ export interface FileRoutesByTo {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
+  '/platform/$': typeof PlatformSplatRoute
+  '/platform/mission-control': typeof PlatformMissionControlRoute
+  '/platform/owner': typeof PlatformOwnerRoute
   '/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
@@ -455,6 +479,9 @@ export interface FileRoutesById {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/join/$code': typeof JoinCodeRoute
   '/m/$id': typeof MIdRoute
+  '/platform/$': typeof PlatformSplatRoute
+  '/platform/mission-control': typeof PlatformMissionControlRoute
+  '/platform/owner': typeof PlatformOwnerRoute
   '/_authenticated/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
   '/_authenticated/admin/prestarts': typeof AuthenticatedAdminPrestartsRoute
   '/_authenticated/assets/$id': typeof AuthenticatedAssetsIdRoute
@@ -507,6 +534,9 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/join/$code'
     | '/m/$id'
+    | '/platform/$'
+    | '/platform/mission-control'
+    | '/platform/owner'
     | '/admin/enquiries'
     | '/admin/prestarts'
     | '/assets/$id'
@@ -556,6 +586,9 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/join/$code'
     | '/m/$id'
+    | '/platform/$'
+    | '/platform/mission-control'
+    | '/platform/owner'
     | '/admin/enquiries'
     | '/admin/prestarts'
     | '/assets/$id'
@@ -608,6 +641,9 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/join/$code'
     | '/m/$id'
+    | '/platform/$'
+    | '/platform/mission-control'
+    | '/platform/owner'
     | '/_authenticated/admin/enquiries'
     | '/_authenticated/admin/prestarts'
     | '/_authenticated/assets/$id'
@@ -650,6 +686,9 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   JoinCodeRoute: typeof JoinCodeRoute
   MIdRoute: typeof MIdRoute
+  PlatformSplatRoute: typeof PlatformSplatRoute
+  PlatformMissionControlRoute: typeof PlatformMissionControlRoute
+  PlatformOwnerRoute: typeof PlatformOwnerRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksCheckExpiriesRoute: typeof ApiPublicHooksCheckExpiriesRoute
@@ -752,6 +791,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/platform/owner': {
+      id: '/platform/owner'
+      path: '/platform/owner'
+      fullPath: '/platform/owner'
+      preLoaderRoute: typeof PlatformOwnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/platform/mission-control': {
+      id: '/platform/mission-control'
+      path: '/platform/mission-control'
+      fullPath: '/platform/mission-control'
+      preLoaderRoute: typeof PlatformMissionControlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/platform/$': {
+      id: '/platform/$'
+      path: '/platform/$'
+      fullPath: '/platform/$'
+      preLoaderRoute: typeof PlatformSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/m/$id': {
@@ -1113,6 +1173,9 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   JoinCodeRoute: JoinCodeRoute,
   MIdRoute: MIdRoute,
+  PlatformSplatRoute: PlatformSplatRoute,
+  PlatformMissionControlRoute: PlatformMissionControlRoute,
+  PlatformOwnerRoute: PlatformOwnerRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksCheckExpiriesRoute: ApiPublicHooksCheckExpiriesRoute,
@@ -1126,3 +1189,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

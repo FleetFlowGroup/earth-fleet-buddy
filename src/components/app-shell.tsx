@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
   FileText,
   LifeBuoy,
+  Crown,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -226,28 +227,43 @@ function PlatformAdminNav({ path, onNavigate }: { email?: string; path: string; 
     },
   });
   if (!isPlatformAdmin) return null;
-  const to = "/admin/enquiries";
-  const active = path === to || path.startsWith(to + "/");
+  const ownerActive = path === "/owner" || path.startsWith("/owner/");
+  const enquiriesTo = "/admin/enquiries";
+  const enquiriesActive = path === enquiriesTo || path.startsWith(enquiriesTo + "/");
   return (
-    <Link
-      to={to}
-      onClick={onNavigate}
-      className={`mt-3 flex items-center justify-between gap-3 rounded-md px-3 py-2 transition ${
-        active
-          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-          : "text-sidebar-foreground hover:bg-sidebar-accent/60"
-      }`}
-    >
-      <span className="flex items-center gap-3">
-        <Inbox className="size-4" />
-        Enquiries
-      </span>
-      {!!newCount && newCount > 0 && (
-        <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
-          {newCount}
+    <>
+      <Link
+        to="/owner"
+        onClick={onNavigate}
+        className={`mt-3 flex items-center gap-3 rounded-md px-3 py-2 transition ${
+          ownerActive
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+            : "text-sidebar-foreground hover:bg-sidebar-accent/60"
+        }`}
+      >
+        <Crown className="size-4" />
+        Owner Dashboard
+      </Link>
+      <Link
+        to={enquiriesTo}
+        onClick={onNavigate}
+        className={`flex items-center justify-between gap-3 rounded-md px-3 py-2 transition ${
+          enquiriesActive
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+            : "text-sidebar-foreground hover:bg-sidebar-accent/60"
+        }`}
+      >
+        <span className="flex items-center gap-3">
+          <Inbox className="size-4" />
+          Enquiries
         </span>
-      )}
-    </Link>
+        {!!newCount && newCount > 0 && (
+          <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
+            {newCount}
+          </span>
+        )}
+      </Link>
+    </>
   );
 }
 

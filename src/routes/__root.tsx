@@ -15,7 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PresenceTracker } from "@/components/presence-tracker";
-import { isMissionHost } from "@/lib/platform/host";
+import { MISSION_HOSTS } from "@/lib/platform/host";
 
 function NotFoundComponent() {
   return (
@@ -187,11 +187,20 @@ function RootComponent() {
   // gated by the platform_admins RPC inside /_platform.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!isMissionHost(window.location.hostname)) return;
     const p = window.location.pathname;
-    // Allow /platform/* and /auth (admins still need to sign in here).
-    if (p.startsWith("/platform") || p.startsWith("/auth")) return;
-    router.navigate({ to: "/platform/mission-control", replace: true });
+    if (p === "/platform/owner") {
+      router.navigate({ to: "/owner", replace: true });
+      return;
+    }
+    if (p === "/platform/mission-control") {
+      router.navigate({ to: "/mission-control", replace: true });
+      return;
+    }
+    const host = window.location.hostname.toLowerCase();
+    if (!MISSION_HOSTS.includes(host as (typeof MISSION_HOSTS)[number])) return;
+    // Allow platform pages and /auth (admins still need to sign in here).
+    if (p.startsWith("/mission-control") || p.startsWith("/owner") || p.startsWith("/auth")) return;
+    router.navigate({ to: "/mission-control", replace: true });
   }, [router]);
 
   useEffect(() => {

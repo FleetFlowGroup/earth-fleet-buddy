@@ -59,7 +59,7 @@ function OwnerDashboard() {
             <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
           </span>
           Auto-refresh 30s
-          <Link to="/_platform/mission-control" className="ml-3 rounded-md border border-white/10 px-2 py-1 text-zinc-300 hover:bg-white/5">Mission Control →</Link>
+          <Link to="/mission-control" className="ml-3 rounded-md border border-white/10 px-2 py-1 text-zinc-300 hover:bg-white/5">Mission Control →</Link>
         </div>
       </header>
 
