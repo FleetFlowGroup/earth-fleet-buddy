@@ -54,6 +54,18 @@ function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [invitePreview, setInvitePreview] = useState<{ company_name: string | null; role: string | null } | null>(null);
 
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (active && data.user && !oauth) {
+        navigate({ to: dest as any, replace: true });
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [dest, navigate, oauth]);
+
   // Look up the invite (anon-safe) so we can show "You've been invited to X".
   useEffect(() => {
     if (!invite) return;
