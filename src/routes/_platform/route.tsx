@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Shield, Loader2 } from "lucide-react";
 import { isMissionHost } from "@/lib/platform/host";
+import { getRestoredUser } from "@/lib/auth-ready";
 
 /**
  * /_platform — pathless layout that gates the entire Mission Control surface.
@@ -17,14 +18,17 @@ import { isMissionHost } from "@/lib/platform/host";
  */
 export const Route = createFileRoute("/_platform")({
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     // Hostname gate: on the customer-facing domain the route doesn't exist at all.
     if (typeof window !== "undefined" && !isMissionHost(window.location.hostname)) {
       throw notFound();
     }
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) {
-      throw redirect({ to: "/auth" });
+    const user = await getRestoredUser();
+    if (!user) {
+      throw redirect({
+        to: "/auth",
+        search: { redirect: location.href },
+      });
     }
   },
   notFoundComponent: HiddenNotFound,
