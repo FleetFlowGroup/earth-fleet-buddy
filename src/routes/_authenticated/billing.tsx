@@ -184,7 +184,7 @@ function BillingPage() {
                       }`}
                     >
                       <div className="text-sm font-medium">{PLAN_LABEL[id]}</div>
-                      <div className="mt-1 text-xs text-muted-foreground">Up to {PLAN_LIMIT[id]} assets</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{isUnlimitedAssetLimit(PLAN_LIMIT[id]) ? "Unlimited assets" : `Up to ${PLAN_LIMIT[id]} assets`}</div>
                       <div className="mt-3 text-xl font-semibold">${PLAN_PRICE_AUD[id]} <span className="text-xs font-normal text-muted-foreground">AUD/mo</span></div>
                       {billing.state !== "subscribed" && billing.state !== "canceled_grace" && (
                         <div className="mt-1 text-[11px] font-medium text-primary">First month $9.99 AUD</div>
