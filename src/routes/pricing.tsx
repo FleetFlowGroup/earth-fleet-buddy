@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Check, Truck, ArrowRight } from "lucide-react";
+import { Check, Truck } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { PLAN_INTRO_DISCOUNT_ID } from "@/hooks/use-subscription";
@@ -13,10 +13,10 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "Simple per-asset pricing for FleetFlow. From $99 AUD/month for up to 10 assets. First month $9.99 AUD on any plan. Cancel anytime.",
+          "Simple monthly pricing for FleetFlow. From $49 AUD/month for 25 assets, unlimited users on every plan. First month $9.99 AUD. Cancel anytime.",
       },
       { property: "og:title", content: "Pricing — FleetFlow" },
-      { property: "og:description", content: "Simple per-asset pricing for FleetFlow. From $99 AUD/month for up to 10 assets. First month $9.99 AUD on any plan. Cancel anytime." },
+      { property: "og:description", content: "Simple monthly pricing for FleetFlow. From $49 AUD/month for 25 assets, unlimited users on every plan. First month $9.99 AUD. Cancel anytime." },
       { property: "og:url", content: "https://fleetflow.group/pricing" },
     ],
     links: [
@@ -26,20 +26,34 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
 
-const TIERS = [
-  { id: "starter_plan", priceId: "starter_monthly", name: "Starter", price: 99, limit: "1–10 assets", featured: false },
-  { id: "growth_plan", priceId: "growth_monthly", name: "Growth", price: 199, limit: "11–25 assets", featured: true },
-  { id: "pro_plan", priceId: "pro_monthly", name: "Pro", price: 299, limit: "26–50 assets", featured: false },
-  { id: "business_plan", priceId: "business_monthly", name: "Business", price: 499, limit: "51–100 assets", featured: false },
-] as const;
+type Tier = {
+  id: "starter_plan" | "growth_plan" | "pro_plan" | "business_plan";
+  priceId: string;
+  name: string;
+  price: number;
+  limit: string;
+  tagline: string;
+  featured?: boolean;
+  extraFeatures?: string[];
+};
 
-const FEATURES = [
-  "Unlimited team members",
-  "Rego, insurance & service tracking",
-  "Document storage",
-  "Auto reminders (30/14/7 days)",
-  "Operator portal & prestart checks",
-  "Defect reports with photos",
+const TIERS: Tier[] = [
+  { id: "starter_plan", priceId: "starter_monthly", name: "Starter", price: 49, limit: "Up to 25 assets", tagline: "Small crews getting started" },
+  { id: "growth_plan", priceId: "growth_monthly", name: "Growth", price: 99, limit: "Up to 75 assets", tagline: "Growing operations", featured: true },
+  { id: "pro_plan", priceId: "pro_monthly", name: "Business", price: 199, limit: "Up to 200 assets", tagline: "Established fleets" },
+  { id: "business_plan", priceId: "business_monthly", name: "Enterprise", price: 299, limit: "Unlimited assets", tagline: "Large operations & multi-yard", extraFeatures: ["Unlimited assets", "Priority support"] },
+];
+
+const CORE_FEATURES = [
+  "Digital pre-starts",
+  "Asset management",
+  "Service reminders",
+  "Registration reminders",
+  "QR code machine access",
+  "Operator logins",
+  "Unlimited users",
+  "Email notifications",
+  "Mobile-friendly platform",
 ];
 
 function PricingPage() {
@@ -89,65 +103,53 @@ function PricingPage() {
         <div className="text-center">
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Pricing</h1>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-            Pay per asset, not per user. <span className="font-medium text-foreground">First month just $9.99 AUD</span> on any plan. Cancel anytime.
+            Pay by asset count, never by user. <span className="font-medium text-foreground">Unlimited admins and operators on every plan.</span> First month just $9.99 AUD. Cancel anytime.
           </p>
           <p className="mt-2 text-xs text-muted-foreground">All prices in AUD.</p>
         </div>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-4">
-          {TIERS.map((t) => (
-            <div
-              key={t.id}
-              className={`surface-card relative flex flex-col p-6 ${
-                t.featured ? "border-primary/60 ring-1 ring-primary/40" : ""
-              }`}
-            >
-              {t.featured && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary-foreground">
-                  Most popular
-                </div>
-              )}
-              <div className="text-sm font-medium text-muted-foreground">{t.name}</div>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold">${t.price}</span>
-                <span className="text-sm text-muted-foreground">AUD/mo</span>
-              </div>
-              <div className="mt-1 text-xs font-medium text-primary">First month $9.99 AUD</div>
-              <div className="mt-1 text-sm text-foreground/80">{t.limit}</div>
-              <ul className="mt-6 flex-1 space-y-2 text-sm text-muted-foreground">
-                {FEATURES.map((f) => (
-                  <li key={f} className="flex items-start gap-2">
-                    <Check className="mt-0.5 size-4 text-primary" />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                className="mt-6 w-full"
-                variant={t.featured ? "default" : "outline"}
-                disabled={loading}
-                onClick={() => subscribe(t.id, t.priceId)}
+          {TIERS.map((t) => {
+            const features = [...CORE_FEATURES, ...(t.extraFeatures ?? [])];
+            return (
+              <div
+                key={t.id}
+                className={`surface-card relative flex flex-col p-6 ${
+                  t.featured ? "border-primary/60 ring-1 ring-primary/40" : ""
+                }`}
               >
-                {me ? "Subscribe" : "Get started — $9.99 AUD"}
-              </Button>
-            </div>
-          ))}
-        </div>
-
-        {/* Enterprise tier */}
-        <div className="surface-card mt-6 flex flex-wrap items-center justify-between gap-4 p-6">
-          <div>
-            <div className="text-sm font-medium text-muted-foreground">Enterprise</div>
-            <div className="text-xl font-semibold">100+ assets</div>
-            <div className="mt-1 text-sm text-muted-foreground">
-              Custom pricing, dedicated onboarding, SSO and priority support.
-            </div>
-          </div>
-          <Button asChild variant="outline">
-            <a href="mailto:sales@fleetflow.app?subject=Enterprise%20quote">
-              Contact sales <ArrowRight className="ml-1 size-4" />
-            </a>
-          </Button>
+                {t.featured && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary-foreground">
+                    Most popular
+                  </div>
+                )}
+                <div className="text-sm font-medium text-muted-foreground">{t.name}</div>
+                <div className="mt-2 flex items-baseline gap-1">
+                  <span className="text-4xl font-semibold">${t.price}</span>
+                  <span className="text-sm text-muted-foreground">AUD/mo</span>
+                </div>
+                <div className="mt-1 text-xs font-medium text-primary">First month $9.99 AUD</div>
+                <div className="mt-1 text-sm text-foreground/80">{t.limit}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground">{t.tagline}</div>
+                <ul className="mt-6 flex-1 space-y-2 text-sm text-muted-foreground">
+                  {features.map((f) => (
+                    <li key={f} className="flex items-start gap-2">
+                      <Check className="mt-0.5 size-4 text-primary" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className="mt-6 w-full"
+                  variant={t.featured ? "default" : "outline"}
+                  disabled={loading}
+                  onClick={() => subscribe(t.id, t.priceId)}
+                >
+                  {me ? "Subscribe" : "Get started — $9.99 AUD"}
+                </Button>
+              </div>
+            );
+          })}
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
@@ -161,3 +163,4 @@ function PricingPage() {
     </div>
   );
 }
+
