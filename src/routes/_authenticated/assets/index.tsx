@@ -433,19 +433,19 @@ function AddAssetDialog({
             noSub ? (
               <p>
                 Start a subscription on <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_AUD[target]} AUD/mo,
-                first month $9.99 AUD, up to {PLAN_LIMIT[target]} assets) to add this asset.
+                first month $9.99 AUD, {isUnlimitedAssetLimit(PLAN_LIMIT[target]) ? "unlimited assets" : `up to ${PLAN_LIMIT[target]} assets`}) to add this asset.
               </p>
             ) : (
               <p>
-                Upgrading to <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_AUD[target]} AUD/mo, up to{" "}
-                {PLAN_LIMIT[target]} assets) will be prorated immediately and lets you add this asset right
+                Upgrading to <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_AUD[target]} AUD/mo,{" "}
+                {isUnlimitedAssetLimit(PLAN_LIMIT[target]) ? "unlimited assets" : `up to ${PLAN_LIMIT[target]} assets`}) will be prorated immediately and lets you add this asset right
                 now.
               </p>
             )
           ) : (
             <p>
-              You're at the largest standard plan (Business — 100 assets). Contact sales for an Enterprise
-              quote.
+              You're already on Enterprise with unlimited assets. If you're seeing this message, please contact
+              support.
             </p>
           )}
         </div>
@@ -460,7 +460,7 @@ function AddAssetDialog({
             </Button>
           ) : (
             <Button asChild>
-              <a href="mailto:sales@fleetflow.app?subject=Enterprise%20quote">Contact sales</a>
+              <a href="mailto:support@fleetflow.group?subject=Enterprise%20support">Contact support</a>
             </Button>
           )}
         </DialogFooter>
