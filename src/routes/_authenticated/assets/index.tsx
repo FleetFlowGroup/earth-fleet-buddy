@@ -116,13 +116,15 @@ function AssetsPage() {
                 <Link
                   to="/billing"
                   className={`hidden sm:inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${
-                    assetCount >= billing.asset_limit
+                    !isUnlimitedAssetLimit(billing.asset_limit) && assetCount >= billing.asset_limit
                       ? "border-destructive/40 bg-destructive/10 text-destructive"
                       : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
                   }`}
                   title="Plan & usage"
                 >
-                  {assetCount} / {billing.asset_limit} assets
+                  {isUnlimitedAssetLimit(billing.asset_limit)
+                    ? `${assetCount} assets · Unlimited`
+                    : `${assetCount} / ${billing.asset_limit} assets`}
                 </Link>
               )}
               <Dialog open={open} onOpenChange={setOpen}>
