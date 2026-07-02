@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useBillingState, useAssetCount, PLAN_LABEL, PLAN_LIMIT, PLAN_ORDER, PLAN_PRICE_ID, PLAN_PRICE_AUD, PLAN_INTRO_DISCOUNT_ID } from "@/hooks/use-subscription";
+import { useBillingState, useAssetCount, PLAN_LABEL, PLAN_LIMIT, PLAN_ORDER, PLAN_PRICE_ID, PLAN_PRICE_AUD, PLAN_INTRO_DISCOUNT_ID, isUnlimitedAssetLimit } from "@/hooks/use-subscription";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { changeSubscriptionPlan, createPortalSession } from "@/utils/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
