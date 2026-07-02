@@ -348,63 +348,53 @@ function Landing() {
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <PlanCard
               name="Starter"
-              price={99}
-              limit="1–10 assets"
-              tagline="Solo operators & small yards"
+              price={49}
+              limit="Up to 25 assets"
+              tagline="Small crews getting started"
               features={[
-                "All compliance tracking",
-                "Email expiry reminders",
-                "Document storage",
-                "1 admin user",
+                "Digital pre-starts",
+                "Asset & service reminders",
+                "QR code machine access",
+                "Unlimited users",
               ]}
             />
             <PlanCard
               name="Growth"
-              price={199}
-              limit="11–25 assets"
-              tagline="Growing crews"
+              price={99}
+              limit="Up to 75 assets"
+              tagline="Growing operations"
               featured
               features={[
                 "Everything in Starter",
-                "Operator portal + prestarts",
-                "Defect reports & photos",
-                "Unlimited team members",
-              ]}
-            />
-            <PlanCard
-              name="Pro"
-              price={299}
-              limit="26–50 assets"
-              tagline="Active ops teams"
-              features={[
-                "Everything in Growth",
-                "Operator licence tracking",
-                "Reports & CSV export",
-                "Unlimited team members",
+                "Operator logins",
+                "Registration reminders",
+                "Unlimited users",
               ]}
             />
             <PlanCard
               name="Business"
-              price={499}
-              limit="51–100 assets"
-              tagline="Multi-yard operations"
+              price={199}
+              limit="Up to 200 assets"
+              tagline="Established fleets"
               features={[
-                "Everything in Pro",
-                "Multi-yard / multi-depot",
-                "API access (beta)",
-                "Priority email support",
+                "Everything in Growth",
+                "Mobile-friendly platform",
+                "Email notifications",
+                "Unlimited users",
               ]}
             />
-          </div>
-
-          <div className="surface-card mt-4 flex flex-wrap items-center justify-between gap-4 p-6">
-            <div>
-              <div className="text-sm font-medium text-muted-foreground">Enterprise</div>
-              <div className="text-lg font-semibold">100+ assets — custom quote, SSO, dedicated support</div>
-            </div>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/contact">Contact sales</Link>
-            </Button>
+            <PlanCard
+              name="Enterprise"
+              price={299}
+              limit="Unlimited assets"
+              tagline="Large & multi-yard operations"
+              features={[
+                "Everything in Business",
+                "Unlimited assets",
+                "Priority support",
+                "Unlimited users",
+              ]}
+            />
           </div>
 
           <div className="mt-8 text-center">
@@ -414,6 +404,7 @@ function Landing() {
           </div>
         </div>
       </section>
+
 
       {/* FAQ */}
       <section className="border-t border-border/60 py-20">
