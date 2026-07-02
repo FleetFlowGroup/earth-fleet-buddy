@@ -151,13 +151,15 @@ function BillingPage() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Assets used</span>
                   <span className="font-medium">
-                    {assetCount} / {billing.asset_limit}
+                    {isUnlimitedAssetLimit(billing.asset_limit)
+                      ? `${assetCount} / Unlimited`
+                      : `${assetCount} / ${billing.asset_limit}`}
                   </span>
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                   <div
-                    className={`h-full ${assetCount >= billing.asset_limit ? "bg-destructive" : "bg-primary"}`}
-                    style={{ width: `${billing.asset_limit ? Math.min(100, (assetCount / billing.asset_limit) * 100) : 0}%` }}
+                    className={`h-full ${!isUnlimitedAssetLimit(billing.asset_limit) && assetCount >= billing.asset_limit ? "bg-destructive" : "bg-primary"}`}
+                    style={{ width: isUnlimitedAssetLimit(billing.asset_limit) ? "8%" : `${billing.asset_limit ? Math.min(100, (assetCount / billing.asset_limit) * 100) : 0}%` }}
                   />
                 </div>
               </div>
