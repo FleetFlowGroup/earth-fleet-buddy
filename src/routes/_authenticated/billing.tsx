@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useBillingState, useAssetCount, PLAN_LABEL, PLAN_LIMIT, PLAN_ORDER, PLAN_PRICE_ID, PLAN_PRICE_AUD, PLAN_INTRO_DISCOUNT_ID } from "@/hooks/use-subscription";
+import { useBillingState, useAssetCount, PLAN_LABEL, PLAN_LIMIT, PLAN_ORDER, PLAN_PRICE_ID, PLAN_PRICE_AUD, PLAN_INTRO_DISCOUNT_ID, isUnlimitedAssetLimit } from "@/hooks/use-subscription";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { changeSubscriptionPlan, createPortalSession } from "@/utils/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
@@ -151,13 +151,15 @@ function BillingPage() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Assets used</span>
                   <span className="font-medium">
-                    {assetCount} / {billing.asset_limit}
+                    {isUnlimitedAssetLimit(billing.asset_limit)
+                      ? `${assetCount} / Unlimited`
+                      : `${assetCount} / ${billing.asset_limit}`}
                   </span>
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                   <div
-                    className={`h-full ${assetCount >= billing.asset_limit ? "bg-destructive" : "bg-primary"}`}
-                    style={{ width: `${billing.asset_limit ? Math.min(100, (assetCount / billing.asset_limit) * 100) : 0}%` }}
+                    className={`h-full ${!isUnlimitedAssetLimit(billing.asset_limit) && assetCount >= billing.asset_limit ? "bg-destructive" : "bg-primary"}`}
+                    style={{ width: isUnlimitedAssetLimit(billing.asset_limit) ? "8%" : `${billing.asset_limit ? Math.min(100, (assetCount / billing.asset_limit) * 100) : 0}%` }}
                   />
                 </div>
               </div>
@@ -182,7 +184,7 @@ function BillingPage() {
                       }`}
                     >
                       <div className="text-sm font-medium">{PLAN_LABEL[id]}</div>
-                      <div className="mt-1 text-xs text-muted-foreground">Up to {PLAN_LIMIT[id]} assets</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{isUnlimitedAssetLimit(PLAN_LIMIT[id]) ? "Unlimited assets" : `Up to ${PLAN_LIMIT[id]} assets`}</div>
                       <div className="mt-3 text-xl font-semibold">${PLAN_PRICE_AUD[id]} <span className="text-xs font-normal text-muted-foreground">AUD/mo</span></div>
                       {billing.state !== "subscribed" && billing.state !== "canceled_grace" && (
                         <div className="mt-1 text-[11px] font-medium text-primary">First month $9.99 AUD</div>

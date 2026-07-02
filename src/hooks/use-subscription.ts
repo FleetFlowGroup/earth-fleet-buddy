@@ -15,16 +15,23 @@ export type BillingState = {
 export const PLAN_LABEL: Record<string, string> = {
   starter_plan: "Starter",
   growth_plan: "Growth",
-  pro_plan: "Pro",
-  business_plan: "Business",
+  pro_plan: "Business",
+  business_plan: "Enterprise",
 };
 
 export const PLAN_ORDER = ["starter_plan", "growth_plan", "pro_plan", "business_plan"] as const;
+
+/** Sentinel used to indicate unlimited assets on the Enterprise plan. */
+export const UNLIMITED_ASSETS = 999_999;
+export function isUnlimitedAssetLimit(limit: number | null | undefined): boolean {
+  return typeof limit === "number" && limit >= UNLIMITED_ASSETS;
+}
+
 export const PLAN_LIMIT: Record<string, number> = {
-  starter_plan: 10,
-  growth_plan: 25,
-  pro_plan: 50,
-  business_plan: 100,
+  starter_plan: 25,
+  growth_plan: 75,
+  pro_plan: 200,
+  business_plan: UNLIMITED_ASSETS,
 };
 export const PLAN_PRICE_ID: Record<string, string> = {
   starter_plan: "starter_monthly",
@@ -33,10 +40,10 @@ export const PLAN_PRICE_ID: Record<string, string> = {
   business_plan: "business_monthly",
 };
 export const PLAN_PRICE_AUD: Record<string, number> = {
-  starter_plan: 99,
-  growth_plan: 199,
-  pro_plan: 299,
-  business_plan: 499,
+  starter_plan: 49,
+  growth_plan: 99,
+  pro_plan: 199,
+  business_plan: 299,
 };
 /** First-month $9.99 AUD intro discount IDs, per Paddle environment. */
 const PLAN_INTRO_DISCOUNT_ID_BY_ENV: Record<"sandbox" | "live", Record<string, string>> = {
