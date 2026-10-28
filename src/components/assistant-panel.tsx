@@ -67,7 +67,7 @@ function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (
   function contactSupport() {
     const question = [...turns].reverse().find(t => t.role === 'user')?.content ?? draft;
     onOpenChange(false);
-    navigate({ to: '/feedback', search: { category: 'contact', subject: 'FleetFlow Assistant support request', message: question.slice(0, 4000) } });
+    navigate({ to: '/feedback', search: { category: 'contact', subject: 'FleetFlow Assistant support request', message: question.slice(0, 2000) } });
   }
   const starters = audience === 'operator' ? OPERATOR_STARTERS : audience === 'admin' ? ADMIN_STARTERS : ['How do I check an operator’s licence expiry?', 'How do I find machine details?', 'How do I contact support?'];
   return <>

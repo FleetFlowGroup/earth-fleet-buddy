@@ -14,7 +14,10 @@ export async function consumeGatewayStream(response: Response): Promise<string> 
       if (data === '[DONE]') { finished = true; continue; }
       if (!data) continue;
       const event = JSON.parse(data);
-      if (event.error) throw new GatewayError(Number(event.error.status ?? event.error.code) || 502, typeof event.error.message === 'string' ? event.error.message.slice(0, 400) : undefined);
+      if (event.error) {
+        const status = Number(event.error.status ?? event.error.code) || 502;
+        throw new GatewayError(status, [402, 403].includes(status) && typeof event.error.message === 'string' ? event.error.message.slice(0, 400) : undefined);
+      }
       for (const choice of event.choices ?? []) {
         if (choice.finish_reason === 'content_filter' || choice.delta?.refusal) throw new GatewayError(403, 'The assistant cannot respond to this request.', 'refusal');
         if (choice.finish_reason === 'length') throw new GatewayError(422);
@@ -33,7 +36,8 @@ export async function consumeGatewayStream(response: Response): Promise<string> 
     }
     buffer += decoder.decode();
     if (buffer.trim()) frame(buffer);
-    if (!finished || !text.trim()) throw new GatewayError(502);
+    if (!finished) throw new GatewayError(502);
+    if (!text.trim()) throw new GatewayError(502, undefined, 'empty');
     return text;
   } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
 }
@@ -45,8 +49,10 @@ export async function callAssistantGateway(apiKey: string, messages: ReturnType<
   });
   if (!response.ok) {
     let safeMessage: string | undefined, kind: string | undefined;
-    // Read only documented safe error fields; never expose/log raw bodies.
-    try { const body = await response.json() as { message?: unknown; error?: { message?: unknown; type?: unknown } }; const message = body.message ?? body.error?.message; safeMessage = typeof message === 'string' ? message.slice(0, 500) : undefined; kind = typeof body.error?.type === 'string' ? body.error.type : undefined; } catch { /* fall back safely */ }
+    // Only mandatory documented credit/denial messages may cross the boundary.
+    if ([402, 403].includes(response.status)) {
+      try { const body = await response.json() as { message?: unknown; error?: { message?: unknown; type?: unknown } }; const message = body.message ?? body.error?.message; safeMessage = typeof message === 'string' ? message.slice(0, 500) : undefined; kind = typeof body.error?.type === 'string' ? body.error.type : undefined; } catch { /* fall back safely */ }
+    } else { await response.body?.cancel().catch(() => {}); }
     throw new GatewayError(response.status, safeMessage, kind);
   }
   return consumeGatewayStream(response);

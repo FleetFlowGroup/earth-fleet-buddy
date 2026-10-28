@@ -6,7 +6,7 @@ import { readAssistantContext } from './context';
 import { createRateLimiter, LIMIT_MESSAGE } from './rate-limit';
 import { answerQuestion, type AssistantResult } from './service';
 import { isAssistantPreviewHost } from './preview';
-import { GatewayError } from './errors';
+import { GatewayError, mapError } from './errors';
 // Preview-only per-instance counters. Never account data or conversation content.
 const limiter = createRateLimiter();
 export const askFleetFlow = createServerFn({ method: 'POST' })
@@ -18,9 +18,15 @@ export const askFleetFlow = createServerFn({ method: 'POST' })
     if (!isAssistantPreviewHost(hostname)) return { reply: 'FleetFlow Assistant is available in preview only.', links: [], escalate: false };
     try {
       const identity = await readAssistantContext(context.supabase, context.userId);
-      if (!limiter.take(context.userId, identity.companyId)) return { reply: LIMIT_MESSAGE, links: [], escalate: false };
+      if (!limiter.take(context.userId, identity.companyId)) {
+        console.info('fleetflow_assistant', { status: 429, code: 'busy', latencyMs: Date.now() - start });
+        return { reply: LIMIT_MESSAGE, links: [], escalate: false, code: 'busy' };
+      }
       const key = process.env['LOVABLE_API_KEY'];
-      if (!key) return { reply: 'The assistant is not configured correctly. Please contact support.', links: [], escalate: true };
+      if (!key) {
+        console.info('fleetflow_assistant', { status: 401, code: 'unexpected', latencyMs: Date.now() - start });
+        return { ...mapError(new GatewayError(401)), links: [], escalate: true };
+      }
       const { callAssistantGateway } = await import('./gateway.server');
       let status = 200;
       const result = await answerQuestion(data, identity.audience, async messages => {
@@ -32,10 +38,10 @@ export const askFleetFlow = createServerFn({ method: 'POST' })
           throw error;
         }
       });
-      console.info('fleetflow_assistant', { messages: data.messages.length, status, latencyMs: Date.now() - start });
+      console.info('fleetflow_assistant', { status, code: result.code ?? 'ok', latencyMs: Date.now() - start });
       return result;
     } catch {
-      console.info('fleetflow_assistant', { messages: data.messages.length, status: 500, latencyMs: Date.now() - start });
-      return { reply: 'The assistant could not answer just now. Please try again or contact support.', links: [], escalate: true };
+      console.info('fleetflow_assistant', { status: 500, code: 'unexpected', latencyMs: Date.now() - start });
+      return { ...mapError(new Error()), links: [], escalate: true };
     }
   });
