@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { memberCompanyId } from "@/lib/company-membership";
 
 export type CurrentUserData = {
   userId: string;
@@ -31,19 +32,19 @@ export function useCurrentUser() {
 
       let company = null as CurrentUserData["company"];
       let role = null as CurrentUserData["role"];
-      if (profile?.company_id) {
+      const { data: memberships, error: membershipError } = await supabase
+        .from("user_roles").select("company_id,role").eq("user_id", user.id);
+      if (membershipError) throw membershipError;
+      const companyId = memberCompanyId(profile?.company_id, memberships ?? []);
+      if (companyId) {
         const { data: c } = await supabase
           .from("companies")
           .select("id,name,abn")
-          .eq("id", profile.company_id)
+          .eq("id", companyId)
           .maybeSingle();
         company = c ?? null;
 
-        const { data: rs } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .eq("company_id", profile.company_id);
+        const rs = (memberships ?? []).filter((row) => row.company_id === companyId);
         const priority: Record<string, number> = {
           super_admin: 1,
           admin: 2,
