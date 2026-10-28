@@ -29,6 +29,7 @@ import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { setOperatorPreview } from "@/lib/operator-preview";
 import { useIsPlatformAdmin } from "@/hooks/use-is-platform-admin";
 import { GlobalSearchTrigger } from "@/components/global-search";
+import { AssistantHeaderButton } from "@/components/assistant-panel";
 
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
@@ -74,6 +75,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <div className="flex items-center gap-1">
             <GlobalSearchTrigger />
+            <AssistantHeaderButton />
             <NotificationsBell />
             <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open menu">
@@ -86,6 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex-1">
             <GlobalSearchTrigger />
           </div>
+          <AssistantHeaderButton />
         </header>
 
         {open && (
