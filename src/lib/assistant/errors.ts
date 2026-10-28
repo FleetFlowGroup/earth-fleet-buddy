@@ -14,7 +14,7 @@ export function mapError(error: unknown): string {
 export const CONFIRMATION_MESSAGE = "I can't confirm whether a prestart, invite or upload succeeded. Please check the app's confirmation message. If you're unsure, contact support.";
 export function filterSuccessClaims(reply: string): { reply: string; escalate: boolean } {
   const actionClaim = /\b(?:I|we|the assistant)\s+(?:(?:have|has|'ve)\s+)?(?:successfully\s+)?(?:sent|saved|submitted|created|updated|deleted|changed|invited|uploaded|completed|cancelled|removed|fixed|approved|granted|joined)\b/i;
-  const claimedSuccess = /\b(?:pre[ -]?start|invitation?|signature|upload|file)\b[^.!?\n]{0,100}\b(?:succeeded|successful|successfully|saved|sent|submitted|complete(?:d)?|passed|uploaded)\b/i;
+  const claimedSuccess = /\b(?:pre[ -]?start|invite|invitation|signature|upload|file)\b[^.!?\n]{0,100}\b(?:succeeded|successful|successfully|saved|sent|submitted|complete(?:d)?|passed|uploaded)\b/i;
   const reversedClaim = /\b(?:saved|sent|submitted|uploaded|completed|passed)\s+(?:your|the)\s+(?:pre[ -]?start|invite|invitation|signature|file)\b/i;
   // Conservative: claims are replaced, including quoted/replayed claims. A
   // model cannot certify account actions, even if the user asserted success.

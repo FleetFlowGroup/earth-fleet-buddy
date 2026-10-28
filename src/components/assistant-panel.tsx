@@ -49,7 +49,7 @@ function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (
   const lock = useRef(false);
   const alive = useRef(true);
   const bottom = useRef<HTMLDivElement>(null);
-  useEffect(() => () => { alive.current = false; }, []);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   useEffect(() => { bottom.current?.scrollIntoView({ behavior: 'auto', block: 'end' }); }, [turns, pending, open]);
   async function send(question = draft) {
     const content = question.trim();
@@ -59,9 +59,9 @@ function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (
     lock.current = true; setPending(true); setDraft(''); setTurns(messages);
     try {
       const result = await ask({ data: { messages, currentPath: location.pathname } });
-      if (alive.current) setTurns([...messages, { role: 'assistant', content: result.reply, links: result.links, escalate: result.escalate }].slice(-6));
+      if (alive.current) setTurns([...messages, { role: 'assistant' as const, content: result.reply, links: result.links, escalate: result.escalate }].slice(-6));
     } catch {
-      if (alive.current) setTurns([...messages, { role: 'assistant', content: 'The assistant could not answer just now. Please try again or contact support.', escalate: true }].slice(-6));
+      if (alive.current) setTurns([...messages, { role: 'assistant' as const, content: 'The assistant could not answer just now. Please try again or contact support.', escalate: true }].slice(-6));
     } finally { lock.current = false; if (alive.current) setPending(false); }
   }
   function contactSupport() {

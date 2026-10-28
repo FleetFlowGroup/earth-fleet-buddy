@@ -1,4 +1,7 @@
 # Prestart submission repair
+## Preview-only AI support assistant
+- [x] Add static support articles, authenticated read-only retrieval, link sanitisation, memory-only limits/history and the four authorised mount/prefill changes.
+- [ ] Run the full offline suite and inspect automatic compilation; verify owner guidance and mobile/desktop panel without submissions or publishing.
 ## Scoped signature repair
 - [x] Add only the authorised signature INSERT storage policy; existing policies and buckets unchanged.
 - [x] Require confirmed signature upload before prestart insert and show signed URLs or explicit missing/unavailable states in admin details.

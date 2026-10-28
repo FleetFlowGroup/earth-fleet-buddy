@@ -18,7 +18,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/feedback")({
   head: () => ({ meta: [{ title: "Contact & Feedback — FleetFlow" }] }),
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { subject?: string; message?: string; category?: string } => ({
     subject: typeof search.subject === "string" ? search.subject.slice(0, 200) : undefined,
     message: typeof search.message === "string" ? search.message.slice(0, 4000) : undefined,
     category: typeof search.category === "string" ? search.category : undefined,
