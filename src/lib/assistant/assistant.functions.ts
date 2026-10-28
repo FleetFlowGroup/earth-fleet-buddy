@@ -22,22 +22,21 @@ export const askFleetFlow = createServerFn({ method: 'POST' })
         console.info('fleetflow_assistant', { status: 429, code: 'busy', latencyMs: Date.now() - start });
         return { reply: LIMIT_MESSAGE, links: [], escalate: false, code: 'busy' };
       }
-      const key = process.env['LOVABLE_API_KEY'];
-      if (!key) {
-        console.info('fleetflow_assistant', { status: 401, code: 'unexpected', latencyMs: Date.now() - start });
-        return { ...mapError(new GatewayError(401)), links: [], escalate: true };
-      }
-      const { callAssistantGateway } = await import('./gateway.server');
       let status = 200;
       const result = await answerQuestion(data, identity.audience, async messages => {
-        try { return await callAssistantGateway(key, messages); }
+        try {
+          const key = process.env['LOVABLE_API_KEY'];
+          if (!key) throw new GatewayError(401);
+          const { callAssistantGateway } = await import('./gateway.server');
+          return await callAssistantGateway(key, messages);
+        }
         catch (error) {
           status = error instanceof GatewayError ? error.status : 500;
           // Preserve terminal status; do not retry or substitute a model.
           if (status === 403) setResponseStatus(403);
           throw error;
         }
-      });
+      }, identity);
       console.info('fleetflow_assistant', { status, code: result.code ?? 'ok', latencyMs: Date.now() - start });
       return result;
     } catch {

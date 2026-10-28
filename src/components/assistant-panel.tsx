@@ -12,6 +12,7 @@ import { routeForAudience } from '@/lib/assistant/routes';
 import { isAssistantPreviewHost } from '@/lib/assistant/preview';
 import type { AssistantResult } from '@/lib/assistant/service';
 import type { AssistantInput } from '@/lib/assistant/input';
+import { assistantSupportPrefill } from '@/lib/assistant/feedback-prefill';
 const AssistantContext = createContext({ open: () => {} });
 const ADMIN_STARTERS = ['How do I invite my operators?', 'How does my employee join my company?', 'How do I add my first machine?', 'How do I get my operators completing prestarts?', "Why can't my employee log in?", "How do I check an operator's licence expiry?", 'How do I set up servicing reminders?'];
 const OPERATOR_STARTERS = ['How do I complete a prestart?', "Why won't my prestart submit?", "How do I scan a machine's QR code?", "Why can't I log in?"];
@@ -67,7 +68,7 @@ function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (
   function contactSupport() {
     const question = [...turns].reverse().find(t => t.role === 'user')?.content ?? draft;
     onOpenChange(false);
-    navigate({ to: '/feedback', search: { category: 'contact', subject: 'FleetFlow Assistant support request', message: question.slice(0, 2000) } });
+    navigate({ to: '/feedback', search: assistantSupportPrefill(question) });
   }
   const starters = audience === 'operator' ? OPERATOR_STARTERS : audience === 'admin' ? ADMIN_STARTERS : ['How do I check an operator’s licence expiry?', 'How do I find machine details?', 'How do I contact support?'];
   return <>
