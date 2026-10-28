@@ -3,11 +3,14 @@ import { render } from '@react-email/components'
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { TEMPLATES } from '@/lib/email-templates/registry'
-import { decideInviteSend, invitationEmailData, parseInviteRequest } from '@/lib/email/team-invite-security'
+import { prepareBrowserInvite, recheckBeforeEnqueue, type InviteSendDependencies } from '@/lib/email/team-invite-security'
 
 const MAX_INVITE_SENDS_PER_HOUR = 5
 const MAX_USER_SENDS_PER_HOUR = 20
 const MAX_COMPANY_SENDS_PER_DAY = 50
+const NEW_COMPANY_DAILY_CAP = 5
+const NEW_COMPANY_COOLDOWN_MINUTES = 10
+const ESTABLISHED_COMPANY_AGE_DAYS = 14
 
 // Configuration baked in at scaffold time
 const SITE_NAME = "FleetFlow"
@@ -59,72 +62,74 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
         const supabase = createClient(supabaseUrl, supabaseServiceKey, {
           auth: { persistSession: false, autoRefreshToken: false },
         })
-        const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-
-        if (authError || !user) {
-          return Response.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
-        // Parse request body
-        let body: unknown
-        try {
-          body = await request.json()
-        } catch {
-          return Response.json(
-            { error: 'Invalid JSON in request body' },
-            { status: 400 }
-          )
-        }
-
-        const parsed = parseInviteRequest(body)
-        if ('status' in parsed) {
-          return Response.json({ error: parsed.status === 403 ? 'Forbidden' : 'inviteId is required and must be a UUID' }, { status: parsed.status })
-        }
-        const { data: invite, error: inviteError } = await supabase
-          .from('company_invites')
-          .select('id, company_id, email, code, role, invited_name, used_at, revoked_at, expires_at')
-          .eq('id', parsed.inviteId).maybeSingle()
-        if (inviteError || !invite) return Response.json({ error: 'Forbidden' }, { status: 403 })
-
         // Evaluate the same DB permission function as create_company_invite,
         // under the verified caller's JWT, never a client-supplied user/company.
         const caller = createClient(supabaseUrl, supabaseServiceKey, {
           auth: { persistSession: false, autoRefreshToken: false },
           global: { headers: { Authorization: `Bearer ${token}` } },
         })
-        const { data: canEdit, error: permissionError } = await caller.rpc('can_edit_company', {
-          _user_id: user.id, _company_id: invite.company_id,
-        })
-        const now = Date.now()
-        const limits = { invite: MAX_INVITE_SENDS_PER_HOUR, user: MAX_USER_SENDS_PER_HOUR, company: MAX_COMPANY_SENDS_PER_DAY }
-        const denied = decideInviteSend(invite, !permissionError && canEdit === true, { invite: 0, user: 0, company: 0 }, limits, now)
-        if (denied) return Response.json({ error: 'Forbidden' }, { status: denied })
-
-        const hourAgo = new Date(now - 60 * 60 * 1000).toISOString()
-        const dayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString()
-        const [inviteCount, userCount, companyCount, companyResult, profileResult] = await Promise.all([
-          supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>invite_id', invite.id).gte('created_at', hourAgo),
-          supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>user_id', user.id).gte('created_at', hourAgo),
-          supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>company_id', invite.company_id).gte('created_at', dayAgo),
-          supabase.from('companies').select('name').eq('id', invite.company_id).single(),
-          supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
-        ])
-        if (inviteCount.error || userCount.error || companyCount.error ||
-            inviteCount.count === null || userCount.count === null || companyCount.count === null ||
-            companyResult.error || !companyResult.data || profileResult.error) {
-          return Response.json({ error: 'Failed to prepare email' }, { status: 500 })
+        // Match getPaddleEnvironment() in src/lib/paddle.ts exactly, without
+        // importing the client payment module or accepting a browser env field.
+        const billingEnv = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN?.startsWith('test_') ? 'sandbox' : 'live'
+        const deps: InviteSendDependencies = {
+          now: () => Date.now(),
+          getUser: async (jwt) => {
+            const { data, error } = await supabase.auth.getUser(jwt)
+            return error ? null : data.user
+          },
+          loadInvite: async (id) => {
+            const { data, error } = await supabase.from('company_invites')
+              .select('id, company_id, email, code, role, invited_name, used_at, revoked_at, expires_at')
+              .eq('id', id).maybeSingle()
+            return error ? null : data
+          },
+          canEdit: async (userId, companyId) => {
+            const { data, error } = await caller.rpc('can_edit_company', { _user_id: userId, _company_id: companyId })
+            return !error && data === true
+          },
+          loadCompany: async (id) => {
+            const { data, error } = await supabase.from('companies').select('name, created_at').eq('id', id).single()
+            if (error || !data) throw new Error('Company lookup failed')
+            return data
+          },
+          loadBilling: async (id) => {
+            const { data, error } = await supabase.rpc('company_billing_state', { _company_id: id, _env: billingEnv })
+            if (error) throw new Error('Billing lookup failed')
+            return (Array.isArray(data) ? data[0] : data) ?? null
+          },
+          loadCounts: async (invite, userId, now) => {
+            const hourAgo = new Date(now - 3600000).toISOString()
+            const dayAgo = new Date(now - 86400000).toISOString()
+            const results = await Promise.all([
+              supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>invite_id', invite.id).gte('created_at', hourAgo),
+              supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>user_id', userId).gte('created_at', hourAgo),
+              supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>company_id', invite.company_id).gte('created_at', dayAgo),
+            ])
+            if (results.some(result => result.error || result.count === null)) throw new Error('Count lookup failed')
+            return { invite: results[0].count ?? 0, user: results[1].count ?? 0, company: results[2].count ?? 0 }
+          },
+          loadProfile: async (id) => {
+            const { data, error } = await supabase.from('profiles').select('full_name').eq('id', id).maybeSingle()
+            if (error) throw new Error('Profile lookup failed')
+            return data?.full_name ?? null
+          },
         }
-        const decision = decideInviteSend(invite, true, { invite: inviteCount.count, user: userCount.count, company: companyCount.count }, limits, now)
-        if (decision) return Response.json({ error: 'Too many invitation sends' }, { status: decision })
+        const prepared = await prepareBrowserInvite(request, deps, {
+          limits: { invite: MAX_INVITE_SENDS_PER_HOUR, user: MAX_USER_SENDS_PER_HOUR, company: MAX_COMPANY_SENDS_PER_DAY },
+          newCompanyDailyCap: NEW_COMPANY_DAILY_CAP, cooldownMinutes: NEW_COMPANY_COOLDOWN_MINUTES,
+          establishedDays: ESTABLISHED_COMPANY_AGE_DAYS,
+        })
+        if (prepared instanceof Response) return prepared
+        const { invite, user, now, recipientEmail: effectiveRecipient, templateData } = prepared
 
         const templateName = 'team-invite'
         const template = TEMPLATES[templateName]
         if (!template) return Response.json({ error: 'Failed to prepare email' }, { status: 500 })
-        const { recipientEmail: effectiveRecipient, templateData } = invitationEmailData(invite, companyResult.data.name, profileResult.data?.full_name ?? null)
         if (!effectiveRecipient) return Response.json({ error: 'Forbidden' }, { status: 403 })
         const messageId = crypto.randomUUID()
         const idempotencyKey = `team-invite-${invite.id}-${Math.floor(now / 60000)}`
         const metadata = { invite_id: invite.id, user_id: user.id, company_id: invite.company_id }
+        // Best-effort count-then-reserve; parallel requests can exceed limits.
         // Reserve a counted log row before any preparation/enqueue; fail closed
         // when logging fails. Subsequent outcomes update this same row.
         const { error: logError } = await supabase.from('email_send_log').insert({
@@ -287,6 +292,11 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
 
         // The pending log row was reserved before preparing the email.
 
+        if (!await recheckBeforeEnqueue(invite, user.id, token, deps)) {
+          await supabase.from('email_send_log').update({ status: 'failed', error_message: 'Invitation no longer authorised or valid' }).eq('message_id', messageId)
+          return Response.json({ error: 'Invitation no longer authorised or valid' }, { status: 403 })
+        }
+        // State can still change between this check and enqueue/dispatch.
         const { error: enqueueError } = await supabase.rpc('enqueue_email', {
           queue_name: 'transactional_emails',
           payload: {

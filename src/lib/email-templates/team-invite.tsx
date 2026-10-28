@@ -3,6 +3,7 @@ import {
   Body, Button, Container, Head, Heading, Hr, Html, Preview, Section, Text,
 } from '@react-email/components'
 import type { TemplateEntry } from './registry'
+import { sanitiseInviteName } from '../email/invite-names'
 
 interface Props {
   companyName?: string
@@ -15,7 +16,11 @@ interface Props {
 const friendlyRole = (r?: string) =>
   (r ?? 'team member').replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase())
 
-const Email = (p: Props) => (
+const Email = (props: Props) => {
+  // Names remain React text children, never raw HTML or link destinations.
+  const p = { ...props, companyName: sanitiseInviteName(props.companyName, 'your team'),
+    invitedName: sanitiseInviteName(props.invitedName), invitedByName: sanitiseInviteName(props.invitedByName) }
+  return (
   <Html lang="en">
     <Head />
     <Preview>You've been invited to join {p.companyName ?? 'a company'} on FleetFlow.</Preview>
@@ -63,12 +68,13 @@ const Email = (p: Props) => (
       </Container>
     </Body>
   </Html>
-)
+  )
+}
 
 export const template = {
   component: Email,
   subject: (d: Record<string, any>) =>
-    `You're invited to join ${d?.companyName ?? 'a company'} on FleetFlow`,
+    `You've been invited to join ${sanitiseInviteName(d?.companyName, 'your team')} on FleetFlow`,
   displayName: 'Team invitation',
   previewData: {
     companyName: 'ABC Earthmoving',
