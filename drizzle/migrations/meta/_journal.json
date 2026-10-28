@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1793169134238,
+      "tag": "0000_secure_prestart_submitter_access_and_operator_linking",
+      "breakpoints": true
+    }
+  ]
+}

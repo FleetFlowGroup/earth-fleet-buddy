@@ -1,5 +1,6 @@
 # Prestart submission repair
-- [ ] Reproduce rejection and verify membership, operator links, and policies.
-- [ ] Apply minimal secure repair with regression tests.
-- [ ] Verify saved prestarts, company isolation, and QR workflow; report unavailable checks.
-- [ ] Apply required package security update and verify preview.
+- [x] Investigate membership, operator links, and policies without contacting the separate customer company.
+- [x] Apply secure submission policies and future operator provisioning; isolation tests pass.
+- [ ] Verify the affected user's saved prestart and QR flow — blocked by no permission to impersonate or submit customer test records.
+- [x] Apply required package security update.
+- [x] Record the instruction not to send the separate company anything.
