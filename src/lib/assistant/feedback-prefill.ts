@@ -31,3 +31,15 @@ export function initialFeedbackValues(search: unknown) {
     message: parsed.message ?? '',
   };
 }
+
+// Assistant navigation only; no sending or submit capability. Strip scheme
+// payloads too, not just their prefixes, before applying the total message cap.
+export function assistantSupportPrefill(question: string) {
+  const text = question.normalize('NFKC')
+    .replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/g, ' ')
+    .replace(/\b[a-z][a-z0-9+.-]*\s*:[^\s]*/gi, ' ')
+    .replace(/(?:www\.|\/\/)[^\s]+/gi, ' ')
+    .replace(/\b(?:[a-z0-9-]+\.)+[a-z]{2,63}\b(?:\/[^\s]*)?/gi, ' ')
+    .replace(/\s+/g, ' ').trim();
+  return { category: 'contact' as const, subject: 'FleetFlow Assistant question', message: `Question to FleetFlow Assistant: ${text}`.slice(0, 500).trimEnd() };
+}
