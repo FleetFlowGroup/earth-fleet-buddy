@@ -17,7 +17,14 @@ import { Loader2, MessageSquare, Send, LifeBuoy, Bug, Sparkles, Mail } from "luc
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/feedback")({
-  head: () => ({ meta: [{ title: "Contact & Feedback — FleetFlow" }] }),
+  head: () => ({ meta: [
+    { title: "Contact & Feedback — FleetFlow" },
+    { name: "description", content: "Contact the FleetFlow team and review your company's feedback." },
+    { property: "og:title", content: "Contact & Feedback — FleetFlow" },
+    { property: "og:description", content: "Contact the FleetFlow team and review your company's feedback." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   validateSearch: (search: Record<string, unknown>): { subject?: string; message?: string; category?: string } => ({
     subject: typeof search.subject === "string" ? search.subject.slice(0, 200) : undefined,
     message: typeof search.message === "string" ? search.message.slice(0, 4000) : undefined,

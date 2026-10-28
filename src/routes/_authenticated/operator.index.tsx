@@ -33,7 +33,14 @@ import { AssistantHelpTile } from "@/components/assistant-panel";
 const operatorSearch = z.object({ asset: z.string().uuid().optional() });
 
 export const Route = createFileRoute("/_authenticated/operator/")({
-  head: () => ({ meta: [{ title: "Operator · FleetFlow" }] }),
+  head: () => ({ meta: [
+    { title: "Operator · FleetFlow" },
+    { name: "description", content: "FleetFlow operator portal for machine selection, prestarts and operator records." },
+    { property: "og:title", content: "Operator · FleetFlow" },
+    { property: "og:description", content: "FleetFlow operator portal for machine selection, prestarts and operator records." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   validateSearch: operatorSearch,
   component: OperatorHome,
 });
