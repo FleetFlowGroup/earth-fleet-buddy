@@ -14,3 +14,18 @@ History is browser-only **component state**, last six messages (three complete t
 
 ## Verification
 Tests cover input stripping, mock RLS context, membership isolation, limits, retrieval, injection-shaped inputs, route sanitisation, SSE fragmentation and gateway errors, plus success claims. Full Vitest is run. Manual typechecks/builds are prohibited by project instructions; automatic preview compilation is checked separately. Live model verification is performed only without customer writes/messages and stops at terminal gateway blockers.
+
+## Approved fixes: service-rule exceptions
+The requested 20–25 second timer is NOT added. Exact rule from `knowledge://skill/ai-apps-gateway-no-artificial-timeouts/SKILL.md`:
+> Never wrap a Gateway fetch in `AbortSignal.timeout(...)`, an `AbortController` armed by `setTimeout`, a `Promise.race` deadline, or an HTTP-client timeout option. If a deadline is truly unavoidable, set it to a large multiple of the worst case — minutes, not seconds.
+
+Safe alternative (proposal only): keep the existing upstream streaming and waiting indicator; add browser-visible streaming and an explicit Stop action with cancellation propagated upstream in a separately approved scope. Do not automatically retry slow requests. Real upstream 408/504 or TimeoutError failures receive the fixed timeout reply without introducing a timer.
+
+Complete denial/credit masking is also NOT implemented: `knowledge://ai-gateway-error-semantics` requires:
+> Show the response's safe error message in the UI, never a generic assistant reply.
+> Preserve upstream `403` and its safe denial reason before streaming.
+> `402` — insufficient AI credits. Show the response's `message`, which names the remedy, including temporary holds when applicable.
+
+Accordingly the mandatory safe 402/403 reason and existing 403 status remain. Refusals, busy, timeout, empty and unexpected errors otherwise use fixed replies and a closed code union; arbitrary upstream bodies and all other error messages are discarded. Logs contain only status, code and latency. Provider-denial/credit live verification still stops immediately; durable pause state is not possible within the no-storage scope.
+
+Feedback prefill uses a pure Zod helper: subject 150 characters, message 2,000 characters, only the existing four categories. Unknown values are ignored and text is truncated. Lazy useState initialisers apply these values only on initial mount; query changes do not overwrite drafts and no prefill code can submit a message. The existing submission block remains byte-identical.

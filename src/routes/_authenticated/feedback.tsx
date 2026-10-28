@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, MessageSquare, Send, LifeBuoy, Bug, Sparkles, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { initialFeedbackValues, parseFeedbackPrefill } from "@/lib/assistant/feedback-prefill";
 
 export const Route = createFileRoute("/_authenticated/feedback")({
   head: () => ({ meta: [
@@ -25,11 +26,7 @@ export const Route = createFileRoute("/_authenticated/feedback")({
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
   ] }),
-  validateSearch: (search: Record<string, unknown>): { subject?: string; message?: string; category?: string } => ({
-    subject: typeof search.subject === "string" ? search.subject.slice(0, 200) : undefined,
-    message: typeof search.message === "string" ? search.message.slice(0, 4000) : undefined,
-    category: typeof search.category === "string" ? search.category : undefined,
-  }),
+  validateSearch: parseFeedbackPrefill,
   component: FeedbackPage,
 });
 
@@ -61,11 +58,10 @@ function FeedbackPage() {
   const qc = useQueryClient();
   const submitFeedback = useServerFn(submitAppFeedback);
 
-  const initial = Route.useSearch();
-  const initialCategory = CATEGORIES.find(c => c.value === initial.category)?.value ?? "contact";
-  const [category, setCategory] = useState<Category>(initialCategory);
-  const [subject, setSubject] = useState(initial.subject ?? "");
-  const [message, setMessage] = useState(initial.message ?? "");
+  const search = Route.useSearch();
+  const [category, setCategory] = useState<Category>(() => initialFeedbackValues(search).category);
+  const [subject, setSubject] = useState(() => initialFeedbackValues(search).subject);
+  const [message, setMessage] = useState(() => initialFeedbackValues(search).message);
   const [contactEmail, setContactEmail] = useState("");
 
   const { data: rows, isLoading } = useQuery({
