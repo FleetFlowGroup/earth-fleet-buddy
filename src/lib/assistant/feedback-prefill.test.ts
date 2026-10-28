@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { FEEDBACK_CATEGORIES, initialFeedbackValues, parseFeedbackPrefill } from './feedback-prefill';
+import { FEEDBACK_CATEGORIES, initialFeedbackValues, parseFeedbackPrefill, assistantSupportPrefill } from './feedback-prefill';
 
 describe('initial feedback values', () => {
   it('truncates subjects to 150 characters', () => {
@@ -27,5 +27,22 @@ describe('initial feedback values', () => {
     expect(initialFeedbackValues({ subject: 'Help', message: 'Question', category: 'bug', submit, autoSubmit: true })).toEqual({ subject: 'Help', message: 'Question', category: 'bug' });
     expect(submit).not.toHaveBeenCalled();
     expect(parseFeedbackPrefill({ submit, autoSubmit: true })).not.toHaveProperty('submit');
+  });
+});
+
+describe('assistant support question sanitisation', () => {
+  it('sets a fixed subject and labels the sanitised question', () => {
+    expect(assistantSupportPrefill('  How   do I delete an asset?  ')).toEqual({ category: 'contact', subject: 'FleetFlow Assistant question', message: 'Question to FleetFlow Assistant: How do I delete an asset?' });
+  });
+  it.each(['https://evil.com/path', 'http:evil.com', 'javascript:alert(1)', 'data:text/html,attack', 'mailto:person@example.com', 'ftp://evil.com', 'custom+scheme:payload', 'www.evil.com/path', 'evil.group/path', '//evil.com/path'])('removes URL/scheme payload %s', url => {
+    expect(assistantSupportPrefill(`Help ${url} please`).message).toBe('Question to FleetFlow Assistant: Help please');
+  });
+  it('removes controls, invisible characters and collapses whitespace', () => {
+    expect(assistantSupportPrefill('Help\u0000\t\n\u007f\u009f\u202e\u200b please').message).toBe('Question to FleetFlow Assistant: Help please');
+  });
+  it('caps the entire message, including the label, at 500 characters', () => {
+    const result = assistantSupportPrefill('x'.repeat(1000));
+    expect(result.message).toHaveLength(500);
+    expect(result.message).toBe('Question to FleetFlow Assistant: ' + 'x'.repeat(468));
   });
 });
