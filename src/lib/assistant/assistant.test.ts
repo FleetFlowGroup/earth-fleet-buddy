@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
-import { STATIC_ROUTES, safeRoute, sanitiseReply, routeForAudience } from './routes';
+import { STATIC_ROUTES, safeRoute, sanitiseReply, routeForAudience, supportReplyForAudience } from './routes';
 import { assistantInput } from './input';
 import { retrieve } from './retrieve';
 import { ARTICLES, type Article } from './kb';
@@ -70,7 +70,7 @@ describe('gateway handling', () => {
   it('content refusal discards upstream text', () => expect(mapError(new GatewayError(403, 'private refusal', 'refusal'))).toEqual({ reply: ERROR_REPLIES.refused, code: 'refused' }));
   it('retains mandatory safe credit remedy under gateway policy', () => expect(mapError(new GatewayError(402, 'Top up workspace AI credits.'))).toEqual({ reply: 'Top up workspace AI credits.', code: 'credits' }));
   it('retains mandatory safe denial reason under gateway policy', () => expect(mapError(new GatewayError(403, 'AI vendor is disabled.'))).toEqual({ reply: 'AI vendor is disabled.', code: 'refused' }));
-  it('empty answer has its own fixed code', async () => { const result = await answerQuestion({ messages: [{ role: 'user', content: 'prestart' }] }, 'operator', async () => ' '); expect(result).toEqual({ reply: ERROR_REPLIES.empty, code: 'empty', links: [], escalate: true }); });
+  it('empty answer has its own fixed code', async () => { const result = await answerQuestion({ messages: [{ role: 'user', content: 'prestart' }] }, 'operator', async () => ' '); expect(result).toEqual({ reply: supportReplyForAudience(ERROR_REPLIES.empty, 'operator'), code: 'empty', links: [], escalate: true }); });
   it.each([401, 404, 422, 500, 502])('unexpected status %s never exposes its message', status => expect(mapError(new GatewayError(status, 'private body'))).toEqual({ reply: ERROR_REPLIES.unexpected, code: 'unexpected' }));
   it('a failed request returns no raw error or stack', async () => { const result = await answerQuestion({ messages: [{ role: 'user', content: 'prestart signature' }] }, 'operator', async () => { throw new Error('secret upstream body'); }); expect(result.reply).not.toContain('secret'); expect(result.escalate).toBe(true); });
   it('consumes separated metadata, empty thinking and fragmented SSE before answer', async () => { expect(await consumeGatewayStream(streamResponse(['data: {"choices":[]}\n\n', 'data: {"choices":[{"delta":{"reasoning_content":""}}]}\n\n', 'data: {"choices":[{"delta":{"content":"1. Check ', 'the pad."}}]}\n\n', 'data: [DONE]\n\n']))).toBe('1. Check the pad.'); });
@@ -82,6 +82,42 @@ describe('gateway handling', () => {
   it('completed empty stream maps to empty failure', async () => { await expect(consumeGatewayStream(streamResponse(['data: {"choices":[]}\n\n', 'data: [DONE]\n\n']))).rejects.toMatchObject({ kind: 'empty' }); });
   it('stream errors discard messages unless mandatory safe 402/403', async () => { await expect(consumeGatewayStream(streamResponse(['data: {"error":{"status":500,"message":"private body"}}\n\n']))).rejects.toMatchObject({ status: 500, safeMessage: undefined }); });
   it('serialised failures contain only approved result fields and a fixed code', async () => { const result = await answerQuestion({ messages: [{ role: 'user', content: 'prestart' }] }, 'operator', async () => { throw new GatewayError(500, 'private body'); }); expect(Object.keys(result).sort()).toEqual(['code', 'escalate', 'links', 'reply']); expect(result.code).toBe('unexpected'); expect(JSON.stringify(result)).not.toMatch(/private|500|status|safeMessage/); });
+});
+
+describe('operator escalation presentation', () => {
+  it.each([new GatewayError(402), new GatewayError(403), new GatewayError(403, undefined, 'refusal'), new GatewayError(429), new GatewayError(504), new GatewayError(502, undefined, 'empty'), new Error('failure')])('never sends operator error/refusal replies to support', async error => {
+    const result = await answerQuestion({ messages: [{ role: 'user', content: 'prestart' }] }, 'operator', async () => { throw error; });
+    expect(result.reply).not.toMatch(/contact\s+support|FleetFlow support|\/feedback/i);
+    expect(result.links).not.toContain('/feedback');
+  });
+  it('rewrites model output and excludes feedback links', async () => {
+    const result = await answerQuestion({ messages: [{ role: 'user', content: 'prestart' }] }, 'operator', async () => 'Please Contact support through your company admin. Open [Contact support](/feedback).');
+    expect(result.reply).toContain('ask your company admin');
+    expect(result.reply).not.toMatch(/contact\s+support|\/feedback/i);
+    expect(result.links).not.toContain('/feedback');
+  });
+  it('no article fallback asks company admin', async () => {
+    const result = await answerQuestion({ messages: [{ role: 'user', content: 'zzzzzz' }] }, 'operator', async () => 'unused');
+    expect(result.reply).toContain('ask your company admin');
+    expect(result.links).toEqual([]);
+  });
+  it('success claim replacement asks company admin', async () => {
+    const result = await answerQuestion({ messages: [{ role: 'user', content: 'prestart' }] }, 'operator', async () => 'I have submitted your prestart.');
+    expect(result.reply).toContain('ask your company admin');
+    expect(result.reply).not.toMatch(/contact\s+support/i);
+  });
+  it('operator system rules never offer direct support', () => {
+    const messages = buildMessages([], [], undefined, 'operator');
+    expect(messages[0]?.content).toContain('ask your company admin');
+    expect(messages[0]?.content).not.toMatch(/contact\s+support|\/feedback/i);
+  });
+  it('preserves admin support wording', () => {
+    expect(supportReplyForAudience('Contact support /feedback', 'admin')).toBe('Contact support /feedback');
+  });
+  it('rewrites panel fallback and fixed credit wording', () => {
+    expect(supportReplyForAudience(ERROR_REPLIES.unexpected, 'operator')).toContain('ask your company admin');
+    expect(supportReplyForAudience(ERROR_REPLIES.credits, 'operator')).toContain('ask your company admin');
+  });
 });
 describe('unsupported success claims', () => {
   it.each(['I have submitted your prestart.', 'Your invite was successfully sent.', 'The signature has been saved.', 'Your prestart passed.', 'We updated your plan.', 'Uploaded your file.'])('blocks %s', reply => expect(filterSuccessClaims(reply)).toEqual({ reply: CONFIRMATION_MESSAGE, escalate: true }));

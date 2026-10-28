@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { askFleetFlow } from '@/lib/assistant/assistant.functions';
 import { audienceFor } from '@/lib/assistant/context';
-import { routeForAudience } from '@/lib/assistant/routes';
+import { routeForAudience, supportReplyForAudience } from '@/lib/assistant/routes';
 import { isAssistantPreviewHost } from '@/lib/assistant/preview';
 import type { AssistantResult } from '@/lib/assistant/service';
 import type { AssistantInput } from '@/lib/assistant/input';
@@ -60,12 +60,13 @@ function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (
     lock.current = true; setPending(true); setDraft(''); setTurns(messages);
     try {
       const result = await ask({ data: { messages, currentPath: location.pathname } });
-      if (alive.current) setTurns([...messages, { role: 'assistant' as const, content: result.reply, links: result.links, escalate: result.escalate }].slice(-6));
+      if (alive.current) setTurns([...messages, { role: 'assistant' as const, content: supportReplyForAudience(result.reply, audience), links: result.links, escalate: result.escalate }].slice(-6));
     } catch {
-      if (alive.current) setTurns([...messages, { role: 'assistant' as const, content: 'The assistant could not answer just now. Please try again or contact support.', escalate: true }].slice(-6));
+      if (alive.current) setTurns([...messages, { role: 'assistant' as const, content: supportReplyForAudience('The assistant could not answer just now. Please try again or contact support.', audience), escalate: true }].slice(-6));
     } finally { lock.current = false; if (alive.current) setPending(false); }
   }
   function contactSupport() {
+    if (audience === 'operator') return;
     const question = [...turns].reverse().find(t => t.role === 'user')?.content ?? draft;
     onOpenChange(false);
     navigate({ to: '/feedback', search: assistantSupportPrefill(question) });
@@ -98,7 +99,7 @@ function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (
               <Button type="submit" disabled={pending || !draft.trim()}><Send className="mr-2 size-4" />Send</Button>
             </div>
           </form>
-          {audience === 'operator' ? <p className="mt-3 text-xs text-muted-foreground">For Contact support, ask your company admin to use Contact & Feedback.</p> : <Button variant="link" className="mt-2 h-auto p-0 text-sm" onClick={contactSupport}><LifeBuoy className="mr-2 size-4" />Contact support</Button>}
+          {audience === 'operator' ? <p className="mt-3 text-xs text-muted-foreground">For help, ask your company admin.</p> : <Button variant="link" className="mt-2 h-auto p-0 text-sm" onClick={contactSupport}><LifeBuoy className="mr-2 size-4" />Contact support</Button>}
         </div>
       </SheetContent>
     </Sheet>
