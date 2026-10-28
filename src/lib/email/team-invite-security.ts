@@ -113,7 +113,7 @@ export async function prepareBrowserInvite(request: Request, deps: InviteSendDep
     try { billing = await deps.loadBilling(invite.company_id); } catch { /* lower tier */ }
     const created = Date.parse(company.created_at);
     const oldEnough = Number.isFinite(created) && now - created >= config.establishedDays * 86400000;
-    const paid = billing?.state === 'active' && billing.status === 'active';
+    const paid = billing?.state === 'subscribed' && billing.status === 'active';
     const established = billing !== null && (paid || oldEnough);
     const limits = { ...config.limits, company: established ? config.limits.company : config.newCompanyDailyCap };
     if (!established) {
