@@ -14,11 +14,20 @@ import { uploadPhoto, compressImage } from "@/lib/photo-upload";
 import { SignaturePad, type SignaturePadHandle } from "@/components/signature-pad";
 import { logAudit, getBrowserPosition } from "@/lib/audit-log";
 import { z } from "zod";
+import { prestartIdentity } from "@/lib/company-membership";
 
 const search = z.object({ asset: z.string().uuid().optional() });
 
 export const Route = createFileRoute("/_authenticated/operator/prestart")({
-  head: () => ({ meta: [{ title: "Prestart · FleetFlow" }] }),
+  head: () => ({ meta: [
+    { title: "Daily Prestart · FleetFlow" },
+    { name: "description", content: "Complete your FleetFlow daily machine prestart and record inspection results." },
+    { property: "og:title", content: "Daily Prestart · FleetFlow" },
+    { property: "og:description", content: "Complete your FleetFlow daily machine prestart and record inspection results." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
+  ] }),
   validateSearch: search,
   component: PrestartScreen,
 });
@@ -46,10 +55,12 @@ function PrestartScreen() {
     queryKey: ["prestart-template", me?.company?.id],
     enabled: !!me?.company?.id,
     queryFn: async (): Promise<TemplateItem[]> => {
+      const companyId = me?.company?.id;
+      if (!companyId) return [];
       const { data, error } = await (supabase as any)
         .from("prestart_template_items")
         .select("id, section, label, sort_order, is_critical")
-        .eq("company_id", me!.company!.id)
+        .eq("company_id", companyId)
         .eq("active", true)
         .order("sort_order");
       if (error) throw error;
@@ -68,8 +79,9 @@ function PrestartScreen() {
   const sections = useMemo(() => {
     const map = new Map<string, TemplateItem[]>();
     for (const it of items ?? []) {
-      if (!map.has(it.section)) map.set(it.section, []);
-      map.get(it.section)!.push(it);
+      const section = map.get(it.section) ?? [];
+      section.push(it);
+      map.set(it.section, section);
     }
     return Array.from(map.entries());
   }, [items]);
@@ -102,6 +114,10 @@ function PrestartScreen() {
 
     setSaving(true);
     try {
+      const identity = prestartIdentity({
+        userId: me.userId, companyId: me.company.id, asset,
+        operator: realOperatorId(op) ? op : null, preview: !!op?.__preview,
+      });
       const checklist = items.map((it) => ({
         item_id: it.id,
         section: it.section,
@@ -114,7 +130,7 @@ function PrestartScreen() {
       // Upload signature first (best-effort)
       let signaturePath: string | null = null;
       try {
-        const blob = await sigRef.current!.toBlob();
+        const blob = await sigRef.current?.toBlob();
         if (blob) {
           const f = new File([blob], `signature-${Date.now()}.png`, { type: "image/png" });
           const path = `${me.company.id}/prestarts/signatures/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.png`;
@@ -126,10 +142,7 @@ function PrestartScreen() {
       const ua = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : null;
       const gps = await getBrowserPosition(3500);
       const { data: ps, error } = await (supabase as any).from("prestart_checks").insert({
-        company_id: me.company.id,
-        asset_id: asset.id,
-        operator_id: realOperatorId(op),
-        performed_by: me.userId,
+        ...identity,
         checklist,
         notes: notes || null,
         status: anyFail ? "fail" : "pass",
