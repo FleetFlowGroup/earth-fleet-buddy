@@ -4,4 +4,4 @@
 - [ ] Verify the affected user's saved prestart and QR flow — blocked by no permission to impersonate or submit customer test records.
 - [x] Apply required package security update.
 - [x] Record the instruction not to send the separate company anything.
-- [ ] Repair the existing affected customer's missing operator link without changing their role or contacting them, then read it back.
+- [x] Repair the existing affected customer's missing operator link without changing their role or contacting them; verified an active operator linked to their user and company.
