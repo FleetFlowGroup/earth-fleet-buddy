@@ -1951,6 +1951,17 @@ export type Database = {
         Args: { _invite_id: string }
         Returns: undefined
       }
+      reserve_team_invite_email: {
+        Args: {
+          _company_daily_cap: number
+          _company_id: string
+          _cooldown_minutes?: number
+          _invite_id: string
+          _message_id: string
+          _user_id: string
+        }
+        Returns: string
+      }
       seed_demo_company: { Args: { _admin_user_id: string }; Returns: string }
       seed_prestart_template: {
         Args: { _company_id: string }
