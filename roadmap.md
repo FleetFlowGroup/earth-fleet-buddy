@@ -1,5 +1,6 @@
 # Prestart submission repair
 ## Phase 1 browser email security
+- [ ] Prepare unapplied atomic reservation/index SQL; switch sender to fail-closed RPC and run offline concurrency/handler tests. No DDL, emails, data changes or publishing.
 - [x] Final hardening: verified emails, new-company controls, sanitised names and last-moment state/permission checks; 65 mocked/pure invitation tests and 7 existing isolation tests passed; automatic build OK. Atomic reservation and indexes proposed as text only, not applied.
 - [x] Restrict browser sends to verified, authorised team invitations and log-backed limits; no sends, deployment, policies, or migrations.
 - [x] Audit callers and trusted server imports; 31 offline authorisation/limit tests and 7 existing isolation tests passed.

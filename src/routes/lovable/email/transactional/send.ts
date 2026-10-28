@@ -97,17 +97,6 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
             if (error) throw new Error('Billing lookup failed')
             return (Array.isArray(data) ? data[0] : data) ?? null
           },
-          loadCounts: async (invite, userId, now) => {
-            const hourAgo = new Date(now - 3600000).toISOString()
-            const dayAgo = new Date(now - 86400000).toISOString()
-            const results = await Promise.all([
-              supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>invite_id', invite.id).gte('created_at', hourAgo),
-              supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>user_id', userId).gte('created_at', hourAgo),
-              supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>company_id', invite.company_id).gte('created_at', dayAgo),
-            ])
-            if (results.some(result => result.error || result.count === null)) throw new Error('Count lookup failed')
-            return { invite: results[0].count ?? 0, user: results[1].count ?? 0, company: results[2].count ?? 0 }
-          },
           loadProfile: async (id) => {
             const { data, error } = await supabase.from('profiles').select('full_name').eq('id', id).maybeSingle()
             if (error) throw new Error('Profile lookup failed')
@@ -120,7 +109,7 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
           establishedDays: ESTABLISHED_COMPANY_AGE_DAYS,
         })
         if (prepared instanceof Response) return prepared
-        const { invite, user, now, recipientEmail: effectiveRecipient, templateData } = prepared
+        const { invite, user, now, companyDailyCap, recipientEmail: effectiveRecipient, templateData } = prepared
 
         const templateName = 'team-invite'
         const template = TEMPLATES[templateName]
@@ -128,17 +117,34 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
         if (!effectiveRecipient) return Response.json({ error: 'Forbidden' }, { status: 403 })
         const messageId = crypto.randomUUID()
         const idempotencyKey = `team-invite-${invite.id}-${Math.floor(now / 60000)}`
-        const metadata = { invite_id: invite.id, user_id: user.id, company_id: invite.company_id }
-        // Best-effort count-then-reserve; parallel requests can exceed limits.
-        // Reserve a counted log row before any preparation/enqueue; fail closed
-        // when logging fails. Subsequent outcomes update this same row.
-        const { error: logError } = await supabase.from('email_send_log').insert({
-          message_id: messageId, template_name: templateName,
-          recipient_email: effectiveRecipient, status: 'pending', metadata,
-        })
-        if (logError) {
+        if (!await recheckBeforeEnqueue(invite, user.id, token, deps)) {
+          return Response.json({ error: 'Invitation no longer authorised or valid' }, { status: 403 })
+        }
+        // Service-role-only RPC owns locked counts and the pending reservation.
+        // Deploy SQL first: a missing RPC fails closed, never falls back to JS counts.
+        let reservation
+        try {
+          reservation = await supabase.rpc('reserve_team_invite_email', {
+            _invite_id: invite.id, _user_id: user.id, _company_id: invite.company_id,
+            _message_id: messageId, _company_daily_cap: companyDailyCap,
+            _cooldown_minutes: NEW_COMPANY_COOLDOWN_MINUTES,
+          })
+        } catch {
           return Response.json({ error: 'Failed to prepare email' }, { status: 500 })
         }
+        if (reservation.error) {
+          const missing = reservation.error.code === 'PGRST202' || reservation.error.code === '42883'
+          return Response.json({ error: missing ? 'Invitation sending temporarily unavailable' : 'Failed to prepare email' }, { status: missing ? 503 : 500 })
+        }
+        if (reservation.data !== 'ok') {
+          const reason = reservation.data
+          const limited = reason === 'cooldown' || reason === 'limit_invite' || reason === 'limit_user' || reason === 'limit_company'
+          const forbidden = reason === 'forbidden' || reason === 'invalid_invite' || reason === 'unverified'
+          return Response.json({ error: limited ? 'Too many invitation sends. Please retry later.' : forbidden ? 'Forbidden' : 'Failed to prepare email' }, { status: limited ? 429 : forbidden ? 403 : 500 })
+        }
+
+        // Any preparation failure after reservation releases its counted allowance.
+        try {
 
         // 2. Check suppression list (fail-closed: if we can't verify, don't send)
         const { data: suppressed, error: suppressionError } = await supabase
@@ -152,6 +158,7 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
             error: suppressionError,
             recipient_redacted: redactEmail(effectiveRecipient),
           })
+          await supabase.from('email_send_log').update({ status: 'failed', error_message: 'Failed to verify suppression status' }).eq('message_id', messageId)
           return Response.json(
             { error: 'Failed to verify suppression status' },
             { status: 500 }
@@ -342,6 +349,10 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
         })
 
         return Response.json({ success: true, queued: true })
+        } catch {
+          await supabase.from('email_send_log').update({ status: 'failed', error_message: 'Failed to prepare or enqueue email' }).eq('message_id', messageId)
+          return Response.json({ error: 'Failed to prepare or enqueue email' }, { status: 500 })
+        }
       },
     },
   },

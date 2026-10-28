@@ -77,7 +77,6 @@ export interface InviteSendDependencies {
   canEdit(userId: string, companyId: string, token: string): Promise<boolean>;
   loadCompany(id: string): Promise<{ name: string; created_at: string }>;
   loadBilling(id: string): Promise<{ state: string; status: string | null } | null>;
-  loadCounts(invite: InviteForSend, userId: string, now: number): Promise<SendCounts>;
   loadProfile(userId: string): Promise<string | null>;
 }
 
@@ -120,11 +119,8 @@ export async function prepareBrowserInvite(request: Request, deps: InviteSendDep
       const remaining = Number.isFinite(created) ? created + config.cooldownMinutes * 60000 - now : config.cooldownMinutes * 60000;
       if (remaining > 0) return rejected(429, 'New company invitation cooldown. Please retry later.', Math.max(1, Math.ceil(remaining / 1000)));
     }
-    const counts = await deps.loadCounts(invite, user.id, now);
-    if (Object.values(counts).some(count => !Number.isFinite(count) || count < 0)) return rejected(500, 'Failed to verify invitation limits');
-    if (decideInviteSend(invite, true, counts, limits, now)) return rejected(429, 'Too many invitation sends. Please retry later.', 3600);
     const invitedByName = await deps.loadProfile(user.id);
-    return { invite, user, token, now, ...invitationEmailData(invite, company.name, invitedByName) };
+    return { invite, user, token, now, companyDailyCap: limits.company, ...invitationEmailData(invite, company.name, invitedByName) };
   } catch { return rejected(500, 'Failed to prepare email'); }
 }
 
