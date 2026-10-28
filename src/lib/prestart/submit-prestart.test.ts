@@ -36,7 +36,7 @@ describe("submitPrestart", () => {
     const m = mockClient({});
     const r = await submitPrestart({ ...base, client: m.client, signatureEmpty: false });
     expect(r).toEqual({ ok: true, id: "p1", signaturePath: base.path });
-    expect(m.upload.mock.calls[0][0]).toBe(base.path);
+    expect(m.upload).toHaveBeenCalledWith(base.path, expect.any(Blob), { contentType: "image/png", upsert: false });
     expect(m.insert).toHaveBeenCalledWith({ status: "pass", signature_path: base.path });
   });
   it("insert error after upload: stage insert, cleanup attempted", async () => {
