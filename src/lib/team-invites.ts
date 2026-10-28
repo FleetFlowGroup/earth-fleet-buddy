@@ -24,18 +24,7 @@ export async function sendTeamInviteEmail(args: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${session.access_token}`,
     },
-    body: JSON.stringify({
-      templateName: "team-invite",
-      recipientEmail: args.recipientEmail,
-      idempotencyKey: `team-invite-${args.inviteId}-${Date.now()}`,
-      templateData: {
-        companyName: args.companyName,
-        invitedName: args.invitedName ?? undefined,
-        invitedByName: args.invitedByName ?? undefined,
-        role: args.role,
-        inviteUrl,
-      },
-    }),
+    body: JSON.stringify({ inviteId: args.inviteId }),
   });
 
   if (!res.ok) {
