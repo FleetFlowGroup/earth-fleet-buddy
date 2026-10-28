@@ -15,6 +15,7 @@ import { SignaturePad, type SignaturePadHandle } from "@/components/signature-pa
 import { logAudit, getBrowserPosition } from "@/lib/audit-log";
 import { z } from "zod";
 import { prestartIdentity } from "@/lib/company-membership";
+import { submitPrestart, submissionSucceeded, SUBMIT_MESSAGES, type PrestartClient } from "@/lib/prestart/submit-prestart";
 
 const search = z.object({ asset: z.string().uuid().optional() });
 
@@ -110,7 +111,7 @@ function PrestartScreen() {
       setCommentOpen((c) => ({ ...c, [missingComment.id]: true }));
       return;
     }
-    if (sigRef.current?.isEmpty()) { toast.error("Please sign to submit"); return; }
+    if (!sigRef.current || sigRef.current.isEmpty()) { toast.error(SUBMIT_MESSAGES.signature); return; }
 
     setSaving(true);
     try {
@@ -127,33 +128,31 @@ function PrestartScreen() {
         comment: state[it.id].comment || null,
       }));
 
-      // Upload signature first (best-effort)
-      let signaturePath: string | null = null;
-      try {
-        const blob = await sigRef.current?.toBlob();
-        if (blob) {
-          const f = new File([blob], `signature-${Date.now()}.png`, { type: "image/png" });
-          const path = `${me.company.id}/prestarts/signatures/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.png`;
-          const { error } = await supabase.storage.from("asset-photos").upload(path, f, { contentType: "image/png", upsert: false });
-          if (!error) signaturePath = path;
-        }
-      } catch { /* ignore */ }
-
       const ua = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : null;
       const gps = await getBrowserPosition(3500);
-      const { data: ps, error } = await (supabase as any).from("prestart_checks").insert({
-        ...identity,
-        checklist,
-        notes: notes || null,
-        status: anyFail ? "fail" : "pass",
-        meter_reading: meterReading ? Number(meterReading) : null,
-        signature_path: signaturePath,
-        submitter_user_agent: ua,
-        gps_lat: gps?.lat ?? null,
-        gps_lng: gps?.lng ?? null,
-        gps_accuracy: gps?.accuracy ?? null,
-      }).select("id").single();
-      if (error) throw error;
+      const sig = sigRef.current;
+      const result = await submitPrestart({
+        client: supabase as unknown as PrestartClient,
+        companyId: me.company.id,
+        signatureEmpty: sig.isEmpty(),
+        getSignature: () => sig.toBlob(),
+        row: {
+          ...identity,
+          checklist,
+          notes: notes || null,
+          status: anyFail ? "fail" : "pass",
+          meter_reading: meterReading ? Number(meterReading) : null,
+          submitter_user_agent: ua,
+          gps_lat: gps?.lat ?? null,
+          gps_lng: gps?.lng ?? null,
+          gps_accuracy: gps?.accuracy ?? null,
+        },
+      });
+      if (!submissionSucceeded(result, (message, error) => {
+        console.error("prestart submit failed", error);
+        toast.error(message);
+      })) return;
+      const ps = { id: result.id };
 
       // Bump asset meter via SECURITY DEFINER helper (operators cannot UPDATE assets directly)
       if (meterReading && meter) {

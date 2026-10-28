@@ -1,6 +1,6 @@
 // Admin Prestarts dashboard — list, filter, view detail, resolve defects, export CSV.
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -15,9 +15,17 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit-log";
 import { can } from "@/lib/permissions";
+import { signatureView } from "@/lib/prestart/signature-view";
 
 export const Route = createFileRoute("/_authenticated/admin/prestarts")({
-  head: () => ({ meta: [{ title: "Prestarts · FleetFlow" }] }),
+  head: () => ({ meta: [
+    { title: "Prestart Records · FleetFlow" },
+    { name: "description", content: "Review FleetFlow prestart inspections and operator signatures." },
+    { property: "og:title", content: "Prestart Records · FleetFlow" },
+    { property: "og:description", content: "Review FleetFlow prestart inspections and operator signatures." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <AppShell><PrestartsAdmin /></AppShell>,
 });
 
@@ -137,6 +145,7 @@ function PrestartsAdmin() {
       asset_id: r.assets?.id ?? "",
       registration: r.assets?.registration || "",
       status: r.status,
+      signed: r.signature_path ? "yes" : "no",
       meter: r.meter_reading ?? "",
       site: r.assets?.location ?? "",
       gps: r.gps_lat && r.gps_lng ? `${r.gps_lat},${r.gps_lng}` : "",
@@ -273,7 +282,23 @@ function Stat({ label, value, icon: Icon, tone }: { label: string; value: number
 
 function PrestartDetail({ row, onClose, onSaved, companyId }: { row: Row | null; onClose: () => void; onSaved: () => void; companyId?: string }) {
   const [adminNotes, setAdminNotes] = useState("");
-  const [sigUrl, setSigUrl] = useState<string | null>(null);
+  const signature = useQuery({
+    queryKey: ["prestart-signature", row?.id, row?.signature_path],
+    enabled: !!row?.signature_path,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+    queryFn: async () => {
+      const path = row?.signature_path;
+      if (!path) return null;
+      const { data, error } = await supabase.storage.from("asset-photos").createSignedUrl(path, 600);
+      if (error || !data?.signedUrl) throw error ?? new Error("Signature unavailable");
+      return data.signedUrl;
+    },
+  });
+  const sig = signatureView(row?.signature_path, {
+    url: signature.data, failed: signature.isError, loading: signature.isFetching,
+  });
 
   const photos = useQuery({
     queryKey: ["prestart-photos", row?.id],
@@ -289,16 +314,9 @@ function PrestartDetail({ row, onClose, onSaved, companyId }: { row: Row | null;
     },
   });
 
-  // Fetch signature signed URL when row changes
-  useMemo(() => {
+  useEffect(() => {
     setAdminNotes(row?.admin_notes ?? "");
-    setSigUrl(null);
-    if (row?.signature_path) {
-      supabase.storage.from("asset-photos").createSignedUrl(row.signature_path, 600).then(({ data }) => {
-        if (data?.signedUrl) setSigUrl(data.signedUrl);
-      });
-    }
-  }, [row?.id]);
+  }, [row]);
 
   const saveNotes = useMutation({
     mutationFn: async () => {
@@ -385,12 +403,14 @@ function PrestartDetail({ row, onClose, onSaved, companyId }: { row: Row | null;
               </section>
             )}
 
-            {sigUrl && (
-              <section>
-                <h3 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Signature</h3>
-                <img src={sigUrl} alt="Operator signature" className="h-24 rounded-md border border-border bg-white p-1" />
-              </section>
-            )}
+            <section>
+              <h3 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Signature</h3>
+              {sig.kind === "image" ? (
+                <img src={sig.url} alt="Operator signature" className="h-24 max-w-full rounded-md border border-border bg-card p-1" />
+              ) : sig.kind === "loading" ? (
+                <Loader2 aria-label="Loading signature" className="size-4 animate-spin text-muted-foreground" />
+              ) : <p className="text-muted-foreground">{sig.label}</p>}
+            </section>
 
             <section>
               <h3 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Admin notes</h3>

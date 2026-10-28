@@ -4,6 +4,7 @@
 - Operator membership provisioning runs in a database trigger on user_roles so invitation acceptance and existing role-management paths share the same company-scoped linking behavior.
 - Resolve the active company from verified user_roles, using profiles.company_id only when it identifies a membership; this prevents stale profile mappings from choosing an unauthorised company.
 - Store owner-granted free access in company_complimentary_access, enforced by both company billing and asset-limit functions; never fabricate Paddle subscriptions or count complimentary grants as paid revenue.
+- Prestart submission uses the signature-first helper and admin signature-view helper; abort before inserting on signature failure and regenerate signed URLs on detail opening so saved signatures remain required and viewable.
 
 ## Migration record attribution correction (2026-10-28)
 
