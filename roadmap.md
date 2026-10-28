@@ -1,4 +1,8 @@
 # Prestart submission repair
+## Applied invitation SQL record
+- [ ] Record the owner-confirmed, manually applied Variant 2 SQL without executing SQL or publishing; supersede the proposal.
+- [ ] Rerun the full offline Vitest suite and Bun isolation tests; report exact results.
+- [ ] Check whether preview, production, or drafts have separate databases using read-only configuration evidence.
 ## Phase 1 browser email security
 - [x] Saved atomic reservation and both index variants under supabase/proposed only; sender fails closed on missing RPC. Offline tests: 84 Vitest + 7 existing isolation tests passed; automatic build OK. No DDL, emails, data changes or publishing; real database concurrency remains untested until separately approved SQL application.
 - [x] Final hardening: verified emails, new-company controls, sanitised names and last-moment state/permission checks; 65 mocked/pure invitation tests and 7 existing isolation tests passed; automatic build OK. Atomic reservation and indexes proposed as text only, not applied.

@@ -1,3 +1,7 @@
+-- SUPERSEDED: Variant 2 indexes, function and REVOKE/GRANT were applied manually
+-- on 2026-10-28, as confirmed by the project owner. Do not execute this proposal.
+-- Exact applied SQL is recorded in migrations/20261028074200_reserve_team_invite_email.sql.
+-- Historical proposal follows; its original instructions are no longer active.
 -- PROPOSAL ONLY. Not executed. Choose ONE index variant, never both.
 -- Variant 1: manual SQL editor, outside any transaction, ONE command at a time.
 -- CREATE INDEX CONCURRENTLY IF NOT EXISTS email_team_invite_company_created_idx
