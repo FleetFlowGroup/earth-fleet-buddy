@@ -73,6 +73,7 @@ beforeEach(() => {
   vi.spyOn(Date, 'now').mockReturnValue(now);
   vi.stubEnv('SUPABASE_URL', 'https://backend.example.test');
   vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'mock-only');
+  vi.stubEnv('VITE_PAYMENTS_CLIENT_TOKEN', 'live_mock');
   fake.user = { id: 'admin-a', email_confirmed_at: '2026-10-27T00:00:00Z' };
   fake.invite = { id: inviteId, company_id: 'company-a', email: 'invited@example.test', code: 'safe-code',
     role: 'operator', invited_name: 'Invited Person', used_at: null, revoked_at: null, expires_at: '2026-10-29T07:00:00Z' };
@@ -115,6 +116,34 @@ describe('actual browser send handler with mocked auth, database and email', () 
   });
   it('allows an older unpaid company its established allowance', async () => {
     fake.counts.company = 49; expect((await send()).status).toBe(200);
+  });
+  it('keeps an unpaid company younger than 14 days on the new-company cap', async () => {
+    fake.company.created_at = new Date(now - 14 * 86400000 + 1).toISOString(); fake.counts.company = 5;
+    expect((await send()).status).toBe(429);
+  });
+  it('establishes an unpaid company at the 14-day boundary', async () => {
+    fake.company.created_at = new Date(now - 14 * 86400000).toISOString(); fake.counts.company = 49;
+    expect((await send()).status).toBe(200);
+  });
+  it('passes the same sandbox environment as the app, ignoring browser environment input', async () => {
+    vi.stubEnv('VITE_PAYMENTS_CLIENT_TOKEN', 'test_mock');
+    expect((await send({ inviteId, environment: 'live', _env: 'live' })).status).toBe(200);
+    expect(fake.queries).toContainEqual(['company_billing_state', { _company_id: 'company-a', _env: 'sandbox' }]);
+  });
+  it('uses rolling hour/day count windows scoped to verified identities', async () => {
+    expect((await send()).status).toBe(200);
+    expect(fake.queries).toContainEqual(['email_send_log', 'select', {
+      template_name: 'team-invite', 'metadata->>invite_id': inviteId,
+      created_at: new Date(now - 3600000).toISOString(),
+    }]);
+    expect(fake.queries).toContainEqual(['email_send_log', 'select', {
+      template_name: 'team-invite', 'metadata->>user_id': 'admin-a',
+      created_at: new Date(now - 3600000).toISOString(),
+    }]);
+    expect(fake.queries).toContainEqual(['email_send_log', 'select', {
+      template_name: 'team-invite', 'metadata->>company_id': 'company-a',
+      created_at: new Date(now - 86400000).toISOString(),
+    }]);
   });
   it('treats an active paid young company as established without cooldown', async () => {
     fake.company.created_at = new Date(now - 60000).toISOString(); fake.billing = { state: 'subscribed', status: 'active' };
