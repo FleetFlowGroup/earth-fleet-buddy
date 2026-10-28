@@ -1837,6 +1837,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _company_id: string }; Returns: boolean }
+      is_assigned_ticket_operator: {
+        Args: { _ticket_id: string }
+        Returns: boolean
+      }
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
