@@ -15,6 +15,13 @@
       "when": 1793182410023,
       "tag": "0001_company_complimentary_access",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793184524027,
+      "tag": "0002_members_upload_own_prestart_signatures",
+      "breakpoints": true
     }
   ]
 }
