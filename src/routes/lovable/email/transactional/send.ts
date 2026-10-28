@@ -3,6 +3,11 @@ import { render } from '@react-email/components'
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { TEMPLATES } from '@/lib/email-templates/registry'
+import { decideInviteSend, invitationEmailData, parseInviteRequest } from '@/lib/email/team-invite-security'
+
+const MAX_INVITE_SENDS_PER_HOUR = 5
+const MAX_USER_SENDS_PER_HOUR = 20
+const MAX_COMPANY_SENDS_PER_DAY = 50
 
 // Configuration baked in at scaffold time
 const SITE_NAME = "FleetFlow"
@@ -33,7 +38,11 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const authHeader = request.headers.get('Authorization')
+        if (!authHeader?.startsWith('Bearer ') || !authHeader.slice(7).trim()) {
+          return Response.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+        const supabaseUrl = process.env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
         if (!supabaseUrl || !supabaseServiceKey) {
@@ -46,13 +55,10 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
 
         // Verify the caller has a valid Supabase auth token.
         // In TanStack, there is no Supabase gateway — we validate the JWT ourselves.
-        const authHeader = request.headers.get('Authorization')
-        if (!authHeader?.startsWith('Bearer ')) {
-          return Response.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
         const token = authHeader.slice('Bearer '.length).trim()
-        const supabase = createClient(supabaseUrl, supabaseServiceKey)
+        const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        })
         const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
         if (authError || !user) {
@@ -60,20 +66,9 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
         }
 
         // Parse request body
-        let templateName: string
-        let recipientEmail: string
-        let idempotencyKey: string
-        let messageId: string
-        let templateData: Record<string, any> = {}
+        let body: unknown
         try {
-          const body = await request.json()
-          templateName = body.templateName || body.template_name
-          recipientEmail = body.recipientEmail || body.recipient_email
-          messageId = crypto.randomUUID()
-          idempotencyKey = body.idempotencyKey || body.idempotency_key || messageId
-          if (body.templateData && typeof body.templateData === 'object') {
-            templateData = body.templateData
-          }
+          body = await request.json()
         } catch {
           return Response.json(
             { error: 'Invalid JSON in request body' },
@@ -81,38 +76,63 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
           )
         }
 
-        if (!templateName) {
-          return Response.json(
-            { error: 'templateName is required' },
-            { status: 400 }
-          )
+        const parsed = parseInviteRequest(body)
+        if ('status' in parsed) {
+          return Response.json({ error: parsed.status === 403 ? 'Forbidden' : 'inviteId is required and must be a UUID' }, { status: parsed.status })
         }
+        const { data: invite, error: inviteError } = await supabase
+          .from('company_invites')
+          .select('id, company_id, email, code, role, invited_name, used_at, revoked_at, expires_at')
+          .eq('id', parsed.inviteId).maybeSingle()
+        if (inviteError || !invite) return Response.json({ error: 'Forbidden' }, { status: 403 })
 
-        // 1. Look up template from registry (early — needed to resolve recipient)
+        // Evaluate the same DB permission function as create_company_invite,
+        // under the verified caller's JWT, never a client-supplied user/company.
+        const caller = createClient(supabaseUrl, supabaseServiceKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+          global: { headers: { Authorization: `Bearer ${token}` } },
+        })
+        const { data: canEdit, error: permissionError } = await caller.rpc('can_edit_company', {
+          _user_id: user.id, _company_id: invite.company_id,
+        })
+        const now = Date.now()
+        const limits = { invite: MAX_INVITE_SENDS_PER_HOUR, user: MAX_USER_SENDS_PER_HOUR, company: MAX_COMPANY_SENDS_PER_DAY }
+        const denied = decideInviteSend(invite, !permissionError && canEdit === true, { invite: 0, user: 0, company: 0 }, limits, now)
+        if (denied) return Response.json({ error: 'Forbidden' }, { status: denied })
+
+        const hourAgo = new Date(now - 60 * 60 * 1000).toISOString()
+        const dayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString()
+        const [inviteCount, userCount, companyCount, companyResult, profileResult] = await Promise.all([
+          supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>invite_id', invite.id).gte('created_at', hourAgo),
+          supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>user_id', user.id).gte('created_at', hourAgo),
+          supabase.from('email_send_log').select('id', { count: 'exact', head: true }).eq('template_name', 'team-invite').eq('metadata->>company_id', invite.company_id).gte('created_at', dayAgo),
+          supabase.from('companies').select('name').eq('id', invite.company_id).single(),
+          supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+        ])
+        if (inviteCount.error || userCount.error || companyCount.error ||
+            inviteCount.count === null || userCount.count === null || companyCount.count === null ||
+            companyResult.error || !companyResult.data || profileResult.error) {
+          return Response.json({ error: 'Failed to prepare email' }, { status: 500 })
+        }
+        const decision = decideInviteSend(invite, true, { invite: inviteCount.count, user: userCount.count, company: companyCount.count }, limits, now)
+        if (decision) return Response.json({ error: 'Too many invitation sends' }, { status: decision })
+
+        const templateName = 'team-invite'
         const template = TEMPLATES[templateName]
-
-        if (!template) {
-          console.error('Template not found in registry', { templateName })
-          return Response.json(
-            {
-              error: `Template '${templateName}' not found. Available: ${Object.keys(TEMPLATES).join(', ')}`,
-            },
-            { status: 404 }
-          )
-        }
-
-        // Resolve effective recipient: template-level `to` takes precedence over
-        // the caller-provided recipientEmail. This allows notification templates
-        // to always send to a fixed address (e.g., site owner from env var).
-        const effectiveRecipient = template.to || recipientEmail
-
-        if (!effectiveRecipient) {
-          return Response.json(
-            {
-              error: 'recipientEmail is required (unless the template defines a fixed recipient)',
-            },
-            { status: 400 }
-          )
+        if (!template) return Response.json({ error: 'Failed to prepare email' }, { status: 500 })
+        const { recipientEmail: effectiveRecipient, templateData } = invitationEmailData(invite, companyResult.data.name, profileResult.data?.full_name ?? null)
+        if (!effectiveRecipient) return Response.json({ error: 'Forbidden' }, { status: 403 })
+        const messageId = crypto.randomUUID()
+        const idempotencyKey = `team-invite-${invite.id}-${Math.floor(now / 60000)}`
+        const metadata = { invite_id: invite.id, user_id: user.id, company_id: invite.company_id }
+        // Reserve a counted log row before any preparation/enqueue; fail closed
+        // when logging fails. Subsequent outcomes update this same row.
+        const { error: logError } = await supabase.from('email_send_log').insert({
+          message_id: messageId, template_name: templateName,
+          recipient_email: effectiveRecipient, status: 'pending', metadata,
+        })
+        if (logError) {
+          return Response.json({ error: 'Failed to prepare email' }, { status: 500 })
         }
 
         // 2. Check suppression list (fail-closed: if we can't verify, don't send)
@@ -135,12 +155,12 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
 
         if (suppressed) {
           // Log the suppressed attempt
-          await supabase.from('email_send_log').insert({
+          await supabase.from('email_send_log').update({
             message_id: messageId,
             template_name: templateName,
             recipient_email: effectiveRecipient,
             status: 'suppressed',
-          })
+          }).eq('message_id', messageId)
 
           console.log('Email suppressed', {
             templateName,
@@ -165,13 +185,13 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
             error: tokenLookupError,
             email_redacted: redactEmail(normalizedEmail),
           })
-          await supabase.from('email_send_log').insert({
+          await supabase.from('email_send_log').update({
             message_id: messageId,
             template_name: templateName,
             recipient_email: effectiveRecipient,
             status: 'failed',
             error_message: 'Failed to look up unsubscribe token',
-          })
+          }).eq('message_id', messageId)
           return Response.json(
             { error: 'Failed to prepare email' },
             { status: 500 }
@@ -195,13 +215,13 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
             console.error('Failed to create unsubscribe token', {
               error: tokenError,
             })
-            await supabase.from('email_send_log').insert({
+            await supabase.from('email_send_log').update({
               message_id: messageId,
               template_name: templateName,
               recipient_email: effectiveRecipient,
               status: 'failed',
               error_message: 'Failed to create unsubscribe token',
-            })
+            }).eq('message_id', messageId)
             return Response.json(
               { error: 'Failed to prepare email' },
               { status: 500 }
@@ -221,13 +241,13 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
               error: reReadError,
               email_redacted: redactEmail(normalizedEmail),
             })
-            await supabase.from('email_send_log').insert({
+            await supabase.from('email_send_log').update({
               message_id: messageId,
               template_name: templateName,
               recipient_email: effectiveRecipient,
               status: 'failed',
               error_message: 'Failed to confirm unsubscribe token storage',
-            })
+            }).eq('message_id', messageId)
             return Response.json(
               { error: 'Failed to prepare email' },
               { status: 500 }
@@ -240,14 +260,14 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
           console.warn('Unsubscribe token already used but email not suppressed', {
             email_redacted: redactEmail(normalizedEmail),
           })
-          await supabase.from('email_send_log').insert({
+          await supabase.from('email_send_log').update({
             message_id: messageId,
             template_name: templateName,
             recipient_email: effectiveRecipient,
             status: 'suppressed',
             error_message:
               'Unsubscribe token used but email missing from suppressed list',
-          })
+          }).eq('message_id', messageId)
           return Response.json({ success: false, reason: 'email_suppressed' })
         }
 
@@ -265,13 +285,7 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
         // 5. Enqueue the pre-rendered email for async processing by the dispatcher.
         // The dispatcher (process-email-queue) handles sending, retries, and rate-limit backoff.
 
-        // Log pending BEFORE enqueue so we have a record even if enqueue crashes
-        await supabase.from('email_send_log').insert({
-          message_id: messageId,
-          template_name: templateName,
-          recipient_email: effectiveRecipient,
-          status: 'pending',
-        })
+        // The pending log row was reserved before preparing the email.
 
         const { error: enqueueError } = await supabase.rpc('enqueue_email', {
           queue_name: 'transactional_emails',
@@ -298,13 +312,13 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
             recipient_redacted: redactEmail(effectiveRecipient),
           })
 
-          await supabase.from('email_send_log').insert({
+          await supabase.from('email_send_log').update({
             message_id: messageId,
             template_name: templateName,
             recipient_email: effectiveRecipient,
             status: 'failed',
             error_message: 'Failed to enqueue email',
-          })
+          }).eq('message_id', messageId)
 
           return Response.json(
             { error: 'Failed to enqueue email' },
