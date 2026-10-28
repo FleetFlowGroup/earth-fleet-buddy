@@ -43,6 +43,6 @@ describe('assistant support question sanitisation', () => {
   it('caps the entire message, including the label, at 500 characters', () => {
     const result = assistantSupportPrefill('x'.repeat(1000));
     expect(result.message).toHaveLength(500);
-    expect(result.message).toBe('Question to FleetFlow Assistant: ' + 'x'.repeat(468));
+    expect(result.message).toBe('Question to FleetFlow Assistant: ' + 'x'.repeat(467));
   });
 });
