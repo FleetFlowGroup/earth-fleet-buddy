@@ -17,6 +17,7 @@ export async function consumeGatewayStream(response: Response): Promise<string> 
       if (event.error) throw new GatewayError(Number(event.error.status ?? event.error.code) || 502, typeof event.error.message === 'string' ? event.error.message.slice(0, 400) : undefined);
       for (const choice of event.choices ?? []) {
         if (choice.finish_reason === 'content_filter' || choice.delta?.refusal) throw new GatewayError(403, 'The assistant cannot respond to this request.', 'refusal');
+        if (choice.finish_reason === 'length') throw new GatewayError(422);
         if (typeof choice.delta?.content === 'string') text += choice.delta.content;
         if (text.length > 16000) throw new GatewayError(502);
       }
@@ -40,7 +41,7 @@ export async function callAssistantGateway(apiKey: string, messages: ReturnType<
   const gateway = createLovableAiGatewayRunIdFetch();
   const response = await (fetcher ?? gateway.fetch)('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': apiKey, 'X-Lovable-AIG-SDK': 'fetch' },
-    body: JSON.stringify({ model: ASSISTANT_MODEL, messages, temperature: 0.2, max_tokens: 700, stream: true }),
+    body: JSON.stringify({ model: ASSISTANT_MODEL, messages, temperature: 0.2, max_tokens: 700, reasoning: { effort: 'minimal' }, stream: true }),
   });
   if (!response.ok) {
     let safeMessage: string | undefined, kind: string | undefined;

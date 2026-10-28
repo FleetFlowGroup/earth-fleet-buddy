@@ -31,6 +31,7 @@ export function sanitiseReply(text: string, audience: Audience, allowedRoutes?: 
   reply = reply.replace(/<[^>]*>/g, '');
   reply = reply.replace(/(?:https?:\/\/|javascript:|data:|mailto:|www\.|\/\/)[^\s)\]}]+/gi, '');
   reply = reply.replace(/(?:\b[a-z0-9-]+\.)+(?:com|net|org|group|app|dev|au)(?:\/[^\s]*)?/gi, '');
-  reply = reply.replace(/(?:^|[\s(])\/[A-Za-z0-9_$%/.?=&:#@+~-]+/g, token => { collect(token.trim().replace(/[.,;:]$/, '')); return ' '; });
+  reply = reply.replace(/\/[A-Za-z0-9_$%/.?=&:#@+~-]+/g, token => { collect(token.trim().replace(/[.,;:]$/, '')); return ' '; });
+  reply = reply.replace(/[`*]/g, '').replace(/\(\s*\)/g, '').replace(/[ \t]{2,}/g, ' ');
   return { reply: reply.trim(), links: [...links] };
 }
