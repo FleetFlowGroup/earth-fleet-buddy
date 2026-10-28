@@ -363,6 +363,35 @@ export type Database = {
         }
         Relationships: []
       }
+      company_complimentary_access: {
+        Row: {
+          company_id: string
+          granted_at: string
+          product_id: string
+          revoked_at: string | null
+        }
+        Insert: {
+          company_id: string
+          granted_at?: string
+          product_id: string
+          revoked_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          granted_at?: string
+          product_id?: string
+          revoked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_complimentary_access_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_invites: {
         Row: {
           code: string
