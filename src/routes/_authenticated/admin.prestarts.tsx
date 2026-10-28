@@ -19,9 +19,9 @@ import { signatureView } from "@/lib/prestart/signature-view";
 
 export const Route = createFileRoute("/_authenticated/admin/prestarts")({
   head: () => ({ meta: [
-    { title: "Prestart Records · FleetFlow" },
+    { title: "Prestarts · FleetFlow" },
     { name: "description", content: "Review FleetFlow prestart inspections and operator signatures." },
-    { property: "og:title", content: "Prestart Records · FleetFlow" },
+    { property: "og:title", content: "Prestarts · FleetFlow" },
     { property: "og:description", content: "Review FleetFlow prestart inspections and operator signatures." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
