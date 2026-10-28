@@ -2,7 +2,8 @@
 ## Scoped signature repair
 - [x] Add only the authorised signature INSERT storage policy; existing policies and buckets unchanged.
 - [x] Require confirmed signature upload before prestart insert and show signed URLs or explicit missing/unavailable states in admin details.
-- [ ] Run offline tests and check preview; no customer submissions or publishing.
+- [x] Offline signature/invitation and company-isolation suites pass; automatic preview build/type check passes. No customer submissions or publishing.
+- [ ] Verify a live operator upload and saved signature read-back — blocked by no permission for customer test submissions; mocked flow verified instead.
 ## Applied invitation SQL record
 - [x] Recorded the exact owner-confirmed Variant 2 SQL in supabase/migrations/20261028074200_reserve_team_invite_email.sql with a manually-applied/do-not-reexecute header and no outer transaction; proposal superseded. No SQL execution, migration-tool use, emails, data changes or publishing.
 - [x] Full offline Vitest suite: 84 passed, 0 failed across 2 files (31 security + 53 handler tests); Bun isolation suite: 7 passed, 0 failed across 1 file.

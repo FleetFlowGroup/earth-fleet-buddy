@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { submitPrestart, type PrestartClient } from "./submit-prestart";
+import { submitPrestart, submissionSucceeded, type PrestartClient } from "./submit-prestart";
 import { signatureView } from "./signature-view";
 
 function mockClient(opts: { uploadError?: unknown; uploadThrows?: boolean; insertError?: unknown }) {
@@ -25,6 +25,13 @@ describe("submitPrestart", () => {
     const r = await submitPrestart({ ...base, client: m.client, signatureEmpty: false });
     expect(r).toMatchObject({ ok: false, stage: "upload" });
     expect(m.insert).not.toHaveBeenCalled();
+  });
+  it("page gate stops upload failures before success toast", () => {
+    const errorToast = vi.fn();
+    const successToast = vi.fn();
+    if (submissionSucceeded({ ok: false, stage: "upload", error: "RLS" }, errorToast)) successToast();
+    expect(errorToast).toHaveBeenCalledOnce();
+    expect(successToast).not.toHaveBeenCalled();
   });
   it("upload throws: no insert, stage upload", async () => {
     const m = mockClient({ uploadThrows: true });

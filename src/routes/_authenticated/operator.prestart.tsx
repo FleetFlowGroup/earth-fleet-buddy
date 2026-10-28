@@ -15,7 +15,7 @@ import { SignaturePad, type SignaturePadHandle } from "@/components/signature-pa
 import { logAudit, getBrowserPosition } from "@/lib/audit-log";
 import { z } from "zod";
 import { prestartIdentity } from "@/lib/company-membership";
-import { submitPrestart, SUBMIT_MESSAGES, type PrestartClient } from "@/lib/prestart/submit-prestart";
+import { submitPrestart, submissionSucceeded, SUBMIT_MESSAGES, type PrestartClient } from "@/lib/prestart/submit-prestart";
 
 const search = z.object({ asset: z.string().uuid().optional() });
 
@@ -148,11 +148,10 @@ function PrestartScreen() {
           gps_accuracy: gps?.accuracy ?? null,
         },
       });
-      if (!result.ok) {
-        console.error(`prestart submit failed at ${result.stage}`, result.error);
-        toast.error(SUBMIT_MESSAGES[result.stage]);
-        return;
-      }
+      if (!submissionSucceeded(result, (message, error) => {
+        console.error("prestart submit failed", error);
+        toast.error(message);
+      })) return;
       const ps = { id: result.id };
 
       // Bump asset meter via SECURITY DEFINER helper (operators cannot UPDATE assets directly)

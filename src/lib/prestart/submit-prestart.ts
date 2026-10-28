@@ -67,3 +67,10 @@ export const SUBMIT_MESSAGES = {
   upload: "Signature could not be saved — prestart NOT submitted. Please try again.",
   insert: "Prestart could not be saved. Please try again.",
 } as const;
+
+// The page must stop on failure before any meter/photo/defect work or success toast.
+export function submissionSucceeded(result: SubmitPrestartResult, report: (message: string, error: unknown) => void): result is Extract<SubmitPrestartResult, { ok: true }> {
+  if (result.ok) return true;
+  report(SUBMIT_MESSAGES[result.stage], result.error);
+  return false;
+}
