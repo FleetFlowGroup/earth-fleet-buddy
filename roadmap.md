@@ -1,7 +1,7 @@
 # Prestart submission repair
 ## Phase 1 browser email security
-- [ ] Restrict browser sends to verified, authorised team invitations and log-backed limits; no sends, deployment, policies, or migrations.
-- [ ] Audit callers and trusted server imports; run offline authorisation and limit tests.
+- [x] Restrict browser sends to verified, authorised team invitations and log-backed limits; no sends, deployment, policies, or migrations.
+- [x] Audit callers and trusted server imports; 31 offline authorisation/limit tests and 7 existing isolation tests passed.
 
 ## Previous repair
 - [x] Investigate membership, operator links, and policies without contacting the separate customer company.
