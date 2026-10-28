@@ -28,11 +28,19 @@ import { logAudit } from "@/lib/audit-log";
 import { CompanySwitcher } from "@/components/company-switcher";
 import { OperatorTicketsMenu } from "@/components/operator-tickets-menu";
 import { z } from "zod";
+import { AssistantHelpTile } from "@/components/assistant-panel";
 
 const operatorSearch = z.object({ asset: z.string().uuid().optional() });
 
 export const Route = createFileRoute("/_authenticated/operator/")({
-  head: () => ({ meta: [{ title: "Operator · FleetFlow" }] }),
+  head: () => ({ meta: [
+    { title: "Operator · FleetFlow" },
+    { name: "description", content: "FleetFlow operator portal for machine selection, prestarts and operator records." },
+    { property: "og:title", content: "Operator · FleetFlow" },
+    { property: "og:description", content: "FleetFlow operator portal for machine selection, prestarts and operator records." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   validateSearch: operatorSearch,
   component: OperatorHome,
 });
@@ -156,6 +164,7 @@ function MachinePicker({
       </header>
 
       <div className="space-y-5 p-5">
+        <AssistantHelpTile />
         <div className="surface-card p-5">
           <h2 className="text-base font-semibold">Which machine are you operating today?</h2>
           <p className="mt-1 text-sm text-muted-foreground">Search by name, fleet number or registration.</p>
@@ -329,6 +338,7 @@ function SelectedMachine({ me, asset, operatorRow, greeting, name, onSignOut }: 
           <BigBtn to="/operator/tickets" icon={Ticket} label="My tickets" />
           <BigBtn to="/operator/documents" icon={FileText} label="My documents" />
           <BigBtn to="/operator/profile" icon={User} label="My profile" />
+          <AssistantHelpTile />
         </section>
 
         <section className="surface-card">

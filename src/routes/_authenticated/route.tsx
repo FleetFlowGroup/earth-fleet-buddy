@@ -5,6 +5,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { useBillingState } from "@/hooks/use-subscription";
 import { isOperatorPreviewOn } from "@/lib/operator-preview";
 import { rememberRoute } from "@/lib/last-route";
+import { AssistantProvider } from "@/components/assistant-panel";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -59,5 +60,5 @@ function AuthedLayout() {
     }
   }, [me, isLoading, companyId, billing, billingLoading, location.pathname, navigate]);
 
-  return <Outlet />;
+  return <AssistantProvider><Outlet /></AssistantProvider>;
 }
