@@ -7,6 +7,7 @@ import { createRateLimiter, LIMIT_MESSAGE } from './rate-limit';
 import { answerQuestion, type AssistantResult } from './service';
 import { isAssistantPreviewHost } from './preview';
 import { GatewayError, mapError } from './errors';
+import { supportReplyForAudience, type Audience } from './routes';
 // Preview-only per-instance counters. Never account data or conversation content.
 const limiter = createRateLimiter();
 export const askFleetFlow = createServerFn({ method: 'POST' })
@@ -16,11 +17,13 @@ export const askFleetFlow = createServerFn({ method: 'POST' })
     const start = Date.now();
     const hostname = new URL(getRequest().url).hostname;
     if (!isAssistantPreviewHost(hostname)) return { reply: 'FleetFlow Assistant is available in preview only.', links: [], escalate: false };
+    let audience: Audience = 'operator'; // Fail closed for presentation until verified.
     try {
       const identity = await readAssistantContext(context.supabase, context.userId);
+      audience = identity.audience;
       if (!limiter.take(context.userId, identity.companyId)) {
         console.info('fleetflow_assistant', { status: 429, code: 'busy', latencyMs: Date.now() - start });
-        return { reply: LIMIT_MESSAGE, links: [], escalate: false, code: 'busy' };
+        return { reply: supportReplyForAudience(LIMIT_MESSAGE + (audience === 'operator' ? ' Please ask your company admin if you need help.' : ''), audience), links: [], escalate: false, code: 'busy' };
       }
       let status = 200;
       const result = await answerQuestion(data, identity.audience, async messages => {
@@ -41,6 +44,7 @@ export const askFleetFlow = createServerFn({ method: 'POST' })
       return result;
     } catch {
       console.info('fleetflow_assistant', { status: 500, code: 'unexpected', latencyMs: Date.now() - start });
-      return { ...mapError(new Error()), links: [], escalate: true };
+      const mapped = mapError(new Error());
+      return { ...mapped, reply: supportReplyForAudience(mapped.reply, audience), links: [], escalate: true };
     }
   });

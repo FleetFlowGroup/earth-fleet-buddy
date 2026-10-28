@@ -1,4 +1,14 @@
 export type Audience = 'admin' | 'office' | 'operator' | 'all';
+// Presentation only: never changes routing or access. Apply after model output
+// sanitisation and to fixed replies, including the panel's request fallback.
+export function supportReplyForAudience(reply: string, audience: Audience) {
+  if (audience !== 'operator') return reply;
+  return reply
+    .replace(/\bcontact\s+(?:your\s+admin\s+or\s+)?(?:FleetFlow\s+)?support(?:\s+through\s+your\s+company\s+admin)?\b/gi, 'ask your company admin')
+    .replace(/\b(?:contact\s*(?:&|and)\s*feedback|FleetFlow support|support team|support button|support link)\b/gi, 'your company admin')
+    .replace(/\/feedback\b/gi, '')
+    .replace(/[ \t]{2,}/g, ' ').trim();
+}
 export const STATIC_ROUTES = [
   '/auth', '/forgot-password', '/reset-password', '/onboarding', '/dashboard', '/team',
   '/assets', '/operators', '/admin/prestarts', '/billing', '/feedback', '/settings', '/tickets',
@@ -33,5 +43,5 @@ export function sanitiseReply(text: string, audience: Audience, allowedRoutes?: 
   reply = reply.replace(/(?:\b[a-z0-9-]+\.)+(?:com|net|org|group|app|dev|au)(?:\/[^\s]*)?/gi, '');
   reply = reply.replace(/\/[A-Za-z0-9_$%/.?=&:#@+~-]+/g, token => { collect(token.trim().replace(/[.,;:]$/, '')); return ' '; });
   reply = reply.replace(/[`*]/g, '').replace(/\(\s*\)/g, '').replace(/[ \t]{2,}/g, ' ');
-  return { reply: reply.trim(), links: [...links] };
+  return { reply: supportReplyForAudience(reply.trim(), audience), links: [...links] };
 }
