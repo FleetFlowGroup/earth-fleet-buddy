@@ -6,7 +6,7 @@
 - Store owner-granted free access in company_complimentary_access, enforced by both company billing and asset-limit functions; never fabricate Paddle subscriptions or count complimentary grants as paid revenue.
 - Prestart submission uses the signature-first helper and admin signature-view helper; abort before inserting on signature failure and regenerate signed URLs on detail opening so saved signatures remain required and viewable.
 - Keep the Phase 1 assistant preview-gated, read-only and isolated in assistant modules; use verified caller memberships and static retrieval so existing account workflows and permissions remain unchanged.
-- Block authenticated child rendering until the current user role resolves; gate admin reads on a known non-operator role and resolve login destinations through the same current-user query to prevent pre-redirect query exposure.
+- Block authenticated child rendering until the current account resolves; allow loaded no-company accounts only on onboarding and redirect them there, use exact operator path segments, gate admin reads on a known non-operator role, and resolve login destinations through the same current-user query to prevent pre-redirect query exposure.
 
 ## Migration record attribution correction (2026-10-28)
 

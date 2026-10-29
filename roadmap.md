@@ -1,5 +1,7 @@
 # Prestart submission repair
 ## Preview-only operator query security Fix A
+- [x] Fix loaded no-company onboarding access and login/layout redirects; match the operator path segment exactly for rendering, redirects and subscription exemptions.
+- [ ] Run full Vitest and inspect automatic preview diagnostics for the two code-only regressions; do not live-navigate because existing telemetry can write data.
 - [x] Block child rendering while identity loads/errors and during operator redirects; resolve login destinations through the existing membership query.
 - [x] Gate non-operator page and shared admin reads on a known non-operator role; preserve operator/QR reads and billing behaviour.
 - [x] Full Vitest: 266 passed across 6 files; automatic preview build OK. Existing owner/operator session: dashboard and feedback resolve to /operator with no dashboard stats or feedback list reads; signed-in auth redirect resolves to /operator. Credential-entry login and live non-operator checks not executed.
