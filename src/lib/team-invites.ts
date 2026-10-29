@@ -18,7 +18,7 @@ export async function sendTeamInviteEmail(args: {
 
   const inviteUrl = `https://www.fleetflow.group/join/${args.inviteCode}`;
 
-  const res = await fetch("/lovable/email/transactional/send", {
+  const res = await fetch("/api/team-invites/send", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

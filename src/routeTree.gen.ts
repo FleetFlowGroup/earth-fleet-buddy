@@ -52,6 +52,7 @@ import { Route as AuthenticatedOperatorTicketsRouteImport } from './routes/_auth
 import { Route as AuthenticatedOperatorsIndexRouteImport } from './routes/_authenticated/operators/index'
 import { Route as AuthenticatedOperatorsIdRouteImport } from './routes/_authenticated/operators/$id'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
+import { Route as ApiTeamInvitesSendRouteImport } from './routes/api/team-invites/send'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicHooksCheckExpiriesRouteImport } from './routes/api/public/hooks/check-expiries'
@@ -288,6 +289,11 @@ const ApiPublicContactRoute = ApiPublicContactRouteImport.update({
   path: '/api/public/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTeamInvitesSendRoute = ApiTeamInvitesSendRouteImport.update({
+  id: '/api/team-invites/send',
+  path: '/api/team-invites/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
   id: '/lovable/email/events',
   path: '/lovable/email/events',
@@ -378,6 +384,7 @@ export interface FileRoutesByFullPath {
   '/operator/tickets': typeof AuthenticatedOperatorTicketsRoute
   '/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/api/team-invites/send': typeof ApiTeamInvitesSendRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/assets/': typeof AuthenticatedAssetsIndexRoute
@@ -429,6 +436,7 @@ export interface FileRoutesByTo {
   '/operator/tickets': typeof AuthenticatedOperatorTicketsRoute
   '/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/api/team-invites/send': typeof ApiTeamInvitesSendRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/assets': typeof AuthenticatedAssetsIndexRoute
@@ -484,6 +492,7 @@ export interface FileRoutesById {
   '/_authenticated/operator/tickets': typeof AuthenticatedOperatorTicketsRoute
   '/_authenticated/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/api/team-invites/send': typeof ApiTeamInvitesSendRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/assets/': typeof AuthenticatedAssetsIndexRoute
@@ -538,6 +547,7 @@ export interface FileRouteTypes {
     | '/operator/tickets'
     | '/operators/$id'
     | '/api/public/contact'
+    | '/api/team-invites/send'
     | '/lovable/email/events'
     | '/lovable/email/suppression'
     | '/assets/'
@@ -589,6 +599,7 @@ export interface FileRouteTypes {
     | '/operator/tickets'
     | '/operators/$id'
     | '/api/public/contact'
+    | '/api/team-invites/send'
     | '/lovable/email/events'
     | '/lovable/email/suppression'
     | '/assets'
@@ -643,6 +654,7 @@ export interface FileRouteTypes {
     | '/_authenticated/operator/tickets'
     | '/_authenticated/operators/$id'
     | '/api/public/contact'
+    | '/api/team-invites/send'
     | '/lovable/email/events'
     | '/lovable/email/suppression'
     | '/_authenticated/assets/'
@@ -676,6 +688,7 @@ export interface RootRouteChildren {
   MIdRoute: typeof MIdRoute
   PlatformSplatRoute: typeof PlatformSplatRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
+  ApiTeamInvitesSendRoute: typeof ApiTeamInvitesSendRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksCheckExpiriesRoute: typeof ApiPublicHooksCheckExpiriesRoute
@@ -990,6 +1003,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/team-invites/send': {
+      id: '/api/team-invites/send'
+      path: '/api/team-invites/send'
+      fullPath: '/api/team-invites/send'
+      preLoaderRoute: typeof ApiTeamInvitesSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/events': {
       id: '/lovable/email/events'
       path: '/lovable/email/events'
@@ -1155,6 +1175,7 @@ const rootRouteChildren: RootRouteChildren = {
   MIdRoute: MIdRoute,
   PlatformSplatRoute: PlatformSplatRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
+  ApiTeamInvitesSendRoute: ApiTeamInvitesSendRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksCheckExpiriesRoute: ApiPublicHooksCheckExpiriesRoute,

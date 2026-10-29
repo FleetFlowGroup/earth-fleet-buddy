@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { createServerOnlyFn } from '@tanstack/react-start'
 import { render } from '@react-email/render'
 import { EmailAPIError, sendLovableEmail } from '@lovable.dev/email-js'
 import { TEMPLATES } from './registry'
@@ -23,6 +24,8 @@ export interface SendTemplateEmailOptions {
   /** Dedupes retries of the same logical send; defaults to a random UUID (no dedupe). */
   idempotencyKey?: string
   replyTo?: string
+  /** Trusted feature revalidation after rendering, immediately before dispatch. */
+  beforeSend?: () => Promise<void>
 }
 
 /**
@@ -32,7 +35,7 @@ export interface SendTemplateEmailOptions {
  * ({ sent: false }); any other failure throws — EmailAPIError exposes
  * .code and .status for branching.
  */
-export async function sendTemplateEmail(
+export const sendTemplateEmail = createServerOnlyFn(async function sendTemplateEmail(
   templateName: string,
   to: string,
   options: SendTemplateEmailOptions = {}
@@ -66,6 +69,7 @@ export async function sendTemplateEmail(
       : template.subject
 
   try {
+    await options.beforeSend?.()
     await sendLovableEmail(
       {
         to: recipient,
@@ -89,4 +93,4 @@ export async function sendTemplateEmail(
   }
 
   return { sent: true }
-}
+})
