@@ -47,14 +47,27 @@ export function operatorPostLoginDestination(
   lastRoute: string | null,
   invite?: string,
   account?: LoadedAccount,
+  preview = false,
 ): string {
   if (invite) return `/join/${invite}`;
   if (account && !account.hasCompany) return "/onboarding";
   const safeRedirect = redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : undefined;
-  if (role !== "operator") return safeRedirect ?? lastRoute ?? "/dashboard";
+  if (role !== "operator") {
+    // Non-operator roles win the landing page: skip operator-portal paths unless previewing.
+    const ok = (path: string | null | undefined) => !!path && (preview || !isOperatorPath(path));
+    if (ok(safeRedirect)) return safeRedirect!;
+    if (ok(lastRoute)) return lastRoute!;
+    return "/dashboard";
+  }
   const allowed = (path: string | null | undefined) =>
     !!path && (isOperatorPath(path) || path.startsWith("/m/"));
   if (allowed(safeRedirect)) return safeRedirect ?? "/operator";
   if (allowed(lastRoute)) return lastRoute ?? "/operator";
   return "/operator";
+}
+
+/** Whether the authenticated layout should remember this path as the last route. */
+export function shouldRememberRoute(role: string | null | undefined, path: string, preview: boolean): boolean {
+  if (!isOperatorPath(path)) return true;
+  return role === "operator" || preview;
 }

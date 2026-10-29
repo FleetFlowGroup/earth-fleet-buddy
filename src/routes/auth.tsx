@@ -10,6 +10,7 @@ import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { Truck, Loader2, Home } from "lucide-react";
 import { getLastRoute } from "@/lib/last-route";
+import { isOperatorPreviewOn } from "@/lib/operator-preview";
 import { useQueryClient } from "@tanstack/react-query";
 import { currentUserQueryOptions } from "@/hooks/use-current-user";
 import { operatorPostLoginDestination } from "@/lib/operator-access";
@@ -51,7 +52,7 @@ function AuthPage() {
   const resolveDestination = async () => {
     const me = await qc.fetchQuery({ ...currentUserQueryOptions(), staleTime: 0 });
     if (!me) throw new Error("Could not resolve your account. Please try signing in again.");
-    return operatorPostLoginDestination(me.role, redirect, lastRoute, invite, { hasCompany: !!me.company });
+    return operatorPostLoginDestination(me.role, redirect, lastRoute, invite, { hasCompany: !!me.company }, isOperatorPreviewOn());
   };
   const navigate = useNavigate();
   const [tab, setTab] = useState<"signin" | "signup">(mode ?? (invite ? "signup" : "signin"));
