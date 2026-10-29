@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
-import { MessageCircle, Send, LifeBuoy, Loader2, ArrowUpRight, Trash2 } from 'lucide-react';
+import { MessageCircle, Send, LifeBuoy, Loader2, ArrowUpRight, Trash2, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -13,6 +13,7 @@ import { isAssistantPreviewHost } from '@/lib/assistant/preview';
 import type { AssistantResult } from '@/lib/assistant/service';
 import type { AssistantInput } from '@/lib/assistant/input';
 import { assistantSupportPrefill } from '@/lib/assistant/feedback-prefill';
+import { ERROR_REPLIES } from '@/lib/assistant/errors';
 const AssistantContext = createContext({ open: () => {} });
 const ADMIN_STARTERS = ['How do I invite my operators?', 'How does my employee join my company?', 'How do I add my first machine?', 'How do I get my operators completing prestarts?', "Why can't my employee log in?", "How do I check an operator's licence expiry?", 'How do I set up servicing reminders?'];
 const OPERATOR_STARTERS = ['How do I complete a prestart?', "Why won't my prestart submit?", "How do I scan a machine's QR code?", "Why can't I log in?"];
@@ -48,9 +49,12 @@ function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (
   const [draft, setDraft] = useState('');
   const [pending, setPending] = useState(false);
   const lock = useRef(false);
+  const run = useRef<AbortController | null>(null);
   const alive = useRef(true);
   const bottom = useRef<HTMLDivElement>(null);
-  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; run.current?.abort(); }; }, []);
+  useEffect(() => { if (!open) run.current?.abort(); }, [open]);
+  function stop() { run.current?.abort(); }
   useEffect(() => { bottom.current?.scrollIntoView({ behavior: 'auto', block: 'end' }); }, [turns, pending, open]);
   async function send(question = draft) {
     const content = question.trim();
@@ -58,12 +62,16 @@ function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (
     const messages = [...turns.map(({ role, content }) => ({ role, content })), { role: 'user' as const, content }].slice(-6);
     while (messages.reduce((n, m) => n + m.content.length, 0) > 8000) messages.shift();
     lock.current = true; setPending(true); setDraft(''); setTurns(messages);
+    const controller = new AbortController(); run.current = controller;
     try {
-      const result = await ask({ data: { messages, currentPath: location.pathname } });
+      const result = await ask({ data: { messages, currentPath: location.pathname }, signal: controller.signal });
+      if (controller.signal.aborted) throw new DOMException('Stopped', 'AbortError');
       if (alive.current) setTurns([...messages, { role: 'assistant' as const, content: supportReplyForAudience(result.reply, audience), links: result.links, escalate: result.escalate }].slice(-6));
     } catch {
-      if (alive.current) setTurns([...messages, { role: 'assistant' as const, content: supportReplyForAudience('The assistant could not answer just now. Please try again or contact support.', audience), escalate: true }].slice(-6));
-    } finally { lock.current = false; if (alive.current) setPending(false); }
+      // Stopped runs never show links, actions or a partial answer as complete.
+      if (controller.signal.aborted) { if (alive.current) setTurns([...messages, { role: 'assistant' as const, content: ERROR_REPLIES.cancelled, links: [], escalate: false }].slice(-6)); }
+      else if (alive.current) setTurns([...messages, { role: 'assistant' as const, content: supportReplyForAudience('The assistant could not answer just now. Please try again or contact support.', audience), escalate: true }].slice(-6));
+    } finally { if (run.current === controller) run.current = null; lock.current = false; if (alive.current) setPending(false); }
   }
   function contactSupport() {
     if (audience === 'operator') return;
@@ -92,11 +100,11 @@ function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (
           </div><div ref={bottom} />
         </div>
         <div className="shrink-0 border-t border-border p-4 pb-6">
-          <form onSubmit={event => { event.preventDefault(); void send(); }} className="space-y-2">
+          <form onKeyDown={event => { if (event.key === 'Escape' && pending) { event.preventDefault(); stop(); } }} onSubmit={event => { event.preventDefault(); void send(); }} className="space-y-2">
             <Textarea aria-label="Your question" placeholder="Ask a FleetFlow question…" value={draft} onChange={event => setDraft(event.target.value)} maxLength={2000} rows={3} disabled={pending} className="max-h-32 resize-none" />
             <div className="flex items-center justify-between gap-2">
               <Button type="button" variant="ghost" size="icon" title="Clear conversation" aria-label="Clear conversation" disabled={pending || !turns.length} onClick={() => setTurns([])}><Trash2 className="size-4" /></Button>
-              <Button type="submit" disabled={pending || !draft.trim()}><Send className="mr-2 size-4" />Send</Button>
+              {pending ? <Button type="button" variant="secondary" aria-label="Stop generating" onClick={stop}><Square className="mr-2 size-4" />Stop</Button> : <Button type="submit" disabled={!draft.trim()}><Send className="mr-2 size-4" />Send</Button>}
             </div>
           </form>
           {audience === 'operator' ? <p className="mt-3 text-xs text-muted-foreground">For help, ask your company admin.</p> : <Button variant="link" className="mt-2 h-auto p-0 text-sm" onClick={contactSupport}><LifeBuoy className="mr-2 size-4" />Contact support</Button>}
