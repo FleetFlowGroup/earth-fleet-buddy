@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { assetMeterMode, computeServiceDue, daysUntil } from "@/lib/expiry";
 import { isOperatorPreviewOn } from "@/lib/operator-preview";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { resolveOperatorLoadState, operatorEmptyMessage, type OperatorLoadState } from "@/lib/operator-load-state";
 
 export const PREVIEW_OPERATOR_ID = "__preview_operator__";
 
@@ -135,4 +137,21 @@ export function regoExpiryText(asset: any): { text: string; tone: "ok" | "warn" 
   if (d < 0) return { text: `Expired ${Math.abs(d)}d ago`, tone: "danger" };
   if (d <= 30) return { text: `${d}d`, tone: "warn" };
   return { text: `${d}d`, tone: "ok" };
+}
+
+// Deep-link-safe operator context: waits for current user -> operator row ->
+// asset before declaring anything missing (see operator-load-state.ts).
+export function useOperatorContext(opts: { assetOverride?: string | null; needsAsset?: boolean } = {}) {
+  const meQ = useCurrentUser();
+  const me = meQ.data;
+  const opQ = useOperatorSelf(me?.userId, me?.company?.id);
+  const assetQ = useOperatorTargetAsset(opQ.data?.id, opts.assetOverride);
+  const needsAsset = opts.needsAsset ?? true;
+  const state: OperatorLoadState = resolveOperatorLoadState({
+    me: meQ, op: opQ, asset: assetQ, hasAssetOverride: !!opts.assetOverride, needsAsset,
+  });
+  return {
+    me, op: opQ.data, asset: needsAsset ? assetQ.data : undefined, state,
+    emptyMessage: operatorEmptyMessage(state, needsAsset ? "asset" : "operator"),
+  };
 }

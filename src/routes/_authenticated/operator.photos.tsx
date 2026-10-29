@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useOperatorSelf, useOperatorTargetAsset } from "@/lib/operator-data";
+import { useOperatorContext, useOperatorSelf, useOperatorTargetAsset } from "@/lib/operator-data";
 import { AssetPhotoGallery } from "@/lib/asset-photos";
 import { Shell, Empty } from "./operator.prestart";
+import { Loader2 } from "lucide-react";
 import { z } from "zod";
 
 const search = z.object({ asset: z.string().uuid().optional() });
@@ -14,14 +15,14 @@ export const Route = createFileRoute("/_authenticated/operator/photos")({
 });
 
 function PhotosScreen() {
-  const { data: me } = useCurrentUser();
   const { asset: assetOverride } = Route.useSearch();
-  const { data: op } = useOperatorSelf(me?.userId, me?.company?.id);
-  const { data: asset } = useOperatorTargetAsset(op?.id, assetOverride);
+  const { me, op, asset, state: loadState, emptyMessage } = useOperatorContext({ assetOverride });
   return (
     <Shell title="Upload photos">
-      {!asset || !me?.company?.id
-        ? <Empty msg="No machine assigned." />
+      {loadState === "loading"
+        ? <div className="grid place-items-center p-10"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+        : !asset || !me?.company?.id
+        ? <Empty msg={emptyMessage ?? "No machine assigned."} />
         : <AssetPhotoGallery assetId={asset.id} companyId={me.company.id} editable />}
     </Shell>
   );

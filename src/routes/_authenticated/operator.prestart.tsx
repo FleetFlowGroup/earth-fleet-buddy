@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useOperatorSelf, useOperatorTargetAsset, meterValue, realOperatorId } from "@/lib/operator-data";
+import { useOperatorContext, useOperatorSelf, useOperatorTargetAsset, meterValue, realOperatorId } from "@/lib/operator-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,11 +45,9 @@ type TemplateItem = {
 };
 
 function PrestartScreen() {
-  const { data: me } = useCurrentUser();
-  const navigate = useNavigate();
   const { asset: assetOverride } = Route.useSearch();
-  const { data: op } = useOperatorSelf(me?.userId, me?.company?.id);
-  const { data: asset } = useOperatorTargetAsset(op?.id, assetOverride);
+  const navigate = useNavigate();
+  const { me, op, asset, state: loadState, emptyMessage } = useOperatorContext({ assetOverride });
   const meter = asset ? meterValue(asset) : null;
 
   const { data: items, isLoading: itemsLoading } = useQuery({
@@ -213,8 +211,10 @@ function PrestartScreen() {
 
   return (
     <Shell title="Daily prestart">
-      {!asset ? (
-        <Empty msg="No machine assigned." />
+      {loadState === "loading" ? (
+        <div className="grid place-items-center p-10"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+      ) : !asset ? (
+        <Empty msg={emptyMessage ?? "No machine assigned."} />
       ) : itemsLoading || !items ? (
         <div className="grid place-items-center p-10"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
       ) : items.length === 0 ? (

@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useOperatorSelf, useOperatorTargetAsset, meterValue } from "@/lib/operator-data";
+import { useOperatorContext, useOperatorSelf, useOperatorTargetAsset, meterValue } from "@/lib/operator-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,11 +21,9 @@ export const Route = createFileRoute("/_authenticated/operator/hours")({
 });
 
 function HoursScreen() {
-  const { data: me } = useCurrentUser();
-  const navigate = useNavigate();
   const { asset: assetOverride } = Route.useSearch();
-  const { data: op } = useOperatorSelf(me?.userId, me?.company?.id);
-  const { data: asset } = useOperatorTargetAsset(op?.id, assetOverride);
+  const navigate = useNavigate();
+  const { me, op, asset, state: loadState, emptyMessage } = useOperatorContext({ assetOverride });
   const meter = asset ? meterValue(asset) : null;
   const [value, setValue] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
@@ -72,7 +70,7 @@ function HoursScreen() {
 
   return (
     <Shell title={meter?.mode === "km" ? "Update KMs" : "Update hours"}>
-      {!asset ? <Empty msg="No machine assigned." /> : (
+      {loadState === "loading" ? <div className="grid place-items-center p-10"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div> : !asset ? <Empty msg={emptyMessage ?? "No machine assigned."} /> : (
         <>
           <div className="surface-card p-4">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">{asset.name}</div>

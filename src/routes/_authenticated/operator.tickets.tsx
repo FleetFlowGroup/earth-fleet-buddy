@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useOperatorSelf } from "@/lib/operator-data";
+import { useOperatorContext } from "@/lib/operator-data";
 import { LICENCE_TYPES, licenceDisplayName } from "@/lib/operators";
 import { daysUntil, fmtDate } from "@/lib/expiry";
 import { openLicenceCertificate } from "@/lib/licence-cert";
@@ -26,8 +26,7 @@ export const Route = createFileRoute("/_authenticated/operator/tickets")({
 });
 
 function TicketsScreen() {
-  const { data: me } = useCurrentUser();
-  const { data: op } = useOperatorSelf(me?.userId, me?.company?.id);
+  const { op, state: loadState, emptyMessage } = useOperatorContext({ needsAsset: false });
   const qc = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState<any | null>(null);
@@ -50,8 +49,10 @@ function TicketsScreen() {
 
   return (
     <Shell title="My tickets & licences">
-      {!op ? (
-        <Empty msg="Operator profile not linked." />
+      {loadState === "loading" ? (
+        <div className="grid place-items-center p-10"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+      ) : !op ? (
+        <Empty msg={emptyMessage ?? "Operator profile not linked."} />
       ) : (
         <>
           <div className="mb-3 flex justify-end">
