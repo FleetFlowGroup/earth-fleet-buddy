@@ -2,7 +2,7 @@
 ## Preview-only operator query security Fix A
 - [x] Block child rendering while identity loads/errors and during operator redirects; resolve login destinations through the existing membership query.
 - [x] Gate non-operator page and shared admin reads on a known non-operator role; preserve operator/QR reads and billing behaviour.
-- [ ] Run full unit tests and verify read-only owner preview navigation with network checks.
+- [x] Full Vitest: 266 passed across 6 files; automatic preview build OK. Existing owner/operator session: dashboard and feedback resolve to /operator with no dashboard stats or feedback list reads; signed-in auth redirect resolves to /operator. Credential-entry login and live non-operator checks not executed.
 ## Preview-only AI support assistant
 - [x] Add static support articles, authenticated read-only retrieval, link sanitisation, memory-only limits/history and the four authorised mount/prefill changes.
 - [x] Full Vitest: 154 passed; Bun isolation: 7 passed; automatic compilation OK. Verified live owner/operator guidance and desktop/mobile panel, with no submissions or publishing.
