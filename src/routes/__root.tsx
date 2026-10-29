@@ -204,6 +204,11 @@ function RootComponent() {
     router.navigate({ to: "/mission-control", replace: true });
   }, [router]);
 
+  // iOS app shell only (no-op on the website): status bar + splash.
+  useEffect(() => {
+    void import("@/lib/native").then((m) => m.initNativeChrome()).catch(() => {});
+  }, []);
+
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
