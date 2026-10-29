@@ -6,7 +6,7 @@ import { useBillingState } from "@/hooks/use-subscription";
 import { isOperatorPreviewOn } from "@/lib/operator-preview";
 import { rememberRoute } from "@/lib/last-route";
 import { AssistantProvider } from "@/components/assistant-panel";
-import { shouldRenderAuthedOutlet } from "@/lib/operator-access";
+import { authenticatedRedirectDestination, isSubscriptionExemptPath, shouldRenderAuthedOutlet } from "@/lib/operator-access";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -18,10 +18,6 @@ export const Route = createFileRoute("/_authenticated")({
   },
   component: AuthedLayout,
 });
-
-// Paths that remain accessible without an active subscription so users can
-// pay, finish onboarding, or use the operator portal.
-const SUBSCRIPTION_EXEMPT_PREFIXES = ["/billing", "/onboarding", "/operator"];
 
 function AuthedLayout() {
   const { data: me, isLoading, isError } = useCurrentUser();
@@ -37,13 +33,12 @@ function AuthedLayout() {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (isLoading || !me) return;
-    if (isOperatorPreviewOn()) return; // admin preview mode is opt-in
-    // Operators may only access the operator portal — even by typing URLs.
-    if (me.role === "operator" && !location.pathname.startsWith("/operator")) {
-      navigate({ to: "/operator", replace: true });
-    }
-  }, [me, isLoading, location.pathname, navigate]);
+    if (isLoading || isError || !me) return;
+    const destination = authenticatedRedirectDestination(
+      me.role, location.pathname, isOperatorPreviewOn(), { hasCompany: !!me.company },
+    );
+    if (destination) navigate({ to: destination, replace: true });
+  }, [me, isLoading, isError, location.pathname, navigate]);
 
   // Subscription paywall: non-operator users must have an active billing
   // state (trial, subscribed, or canceled_grace) to access the portal.
@@ -54,7 +49,7 @@ function AuthedLayout() {
     if (isOperatorPreviewOn()) return;
     if (!companyId) return;
     if (billingLoading) return;
-    const exempt = SUBSCRIPTION_EXEMPT_PREFIXES.some((p) => location.pathname.startsWith(p));
+    const exempt = isSubscriptionExemptPath(location.pathname);
     if (exempt) return;
     const state = billing?.state ?? "none";
     if (state === "none") {
@@ -62,7 +57,7 @@ function AuthedLayout() {
     }
   }, [me, isLoading, companyId, billing, billingLoading, location.pathname, navigate]);
 
-  if (!shouldRenderAuthedOutlet(me?.role, location.pathname, isOperatorPreviewOn(), isLoading, isError)) {
+  if (!shouldRenderAuthedOutlet(me?.role, location.pathname, isOperatorPreviewOn(), isLoading, isError, me ? { hasCompany: !!me.company } : null)) {
     return <div className="grid min-h-screen place-items-center bg-background" role="status" aria-label="Loading account"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>;
   }
 

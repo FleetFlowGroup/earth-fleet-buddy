@@ -51,7 +51,7 @@ function AuthPage() {
   const resolveDestination = async () => {
     const me = await qc.fetchQuery({ ...currentUserQueryOptions(), staleTime: 0 });
     if (!me) throw new Error("Could not resolve your account. Please try signing in again.");
-    return operatorPostLoginDestination(me.role, redirect, lastRoute, invite);
+    return operatorPostLoginDestination(me.role, redirect, lastRoute, invite, { hasCompany: !!me.company });
   };
   const navigate = useNavigate();
   const [tab, setTab] = useState<"signin" | "signup">(mode ?? (invite ? "signup" : "signin"));
