@@ -52,6 +52,7 @@ import { Route as AuthenticatedOperatorTicketsRouteImport } from './routes/_auth
 import { Route as AuthenticatedOperatorsIndexRouteImport } from './routes/_authenticated/operators/index'
 import { Route as AuthenticatedOperatorsIdRouteImport } from './routes/_authenticated/operators/$id'
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
+import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicHooksCheckExpiriesRouteImport } from './routes/api/public/hooks/check-expiries'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -287,6 +288,11 @@ const ApiPublicContactRoute = ApiPublicContactRouteImport.update({
   path: '/api/public/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
+  id: '/lovable/email/events',
+  path: '/lovable/email/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
@@ -372,6 +378,7 @@ export interface FileRoutesByFullPath {
   '/operator/tickets': typeof AuthenticatedOperatorTicketsRoute
   '/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/assets/': typeof AuthenticatedAssetsIndexRoute
   '/operator/': typeof AuthenticatedOperatorIndexRoute
@@ -422,6 +429,7 @@ export interface FileRoutesByTo {
   '/operator/tickets': typeof AuthenticatedOperatorTicketsRoute
   '/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/assets': typeof AuthenticatedAssetsIndexRoute
   '/operator': typeof AuthenticatedOperatorIndexRoute
@@ -476,6 +484,7 @@ export interface FileRoutesById {
   '/_authenticated/operator/tickets': typeof AuthenticatedOperatorTicketsRoute
   '/_authenticated/operators/$id': typeof AuthenticatedOperatorsIdRoute
   '/api/public/contact': typeof ApiPublicContactRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/assets/': typeof AuthenticatedAssetsIndexRoute
   '/_authenticated/operator/': typeof AuthenticatedOperatorIndexRoute
@@ -529,6 +538,7 @@ export interface FileRouteTypes {
     | '/operator/tickets'
     | '/operators/$id'
     | '/api/public/contact'
+    | '/lovable/email/events'
     | '/lovable/email/suppression'
     | '/assets/'
     | '/operator/'
@@ -579,6 +589,7 @@ export interface FileRouteTypes {
     | '/operator/tickets'
     | '/operators/$id'
     | '/api/public/contact'
+    | '/lovable/email/events'
     | '/lovable/email/suppression'
     | '/assets'
     | '/operator'
@@ -632,6 +643,7 @@ export interface FileRouteTypes {
     | '/_authenticated/operator/tickets'
     | '/_authenticated/operators/$id'
     | '/api/public/contact'
+    | '/lovable/email/events'
     | '/lovable/email/suppression'
     | '/_authenticated/assets/'
     | '/_authenticated/operator/'
@@ -664,6 +676,7 @@ export interface RootRouteChildren {
   MIdRoute: typeof MIdRoute
   PlatformSplatRoute: typeof PlatformSplatRoute
   ApiPublicContactRoute: typeof ApiPublicContactRoute
+  LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksCheckExpiriesRoute: typeof ApiPublicHooksCheckExpiriesRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -977,6 +990,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lovable/email/events': {
+      id: '/lovable/email/events'
+      path: '/lovable/email/events'
+      fullPath: '/lovable/email/events'
+      preLoaderRoute: typeof LovableEmailEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/suppression': {
       id: '/lovable/email/suppression'
       path: '/lovable/email/suppression'
@@ -1135,6 +1155,7 @@ const rootRouteChildren: RootRouteChildren = {
   MIdRoute: MIdRoute,
   PlatformSplatRoute: PlatformSplatRoute,
   ApiPublicContactRoute: ApiPublicContactRoute,
+  LovableEmailEventsRoute: LovableEmailEventsRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksCheckExpiriesRoute: ApiPublicHooksCheckExpiriesRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
