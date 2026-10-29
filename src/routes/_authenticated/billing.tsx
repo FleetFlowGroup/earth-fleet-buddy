@@ -25,7 +25,7 @@ function BillingPage() {
   const isAdmin = me?.role === "admin";
 
   const { data: billing, isLoading } = useBillingState(companyId);
-  const { data: assetCount = 0 } = useAssetCount(companyId);
+  const { data: assetCount = 0 } = useAssetCount(companyId, me?.role);
   const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
   const [busy, setBusy] = useState<string | null>(null);
 
