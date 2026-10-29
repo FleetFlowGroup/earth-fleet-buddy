@@ -8,7 +8,7 @@ vi.mock('@tanstack/react-start', () => ({ createServerOnlyFn: (fn: unknown) => f
 vi.mock('@react-email/render', () => ({ render: fake.render }))
 vi.mock('@lovable.dev/email-js', () => ({
   sendLovableEmail: fake.send,
-  EmailAPIError: class extends Error { code: string; constructor(code: string) { super(code); this.code = code } },
+  EmailAPIError: class extends Error { code: string | null; constructor(_status: number, message: string, _retry: number | null, code?: string | null) { super(message); this.code = code ?? null } },
 }))
 vi.mock('@/integrations/supabase/client.server', () => ({ supabaseAdmin: {
   from: (table: string) => ({
@@ -46,7 +46,7 @@ describe('managed delivery', () => {
     expect(fake.send).not.toHaveBeenCalled()
   })
   it('treats provider suppression as normal and never retries', async () => {
-    fake.send.mockRejectedValue(new EmailAPIError('recipient_suppressed' as never))
+    fake.send.mockRejectedValue(new EmailAPIError(403, 'Suppressed', null, 'recipient_suppressed'))
     expect(await sendTransactionalServer({ templateName: 'team-invite', recipientEmail: 'invited@example.test' })).toEqual({ ok: false, reason: 'suppressed' })
     expect(fake.writes[0].row.status).toBe('suppressed'); expect(fake.send).toHaveBeenCalledTimes(1)
   })
