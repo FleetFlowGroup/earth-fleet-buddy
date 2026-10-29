@@ -6,37 +6,34 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { askFleetFlow } from '@/lib/assistant/assistant.functions';
+import { askFleetFlow, getAssistantStatus } from '@/lib/assistant/assistant.functions';
 import { audienceFor } from '@/lib/assistant/context';
 import { routeForAudience, supportReplyForAudience } from '@/lib/assistant/routes';
-import { isAssistantPreviewHost } from '@/lib/assistant/preview';
 import type { AssistantResult } from '@/lib/assistant/service';
 import type { AssistantInput } from '@/lib/assistant/input';
 import { assistantSupportPrefill } from '@/lib/assistant/feedback-prefill';
 import { ERROR_REPLIES } from '@/lib/assistant/errors';
-const AssistantContext = createContext({ open: () => {} });
+const AssistantContext = createContext({ open: () => {}, enabled: false });
 const ADMIN_STARTERS = ['How do I invite my operators?', 'How does my employee join my company?', 'How do I add my first machine?', 'How do I get my operators completing prestarts?', "Why can't my employee log in?", "How do I check an operator's licence expiry?", 'How do I set up servicing reminders?'];
 const OPERATOR_STARTERS = ['How do I complete a prestart?', "Why won't my prestart submit?", "How do I scan a machine's QR code?", "Why can't I log in?"];
 type Turn = AssistantInput['messages'][number] & Partial<Pick<AssistantResult, 'links' | 'escalate'>>;
 export function AssistantProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const [preview, setPreview] = useState(false);
+  const [enabled, setEnabled] = useState(false);
   const { data: me } = useCurrentUser();
-  useEffect(() => { setPreview(isAssistantPreviewHost(window.location.hostname)); }, []);
-  return <AssistantContext.Provider value={{ open: () => setOpen(true) }}>{children}{preview && me && <AssistantPanel key={`${me.userId}:${me.company?.id ?? ''}:${me.role ?? ''}`} open={open} onOpenChange={setOpen} />}</AssistantContext.Provider>;
+  const status = useServerFn(getAssistantStatus);
+  // Server decides (flag + allowlist); askFleetFlow enforces it again.
+  useEffect(() => { let live = true; setEnabled(false); if (me) status().then(r => { if (live) setEnabled(r.enabled); }).catch(() => {}); return () => { live = false; }; }, [me?.userId, me?.company?.id]);
+  return <AssistantContext.Provider value={{ open: () => setOpen(true), enabled }}>{children}{enabled && me && <AssistantPanel key={`${me.userId}:${me.company?.id ?? ''}:${me.role ?? ''}`} open={open} onOpenChange={setOpen} />}</AssistantContext.Provider>;
 }
 export function AssistantHeaderButton() {
   const assistant = useContext(AssistantContext);
-  const [preview, setPreview] = useState(false);
-  useEffect(() => { setPreview(isAssistantPreviewHost(window.location.hostname)); }, []);
-  if (!preview) return null;
+  if (!assistant.enabled) return null;
   return <Button variant="ghost" size="icon" title="Ask FleetFlow" aria-label="Ask FleetFlow" onClick={assistant.open}><MessageCircle className="size-5" /></Button>;
 }
 export function AssistantHelpTile() {
   const assistant = useContext(AssistantContext);
-  const [preview, setPreview] = useState(false);
-  useEffect(() => { setPreview(isAssistantPreviewHost(window.location.hostname)); }, []);
-  if (!preview) return null;
+  if (!assistant.enabled) return null;
   return <Button variant="outline" className="h-auto min-h-24 w-full flex-col gap-2 rounded-lg p-4" onClick={assistant.open}><MessageCircle className="size-7 text-primary" /><span>Need help?</span></Button>;
 }
 function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (value: boolean) => void }) {
@@ -83,7 +80,7 @@ function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (
   return <>
     {!open && <Button className="fixed bottom-5 right-5 z-40 gap-2 rounded-lg" onClick={() => onOpenChange(true)}><MessageCircle className="size-4" />Ask FleetFlow</Button>}
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex h-dvh w-full flex-col gap-0 p-0 sm:w-[460px] sm:max-w-[460px] motion-reduce:transition-none motion-reduce:animate-none">
+      <SheetContent onEscapeKeyDown={event => { if (lock.current) { event.preventDefault(); stop(); } }} className="flex h-dvh w-full flex-col gap-0 p-0 sm:w-[460px] sm:max-w-[460px] motion-reduce:transition-none motion-reduce:animate-none">
         <SheetHeader className="border-b border-border p-5 pr-12 text-left">
           <SheetTitle className="flex items-center gap-2"><MessageCircle className="size-5 text-primary" />Ask FleetFlow</SheetTitle>
           <SheetDescription>FleetFlow Assistant gives guidance only and can't change anything in your account.</SheetDescription>
@@ -100,7 +97,7 @@ function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (
           </div><div ref={bottom} />
         </div>
         <div className="shrink-0 border-t border-border p-4 pb-6">
-          <form onKeyDown={event => { if (event.key === 'Escape' && pending) { event.preventDefault(); stop(); } }} onSubmit={event => { event.preventDefault(); void send(); }} className="space-y-2">
+          <form onSubmit={event => { event.preventDefault(); void send(); }} className="space-y-2">
             <Textarea aria-label="Your question" placeholder="Ask a FleetFlow question…" value={draft} onChange={event => setDraft(event.target.value)} maxLength={2000} rows={3} disabled={pending} className="max-h-32 resize-none" />
             <div className="flex items-center justify-between gap-2">
               <Button type="button" variant="ghost" size="icon" title="Clear conversation" aria-label="Clear conversation" disabled={pending || !turns.length} onClick={() => setTurns([])}><Trash2 className="size-4" /></Button>
