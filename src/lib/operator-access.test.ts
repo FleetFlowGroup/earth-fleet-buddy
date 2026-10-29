@@ -93,3 +93,23 @@ describe("assetCountQueryEnabled", () => {
     for (const r of ["admin", "office", "viewer"]) expect(assetCountQueryEnabled("c1", r)).toBe(true);
   });
 });
+
+import { shouldRememberRoute } from "./operator-access";
+describe("multi-role post-login destination", () => {
+  const d = operatorPostLoginDestination;
+  it("admin with operator record + lastRoute /operator -> /dashboard", () => expect(d("admin", undefined, "/operator")).toBe("/dashboard"));
+  it("admin + redirect=/operator -> /dashboard", () => expect(d("admin", "/operator", null)).toBe("/dashboard"));
+  it("admin redirect /operator falls back to lastRoute", () => expect(d("admin", "/operator", "/assets")).toBe("/assets"));
+  it("admin + preview + lastRoute /operator -> /operator", () => expect(d("admin", undefined, "/operator", undefined, undefined, true)).toBe("/operator"));
+  it.each(["workshop", "manager", "supervisor", "office_staff"])("%s with lastRoute /operator -> /dashboard", (r) => expect(d(r, undefined, "/operator")).toBe("/dashboard"));
+  it("admin lastRoute /assets -> /assets", () => expect(d("admin", undefined, "/assets")).toBe("/assets"));
+  it("admin redirect /m/<id> -> /m/<id>", () => expect(d("admin", "/m/abc", "/operator")).toBe("/m/abc"));
+  it("operator lastRoute /assets -> /operator", () => expect(d("operator", undefined, "/assets")).toBe("/operator"));
+  it("operator redirect /m/<id> -> /m/<id>", () => expect(d("operator", "/m/abc", null)).toBe("/m/abc"));
+});
+describe("shouldRememberRoute", () => {
+  it("admin does not remember /operator", () => expect(shouldRememberRoute("admin", "/operator", false)).toBe(false));
+  it("admin in preview remembers /operator", () => expect(shouldRememberRoute("admin", "/operator", true)).toBe(true));
+  it("operator remembers /operator", () => expect(shouldRememberRoute("operator", "/operator/hours", false)).toBe(true));
+  it("admin remembers /assets", () => expect(shouldRememberRoute("admin", "/assets", false)).toBe(true));
+});

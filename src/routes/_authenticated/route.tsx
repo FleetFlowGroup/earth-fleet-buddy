@@ -5,6 +5,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { useBillingState } from "@/hooks/use-subscription";
 import { isOperatorPreviewOn } from "@/lib/operator-preview";
 import { rememberRoute } from "@/lib/last-route";
+import { shouldRememberRoute } from "@/lib/operator-access";
 import { AssistantProvider } from "@/components/assistant-panel";
 import { authenticatedRedirectDestination, isSubscriptionExemptPath, shouldRenderAuthedOutlet } from "@/lib/operator-access";
 import { Loader2 } from "lucide-react";
@@ -29,8 +30,9 @@ function AuthedLayout() {
   // Remember the user's last authenticated route so we can return them
   // here after refresh or re-login.
   useEffect(() => {
-    rememberRoute(location.pathname);
-  }, [location.pathname]);
+    if (!me) return;
+    if (shouldRememberRoute(me.role, location.pathname, isOperatorPreviewOn())) rememberRoute(location.pathname);
+  }, [location.pathname, me]);
 
   useEffect(() => {
     if (isLoading || isError || !me) return;
