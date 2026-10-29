@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { PrestartTemplateEditor } from "@/components/prestart-template-editor";
+import { canRunAdminQueries } from "@/lib/operator-access";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings · Fleetflow" }] }),
@@ -88,7 +89,7 @@ function SettingsPage() {
           </p>
         </div>
 
-        {me?.company && (
+        {me?.company && canRunAdminQueries(me.role) && (
           <div className="surface-card p-6">
             <h3 className="text-sm font-semibold">Daily prestart checklist</h3>
             <p className="mt-1 text-xs text-muted-foreground">
