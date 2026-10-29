@@ -1,3 +1,4 @@
+import { canRunAdminQueries } from "@/lib/operator-access";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -58,7 +59,7 @@ function ReportsPage() {
 
   const { data: preview, isLoading } = useQuery({
     queryKey: ["report-preview", companyId, kind],
-    enabled: !!companyId,
+    enabled: !!companyId && canRunAdminQueries(me?.role),
     queryFn: () => fetchReportData(companyId!, kind),
   });
 

@@ -1,3 +1,4 @@
+import { canRunAdminQueries } from "@/lib/operator-access";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -36,7 +37,7 @@ function OperatorsPage() {
 
   const { data: rows, isLoading } = useQuery({
     queryKey: ["operators", companyId],
-    enabled: !!companyId,
+    enabled: !!companyId && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data: ops, error } = await (supabase as any)
         .from("operators")

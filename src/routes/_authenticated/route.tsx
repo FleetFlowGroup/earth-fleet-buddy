@@ -6,6 +6,8 @@ import { useBillingState } from "@/hooks/use-subscription";
 import { isOperatorPreviewOn } from "@/lib/operator-preview";
 import { rememberRoute } from "@/lib/last-route";
 import { AssistantProvider } from "@/components/assistant-panel";
+import { shouldRenderAuthedOutlet } from "@/lib/operator-access";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -22,7 +24,7 @@ export const Route = createFileRoute("/_authenticated")({
 const SUBSCRIPTION_EXEMPT_PREFIXES = ["/billing", "/onboarding", "/operator"];
 
 function AuthedLayout() {
-  const { data: me, isLoading } = useCurrentUser();
+  const { data: me, isLoading, isError } = useCurrentUser();
   const location = useLocation();
   const navigate = useNavigate();
   const companyId = me?.company?.id;
@@ -59,6 +61,10 @@ function AuthedLayout() {
       navigate({ to: "/billing", replace: true });
     }
   }, [me, isLoading, companyId, billing, billingLoading, location.pathname, navigate]);
+
+  if (!shouldRenderAuthedOutlet(me?.role, location.pathname, isOperatorPreviewOn(), isLoading, isError)) {
+    return <div className="grid min-h-screen place-items-center bg-background" role="status" aria-label="Loading account"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>;
+  }
 
   return <AssistantProvider><Outlet /></AssistantProvider>;
 }

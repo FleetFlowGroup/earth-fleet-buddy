@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { DollarSign, Loader2, Plus, Trash2 } from "lucide-react";
 import { fmtDate } from "@/lib/expiry";
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { canRunAdminQueries } from "@/lib/operator-access";
 
 export const EXPENSE_CATEGORIES: { value: string; label: string }[] = [
   { value: "repairs", label: "Repairs" },
@@ -37,11 +39,13 @@ const LABELS = Object.fromEntries(EXPENSE_CATEGORIES.map((c) => [c.value, c.labe
 export function AssetExpenses({
   assetId, companyId, editable,
 }: { assetId: string; companyId: string; editable: boolean }) {
+  const { data: me } = useCurrentUser();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
 
   const { data: rows } = useQuery({
     queryKey: ["asset-expenses", assetId],
+    enabled: !!assetId && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("asset_expenses").select("*").eq("asset_id", assetId)

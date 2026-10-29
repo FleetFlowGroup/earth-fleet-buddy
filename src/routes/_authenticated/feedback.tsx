@@ -1,3 +1,4 @@
+import { canRunAdminQueries } from "@/lib/operator-access";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -66,7 +67,7 @@ function FeedbackPage() {
 
   const { data: rows, isLoading } = useQuery({
     queryKey: ["app-feedback", me?.company?.id],
-    enabled: !!me?.company?.id,
+    enabled: !!me?.company?.id && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("app_feedback" as any)

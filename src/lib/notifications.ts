@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { computeServiceDue, daysUntil, fmtDate, COMPLIANCE_LABELS } from "@/lib/expiry";
 import { licenceDisplayName } from "@/lib/operators";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { canRunAdminQueries } from "@/lib/operator-access";
 
 export type Notification = {
   id: string;
@@ -15,9 +17,10 @@ export type Notification = {
 };
 
 export function useNotifications(companyId?: string) {
+  const { data: me } = useCurrentUser();
   return useQuery({
     queryKey: ["notifications", companyId],
-    enabled: !!companyId,
+    enabled: !!companyId && canRunAdminQueries(me?.role),
     staleTime: 60_000,
     queryFn: async (): Promise<Notification[]> => {
       const [assetsR, compR, licR, defR, psR, opsR] = await Promise.all([

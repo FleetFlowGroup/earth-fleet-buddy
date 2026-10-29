@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useNotifications } from "@/lib/notifications";
 import { formatDistanceToNow } from "date-fns";
+import { canRunAdminQueries } from "@/lib/operator-access";
 
 export function NotificationsBell() {
   const { data: me } = useCurrentUser();
   const { data: notifs } = useNotifications(me?.company?.id);
   const items = notifs ?? [];
   const urgent = items.filter((n) => n.tone === "danger").length;
+
+  if (!canRunAdminQueries(me?.role)) return null;
 
   return (
     <Popover>

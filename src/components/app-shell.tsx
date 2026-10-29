@@ -30,6 +30,7 @@ import { setOperatorPreview } from "@/lib/operator-preview";
 import { useIsPlatformAdmin } from "@/hooks/use-is-platform-admin";
 import { GlobalSearchTrigger } from "@/components/global-search";
 import { AssistantHeaderButton } from "@/components/assistant-panel";
+import { canRunAdminQueries } from "@/lib/operator-access";
 
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
@@ -50,6 +51,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
   const { data: me } = useCurrentUser();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const adminQueriesAllowed = canRunAdminQueries(me?.role);
 
   async function signOut() {
     await qc.cancelQueries();
@@ -74,9 +76,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="text-sm font-semibold">FleetFlow</span>
           </Link>
           <div className="flex items-center gap-1">
-            <GlobalSearchTrigger />
+            {adminQueriesAllowed && <GlobalSearchTrigger />}
             <AssistantHeaderButton />
-            <NotificationsBell />
+            {adminQueriesAllowed && <NotificationsBell />}
             <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open menu">
               <Menu className="size-5" />
@@ -86,7 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <header className="sticky top-0 z-20 hidden h-14 items-center gap-3 border-b border-border bg-background/80 px-6 backdrop-blur lg:flex">
           <div className="flex-1">
-            <GlobalSearchTrigger />
+            {adminQueriesAllowed && <GlobalSearchTrigger />}
           </div>
           <AssistantHeaderButton />
         </header>
@@ -137,7 +139,7 @@ function SidebarInner({
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <NotificationsBell />
+          {canRunAdminQueries(role) && <NotificationsBell />}
           <ThemeToggle />
         </div>
       </div>
@@ -169,7 +171,7 @@ function SidebarInner({
             </Link>
           );
         })}
-        <PlatformAdminNav email={email} path={path} onNavigate={onNavigate} />
+        {canRunAdminQueries(role) && <PlatformAdminNav email={email} path={path} onNavigate={onNavigate} />}
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
@@ -214,11 +216,12 @@ function SidebarInner({
 }
 
 function PlatformAdminNav({ path, onNavigate }: { email?: string; path: string; onNavigate?: () => void }) {
+  const { data: me } = useCurrentUser();
   const { data: isPlatformAdmin = false } = useIsPlatformAdmin();
 
   const { data: newCount } = useQuery({
     queryKey: ["contact-enquiries-new-count"],
-    enabled: isPlatformAdmin,
+    enabled: isPlatformAdmin && canRunAdminQueries(me?.role),
     refetchInterval: 60_000,
     queryFn: async () => {
       const { count, error } = await supabase

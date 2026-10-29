@@ -1,3 +1,4 @@
+import { canRunAdminQueries } from "@/lib/operator-access";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -57,7 +58,7 @@ function TicketsPage() {
 
   const { data: tickets, isLoading } = useQuery({
     queryKey: ["tickets", me?.company?.id],
-    enabled: !!me?.company?.id,
+    enabled: !!me?.company?.id && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("tickets")
@@ -185,8 +186,10 @@ function UploadDialog({ companyId, onDone }: { companyId: string; onDone: () => 
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
 
+  const { data: me } = useCurrentUser();
   const { data: operators } = useQuery({
     queryKey: ["operators-for-ticket", companyId],
+    enabled: !!companyId && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data } = await (supabase as any)
         .from("operators").select("id, full_name")
@@ -322,8 +325,10 @@ function AssignDialog({ ticket, companyId, onDone }: { ticket: Ticket; companyId
     Object.fromEntries((ticket.ticket_assignments ?? []).map((a) => [a.operator_id, true])),
   );
 
+  const { data: me } = useCurrentUser();
   const { data: operators } = useQuery({
     queryKey: ["operators-for-ticket", companyId],
+    enabled: !!companyId && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data } = await (supabase as any)
         .from("operators").select("id, full_name")

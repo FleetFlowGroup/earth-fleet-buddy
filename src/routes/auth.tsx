@@ -10,6 +10,9 @@ import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { Truck, Loader2, Home } from "lucide-react";
 import { getLastRoute } from "@/lib/last-route";
+import { useQueryClient } from "@tanstack/react-query";
+import { currentUserQueryOptions } from "@/hooks/use-current-user";
+import { operatorPostLoginDestination } from "@/lib/operator-access";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
@@ -41,11 +44,15 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const search = useSearch({ from: "/auth" });
   const { mode, oauth, redirect, invite, email: prefillEmail } = search;
-  const isSafeRedirect = !!redirect && redirect.startsWith("/") && !redirect.startsWith("//");
   // If we arrived from an invite link, after sign-in/up land on the join page to accept.
   // Otherwise prefer explicit ?redirect=, then the user's last remembered route, then /dashboard.
   const lastRoute = getLastRoute();
-  const dest = invite ? `/join/${invite}` : (isSafeRedirect ? redirect! : (lastRoute ?? "/dashboard"));
+  const qc = useQueryClient();
+  const resolveDestination = async () => {
+    const me = await qc.fetchQuery({ ...currentUserQueryOptions(), staleTime: 0 });
+    if (!me) throw new Error("Could not resolve your account. Please try signing in again.");
+    return operatorPostLoginDestination(me.role, redirect, lastRoute, invite);
+  };
   const navigate = useNavigate();
   const [tab, setTab] = useState<"signin" | "signup">(mode ?? (invite ? "signup" : "signin"));
   const [loading, setLoading] = useState(false);
@@ -56,15 +63,16 @@ function AuthPage() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (active && data.user && !oauth) {
-        navigate({ to: dest as any, replace: true });
+        const dest = await resolveDestination();
+        if (active) navigate({ to: dest as any, replace: true });
       }
-    });
+    }).catch(() => { if (active) toast.error("Could not resolve your account. Please try signing in again."); });
     return () => {
       active = false;
     };
-  }, [dest, navigate, oauth]);
+  }, [redirect, lastRoute, invite, qc, navigate, oauth]);
 
   // Look up the invite (anon-safe) so we can show "You've been invited to X".
   useEffect(() => {
@@ -95,14 +103,15 @@ function AuthPage() {
       }
 
       toast.success("Welcome back");
+      const dest = await resolveDestination();
       navigate({ to: dest as any, replace: true });
     };
 
-    finishGoogleSignIn();
+    finishGoogleSignIn().catch(() => { if (active) { toast.error("Could not resolve your account. Please try signing in again."); setLoading(false); } });
     return () => {
       active = false;
     };
-  }, [oauth, navigate, dest]);
+  }, [oauth, navigate, redirect, lastRoute, invite, qc]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -125,6 +134,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back");
+        const dest = await resolveDestination();
         navigate({ to: dest as any });
       }
     } catch (err: unknown) {
@@ -146,6 +156,14 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
+    let dest: string;
+    try {
+      dest = await resolveDestination();
+    } catch {
+      toast.error("Could not resolve your account. Please try signing in again.");
+      setLoading(false);
+      return;
+    }
     navigate({ to: dest as any, replace: true });
   }
 

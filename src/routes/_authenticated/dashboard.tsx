@@ -1,3 +1,4 @@
+import { canRunAdminQueries } from "@/lib/operator-access";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -91,7 +92,7 @@ function Dashboard() {
 
   const { data: stats } = useQuery({
     queryKey: ["dashboard-stats-v2", companyId],
-    enabled: !!companyId,
+    enabled: !!companyId && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const [assetsRes, complianceRes, docsRes, opsRes, licencesRes, serviceHistRes, defectsRes] = await Promise.all([
         supabase
@@ -171,7 +172,7 @@ function Dashboard() {
   // Today's prestart completion + assigned-asset count
   const { data: todayStats } = useQuery({
     queryKey: ["today-prestarts", companyId],
-    enabled: !!companyId,
+    enabled: !!companyId && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const start = new Date(); start.setHours(0, 0, 0, 0);
       const [psR, assignedR, opsCountR, defectsR] = await Promise.all([

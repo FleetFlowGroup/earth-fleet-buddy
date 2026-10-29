@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Truck, IdCard, AlertTriangle, ClipboardCheck, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { canRunAdminQueries } from "@/lib/operator-access";
 
 type Hit = {
   id: string;
@@ -26,18 +27,22 @@ type Hit = {
 };
 
 export function GlobalSearchTrigger() {
+  const { data: me } = useCurrentUser();
+  const allowed = canRunAdminQueries(me?.role);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
+      if (allowed && (e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen((v) => !v);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [allowed]);
+
+  if (!allowed) return null;
 
   return (
     <>
@@ -86,7 +91,7 @@ function GlobalSearchDialog({
   }, [open]);
 
   const term = q.trim();
-  const enabled = !!companyId && term.length >= 2;
+  const enabled = open && !!companyId && canRunAdminQueries(me?.role) && term.length >= 2;
 
   const { data: hits = [], isFetching } = useQuery({
     queryKey: ["global-search", companyId, term],
