@@ -1,3 +1,4 @@
+import { canRunAdminQueries } from "@/lib/operator-access";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -71,6 +72,7 @@ function AssetDetail() {
 
   const { data: asset, isLoading } = useQuery({
     queryKey: ["asset", id],
+    enabled: !!id && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("assets")
@@ -84,6 +86,7 @@ function AssetDetail() {
 
   const { data: compliance } = useQuery({
     queryKey: ["asset-compliance", id],
+    enabled: !!id && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("compliance_records")
@@ -97,6 +100,7 @@ function AssetDetail() {
 
   const { data: docs } = useQuery({
     queryKey: ["asset-docs", id],
+    enabled: !!id && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("documents")
@@ -110,6 +114,7 @@ function AssetDetail() {
 
   const { data: meters } = useQuery({
     queryKey: ["asset-meters", id],
+    enabled: !!id && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("meter_readings")
@@ -124,6 +129,7 @@ function AssetDetail() {
 
   const { data: services } = useQuery({
     queryKey: ["asset-services", id],
+    enabled: !!id && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("service_history")

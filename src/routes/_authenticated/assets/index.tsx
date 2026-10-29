@@ -1,3 +1,4 @@
+import { canRunAdminQueries } from "@/lib/operator-access";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -68,7 +69,7 @@ function AssetsPage() {
 
   const { data: assets, isLoading } = useQuery({
     queryKey: ["assets", companyId],
-    enabled: !!companyId,
+    enabled: !!companyId && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("assets")

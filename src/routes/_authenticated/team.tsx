@@ -1,3 +1,4 @@
+import { canRunAdminQueries } from "@/lib/operator-access";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -43,7 +44,7 @@ function TeamPage() {
 
   const { data: members } = useQuery({
     queryKey: ["team", companyId],
-    enabled: !!companyId,
+    enabled: !!companyId && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data: roles } = await supabase
         .from("user_roles")
@@ -63,7 +64,7 @@ function TeamPage() {
 
   const { data: invites } = useQuery({
     queryKey: ["invites", companyId],
-    enabled: !!companyId && canManage,
+    enabled: !!companyId && canManage && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data } = await (supabase as any)
         .from("company_invites")

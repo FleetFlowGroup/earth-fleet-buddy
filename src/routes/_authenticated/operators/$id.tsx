@@ -1,3 +1,4 @@
+import { canRunAdminQueries } from "@/lib/operator-access";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -36,6 +37,7 @@ function OperatorDetail() {
 
   const { data: op, isLoading } = useQuery({
     queryKey: ["operator", id],
+    enabled: !!id && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await (supabase as any).from("operators").select("*").eq("id", id).maybeSingle();
       if (error) throw error;
@@ -45,6 +47,7 @@ function OperatorDetail() {
 
   const { data: licences } = useQuery({
     queryKey: ["operator-licences", id],
+    enabled: !!id && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("operator_licences").select("*").eq("operator_id", id)

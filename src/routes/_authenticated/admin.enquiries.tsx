@@ -1,3 +1,5 @@
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { canRunAdminQueries } from "@/lib/operator-access";
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -75,6 +77,8 @@ function EnquiriesPage() {
 }
 
 function EnquiriesInner() {
+  const { data: me } = useCurrentUser()
+  const { data: isPlatformAdmin } = useIsPlatformAdmin()
   const qc = useQueryClient()
   const [statusFilter, setStatusFilter] = useState<'all' | Status>('all')
   const [search, setSearch] = useState('')
@@ -82,6 +86,7 @@ function EnquiriesInner() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['contact-enquiries'],
+    enabled: isPlatformAdmin === true && canRunAdminQueries(me?.role),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('contact_enquiries')
