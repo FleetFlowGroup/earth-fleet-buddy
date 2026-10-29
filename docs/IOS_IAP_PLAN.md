@@ -98,7 +98,7 @@ Status: branch `feat/ios-app` (from production commit 8aec5cab). Nothing publish
 - Conflict policy: if a company already has an active Paddle sub, the app hides IAP and says "Managed on the web". If an Apple sub is active, the web billing page shows "Managed in the App Store" and hides Paddle checkout and plan change.
 
 ### Proposed DB changes (NOT applied)
-`docs/proposed-migrations/PROPOSED_0009_multi_store_subscriptions.sql` plus a rollback:
+`supabase/proposed/20261029090000_0009_billing_hardening_iap.sql` plus a rollback (moved from docs/proposed-migrations):
 - `subscriptions.provider` plus Apple id columns, with nullable Paddle ids guarded by a CHECK;
 - `last_event_id`/`last_event_at`;
 - `billing_events` (idempotency, service_role only);
@@ -147,3 +147,11 @@ Also needed later: `device_tokens` for push.
   - Email links (reset password, invites) open Safari, not the app, unless we add **Universal Links**: an `apple-app-site-association` file on fleetflow.group plus the Associated Domains capability. That is a web publish, so it needs separate approval.
   - Account deletion must be available in-app (guideline 5.1.1(v)). Check that one exists before submission.
 - Option A, if ever adopted, would need CORS for `capacitor://localhost` on server functions and Supabase redirect URLs. Not recommended.
+
+## Step 2 status (implemented on feat/ios-app, not deployed)
+- Webhook: `src/routes/api/public/payments/revenuecat-webhook.ts` → `src/lib/billing/revenuecat.ts`.
+- Native flow: `src/lib/iap.ts` (`@revenuecat/purchases-capacitor`, dynamic import, app user id = company id),
+  UI `src/components/billing/iap-billing-panel.tsx` rendered by `/billing` only inside the native app.
+- Migration: `supabase/proposed/20261029090000_0009_billing_hardening_iap.sql` (replaces docs/proposed-migrations/PROPOSED_0009*).
+- See docs/BILLING_HARDENING_0009.md for deploy order and the audit table.
+- Run `bun run cap:sync` after install so the RevenueCat SPM package is added to the iOS project.

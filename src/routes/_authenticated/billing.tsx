@@ -3,7 +3,10 @@ import { useState } from "react";
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useBillingState, useAssetCount, PLAN_LABEL, PLAN_LIMIT, PLAN_ORDER, PLAN_PRICE_ID, PLAN_PRICE_AUD, PLAN_INTRO_DISCOUNT_ID, isUnlimitedAssetLimit } from "@/hooks/use-subscription";
+import { useBillingState, useAssetCount, PLAN_LABEL, PLAN_LIMIT, PLAN_ORDER, PLAN_PRICE_ID, PLAN_PRICE_AUD, PLAN_INTRO_DISCOUNT_ID, isUnlimitedAssetLimit, useBillingProvider } from "@/hooks/use-subscription";
+import { isNativeApp } from "@/lib/native";
+import { IapBillingPanel } from "@/components/billing/iap-billing-panel";
+import { APPLE_MANAGE_SUBSCRIPTIONS_URL } from "@/lib/iap";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { changeSubscriptionPlan, createPortalSession } from "@/utils/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
@@ -28,6 +31,10 @@ function BillingPage() {
   const { data: assetCount = 0 } = useAssetCount(companyId, me?.role);
   const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
   const [busy, setBusy] = useState<string | null>(null);
+  const { data: provider = null } = useBillingProvider(companyId);
+  const native = isNativeApp();
+  // Web keeps Paddle for everyone except companies already billed by Apple (iOS app purchase).
+  const showPaddleControls = !native && provider !== "apple";
 
   if (!isAdmin) {
     return (
@@ -129,7 +136,9 @@ function BillingPage() {
                       ? `Renews ${new Date(billing.period_end).toLocaleDateString()}`
                       : billing.state === "canceled_grace" && billing.period_end
                         ? `Access ends ${new Date(billing.period_end).toLocaleDateString()}`
-                        : "Subscribe to start using FleetFlow — first month $9.99 AUD."}
+                        : native
+                          ? "Subscribe to start using FleetFlow."
+                          : "Subscribe to start using FleetFlow — first month $9.99 AUD."}
                   </div>
                   {billing.status === "past_due" && (
                     <div className="mt-2 inline-block rounded-md bg-destructive/15 px-2 py-0.5 text-xs text-destructive">
@@ -137,7 +146,7 @@ function BillingPage() {
                     </div>
                   )}
                 </div>
-                {(billing.state === "subscribed" || billing.state === "canceled_grace" || billing.status === "past_due") && (
+                {showPaddleControls && (billing.state === "subscribed" || billing.state === "canceled_grace" || billing.status === "past_due") && (
                   <Button variant="outline" disabled={busy === "portal"} onClick={openPortal}>
                     {busy === "portal" ? <Loader2 className="mr-2 size-4 animate-spin" /> : <ExternalLink className="mr-2 size-4" />}
                     Manage payment / cancel
@@ -165,7 +174,15 @@ function BillingPage() {
               </div>
             </div>
 
-            {/* Plan picker */}
+            {native && companyId ? (
+              <IapBillingPanel companyId={companyId} currentProductId={billing.product_id ?? null} provider={provider} />
+            ) : !showPaddleControls ? (
+              <div className="surface-card p-6 text-sm text-muted-foreground">
+                This subscription was purchased in the FleetFlow iOS app and is managed by Apple.{" "}
+                <a className="underline" href={APPLE_MANAGE_SUBSCRIPTIONS_URL} target="_blank" rel="noopener noreferrer">Manage in the App Store</a>.
+              </div>
+            ) : (
+            /* Plan picker (web, Paddle) */
             <div className="surface-card p-6">
               <div className="text-sm font-semibold">
                 {billing.state === "subscribed" || billing.state === "canceled_grace" ? "Change plan" : "Choose a plan"}
@@ -222,10 +239,13 @@ function BillingPage() {
                 </Button>
               </div>
             </div>
+            )}
 
+            {showPaddleControls && (
             <p className="text-xs text-muted-foreground">
               Payments are processed by Paddle.com, our reseller and merchant of record. Refunds within 30 days.
             </p>
+            )}
           </>
         )}
       </div>

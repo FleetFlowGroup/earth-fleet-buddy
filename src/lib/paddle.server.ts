@@ -53,3 +53,10 @@ export async function verifyWebhook(req: Request, env: PaddleEnv) {
   const paddle = getPaddleClient(env);
   return await paddle.webhooks.unmarshal(body, secret, signature);
 }
+
+/** Verify an already-read body against one env's secret. Throws on bad signature/missing secret. */
+export async function verifyWebhookBody(body: string, signature: string, env: PaddleEnv) {
+  const secret = getWebhookSecret(env);
+  const paddle = getPaddleClient(env);
+  return await paddle.webhooks.unmarshal(body, secret, signature);
+}

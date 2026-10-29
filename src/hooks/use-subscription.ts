@@ -121,3 +121,23 @@ export function useAssetCount(companyId?: string | null, role?: string | null) {
     },
   });
 }
+
+/**
+ * Which provider bills the company's current subscription ("paddle" | "apple" | null).
+ * Needs migration 0009; before that (RPC missing) it returns null and the UI behaves as today.
+ */
+export function useBillingProvider(companyId?: string | null) {
+  return useQuery({
+    queryKey: ["billing-provider", companyId, getPaddleEnvironment()],
+    enabled: !!companyId,
+    queryFn: async (): Promise<"paddle" | "apple" | null> => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any).rpc("company_billing_provider", {
+        _company_id: companyId,
+        _env: getPaddleEnvironment(),
+      });
+      if (error) return null;
+      return data === "apple" || data === "paddle" ? data : null;
+    },
+  });
+}
