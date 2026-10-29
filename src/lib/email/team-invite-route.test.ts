@@ -16,10 +16,16 @@ const fake = vi.hoisted(() => ({
   reservations: [] as { message_id: string; invite_id: string; user_id: string; company_id: string; status: string }[],
   serial: Promise.resolve(),
 }));
-vi.mock('@tanstack/react-router', () => ({ createFileRoute: () => (options: unknown) => options }));
-vi.mock('@react-email/components', async (importOriginal) => {
-  const original = await importOriginal<Record<string, unknown>>();
-  return { ...original, render: fake.render };
+vi.mock('@/lib/email-templates/send-email', async () => {
+  const { TEMPLATES } = await import('../email-templates/registry');
+  return { sendTemplateEmail: async (name: string, to: string, options: { templateData: Record<string, unknown>; idempotencyKey: string; beforeSend?: () => Promise<void> }) => {
+    const template = TEMPLATES[name]; const element = createElement(template.component, options.templateData);
+    await fake.render(element); await options.beforeSend?.();
+    const subject = typeof template.subject === 'function' ? template.subject(options.templateData) : template.subject;
+    fake.enqueue({ payload: { to, label: name, subject, idempotency_key: options.idempotencyKey } });
+    if (fake.enqueueError) throw new Error('Failed to enqueue email');
+    return { sent: true };
+  } };
 });
 vi.mock('@supabase/supabase-js', () => ({ createClient: () => ({
   auth: { getUser: async () => ({ data: { user: fake.user }, error: null }) },
@@ -89,15 +95,14 @@ vi.mock('@supabase/supabase-js', () => ({ createClient: () => ({
   },
 }) }));
 
-import { Route } from '../../routes/lovable/email/transactional/send';
-const route = Route as unknown as { server: { handlers: { POST: (args: { request: Request }) => Promise<Response> } } };
+import { sendTeamInviteRequest } from './team-invite-handler.server';
 const now = Date.parse('2026-10-28T07:00:00Z');
 const inviteId = '11111111-1111-4111-8111-111111111111';
 function send(body: unknown = { inviteId }, bearer = true) {
-  return route.server.handlers.POST({ request: new Request('https://www.fleetflow.group/lovable/email/transactional/send', {
+  return sendTeamInviteRequest(new Request('https://www.fleetflow.group/api/team-invites/send', {
     method: 'POST', headers: { 'Content-Type': 'application/json', ...(bearer ? { Authorization: 'Bearer mock-jwt' } : {}) },
     body: JSON.stringify(body),
-  }) });
+  }));
 }
 beforeEach(() => {
   vi.restoreAllMocks();

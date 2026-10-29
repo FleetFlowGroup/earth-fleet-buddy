@@ -1,4 +1,8 @@
 # Prestart submission repair
+## Email update
+- [x] Replace legacy email delivery while preserving invitation authorisation, atomic quotas, templates and existing feature triggers.
+- [x] Replace suppression/unsubscribe reactions with the signed events receiver, retain user data and remove legacy scaffolds from source only.
+- [x] Offline suite: 340 Vitest and 7 company-isolation tests passed; automatic preview compilation checked. No emails, SQL, data changes or publishing; live sending intentionally untested.
 ## Preview-only operator query security Fix A
 - [x] Fix loaded no-company onboarding access and login/layout redirects; match the operator path segment exactly for rendering, redirects and subscription exemptions.
 - [x] Full Vitest: 282 passed across 6 files (48 access-guard tests); automatic preview build OK. No live navigation because existing telemetry can write data; no SQL, data changes, emails, accounts or publishing.

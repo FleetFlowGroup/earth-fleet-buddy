@@ -13,3 +13,4 @@
 - `supabase/migrations/20261028074200_reserve_team_invite_email.sql`: the SQL it records was applied at approx. 18:42 AEDT (UTC+11) on 2026-10-28 and verified by Lovable (the AI assistant, via Lovable query tooling), not by the project owner.
 - The file's header line "APPLIED MANUALLY on 2026-10-28 and verified by the project owner." is inaccurate. It is intentionally left unedited because `supabase/migrations/` is platform-protected and editing an applied migration could alter its recorded hash.
 - The file remains an archival record only and must not be re-executed by tooling.
+- Email delivery uses the managed server-only template helper; preserve the existing atomic invite reservation as application abuse control, and treat retained suppression/event tables as notification-only audit data, never send authority.
