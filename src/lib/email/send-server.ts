@@ -15,8 +15,9 @@ export interface SendArgs {
 export const sendTransactionalServer = createServerOnlyFn(async (args: SendArgs): Promise<{ ok: boolean; reason?: string }> => {
   const template = TEMPLATES[args.templateName]
   if (!template) return { ok: false, reason: 'template_not_found' }
-  const recipient = template.to || args.recipientEmail
-  if (!recipient) return { ok: false, reason: 'no_recipient' }
+  const selectedRecipient = template.to || args.recipientEmail
+  if (!selectedRecipient) return { ok: false, reason: 'no_recipient' }
+  const recipient: string = selectedRecipient
   const messageId = crypto.randomUUID()
   const { supabaseAdmin } = await import('@/integrations/supabase/client.server')
   async function log(status: 'sent' | 'suppressed' | 'failed', errorMessage?: string) {
