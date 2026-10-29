@@ -54,7 +54,6 @@ import { Route as AuthenticatedOperatorsIdRouteImport } from './routes/_authenti
 import { Route as ApiPublicContactRouteImport } from './routes/api/public/contact'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiPublicHooksCheckExpiriesRouteImport } from './routes/api/public/hooks/check-expiries'
-import { Route as ApiPublicHooksCheckExpiriesCompanyRouteImport } from './routes/api/public/hooks/check-expiries-company'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -299,12 +298,6 @@ const ApiPublicHooksCheckExpiriesRoute =
     path: '/api/public/hooks/check-expiries',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksCheckExpiriesCompanyRoute =
-  ApiPublicHooksCheckExpiriesCompanyRouteImport.update({
-    id: '/api/public/hooks/check-expiries-company',
-    path: '/api/public/hooks/check-expiries-company',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -384,7 +377,6 @@ export interface FileRoutesByFullPath {
   '/operator/': typeof AuthenticatedOperatorIndexRoute
   '/operators/': typeof AuthenticatedOperatorsIndexRoute
   '/api/public/hooks/check-expiries': typeof ApiPublicHooksCheckExpiriesRoute
-  '/api/public/hooks/check-expiries-company': typeof ApiPublicHooksCheckExpiriesCompanyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -435,7 +427,6 @@ export interface FileRoutesByTo {
   '/operator': typeof AuthenticatedOperatorIndexRoute
   '/operators': typeof AuthenticatedOperatorsIndexRoute
   '/api/public/hooks/check-expiries': typeof ApiPublicHooksCheckExpiriesRoute
-  '/api/public/hooks/check-expiries-company': typeof ApiPublicHooksCheckExpiriesCompanyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -490,7 +481,6 @@ export interface FileRoutesById {
   '/_authenticated/operator/': typeof AuthenticatedOperatorIndexRoute
   '/_authenticated/operators/': typeof AuthenticatedOperatorsIndexRoute
   '/api/public/hooks/check-expiries': typeof ApiPublicHooksCheckExpiriesRoute
-  '/api/public/hooks/check-expiries-company': typeof ApiPublicHooksCheckExpiriesCompanyRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -544,7 +534,6 @@ export interface FileRouteTypes {
     | '/operator/'
     | '/operators/'
     | '/api/public/hooks/check-expiries'
-    | '/api/public/hooks/check-expiries-company'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -595,7 +584,6 @@ export interface FileRouteTypes {
     | '/operator'
     | '/operators'
     | '/api/public/hooks/check-expiries'
-    | '/api/public/hooks/check-expiries-company'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -649,7 +637,6 @@ export interface FileRouteTypes {
     | '/_authenticated/operator/'
     | '/_authenticated/operators/'
     | '/api/public/hooks/check-expiries'
-    | '/api/public/hooks/check-expiries-company'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -679,7 +666,6 @@ export interface RootRouteChildren {
   ApiPublicContactRoute: typeof ApiPublicContactRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksCheckExpiriesRoute: typeof ApiPublicHooksCheckExpiriesRoute
-  ApiPublicHooksCheckExpiriesCompanyRoute: typeof ApiPublicHooksCheckExpiriesCompanyRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -1005,13 +991,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksCheckExpiriesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/check-expiries-company': {
-      id: '/api/public/hooks/check-expiries-company'
-      path: '/api/public/hooks/check-expiries-company'
-      fullPath: '/api/public/hooks/check-expiries-company'
-      preLoaderRoute: typeof ApiPublicHooksCheckExpiriesCompanyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -1158,8 +1137,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicContactRoute: ApiPublicContactRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksCheckExpiriesRoute: ApiPublicHooksCheckExpiriesRoute,
-  ApiPublicHooksCheckExpiriesCompanyRoute:
-    ApiPublicHooksCheckExpiriesCompanyRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
