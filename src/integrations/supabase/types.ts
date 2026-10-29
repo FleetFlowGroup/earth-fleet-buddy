@@ -292,6 +292,30 @@ export type Database = {
           },
         ]
       }
+      assistant_usage: {
+        Row: {
+          count: number
+          scope: string
+          subject_id: string
+          window_kind: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          scope: string
+          subject_id: string
+          window_kind: string
+          window_start: string
+        }
+        Update: {
+          count?: number
+          scope?: string
+          subject_id?: string
+          window_kind?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -1763,8 +1787,13 @@ export type Database = {
     }
     Functions: {
       accept_company_invite: { Args: { _code: string }; Returns: string }
+      assistant_consume: { Args: { _company_id: string }; Returns: boolean }
       can_edit_company: {
         Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_company_feedback: {
+        Args: { _company_id: string }
         Returns: boolean
       }
       company_asset_limit: {
@@ -1828,6 +1857,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      has_non_operator_role: { Args: { _company_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _company_id: string
@@ -1874,6 +1904,10 @@ export type Database = {
         Returns: number
       }
       operator_asset_ids: { Args: never; Returns: string[] }
+      operator_may_upload_asset_photo: {
+        Args: { _name: string }
+        Returns: boolean
+      }
       platform_business_kpis: { Args: never; Returns: Json }
       platform_company_health: {
         Args: { _env?: string }
@@ -1995,6 +2029,7 @@ export type Database = {
         }
         Returns: string
       }
+      safe_uuid: { Args: { _t: string }; Returns: string }
       seed_demo_company: { Args: { _admin_user_id: string }; Returns: string }
       seed_prestart_template: {
         Args: { _company_id: string }
