@@ -22,6 +22,21 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
         const { sendTransactionalServer } = await import("@/lib/email/send-server");
         const { LICENCE_LABELS } = await import("@/lib/operators");
 
+        // Optional: {"companyId": "<uuid>"} limits records AND recipients to one company.
+        // Without it, behaviour is unchanged (all companies).
+        let onlyCompany: string | null = null;
+        try {
+          const body = (await request.json()) as { companyId?: unknown };
+          if (typeof body?.companyId === "string") {
+            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.companyId)) {
+              return new Response("Invalid companyId", { status: 400 });
+            }
+            onlyCompany = body.companyId;
+          }
+        } catch { /* no/invalid JSON body: unscoped, as before */ }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const scope = (q: any) => (onlyCompany ? q.eq("company_id", onlyCompany) : q);
+
         const COMPLIANCE_THRESHOLDS = [90, 60, 30, 14, 7, 0];
         const LICENCE_THRESHOLDS = [90, 60, 30, 14, 7, 0];
 
@@ -35,19 +50,19 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
           } catch { return d; }
         };
 
-        const { data: records, error } = await supabaseAdmin
+        const { data: records, error } = await scope(supabaseAdmin
           .from("compliance_records")
           .select("id, company_id, asset_id, type, label, expiry_date, assets(name, registration, asset_number), companies(name)")
           .lte("expiry_date", upper.toISOString().slice(0, 10))
-          .gte("expiry_date", today.toISOString().slice(0, 10));
+          .gte("expiry_date", today.toISOString().slice(0, 10)));
         if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
 
-        const { data: licences } = await (supabaseAdmin as any)
+        const { data: licences } = await scope((supabaseAdmin as any)
           .from("operator_licences")
           .select("id, company_id, operator_id, licence_type, licence_name, licence_number, expiry_date, operators(full_name), companies(name)")
           .not("expiry_date", "is", null)
           .lte("expiry_date", upper.toISOString().slice(0, 10))
-          .gte("expiry_date", today.toISOString().slice(0, 10));
+          .gte("expiry_date", today.toISOString().slice(0, 10)));
 
         const stats = {
           complianceScanned: records?.length ?? 0,
@@ -60,6 +75,7 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
 
         const recipientCache = new Map<string, string[]>();
         async function recipientsFor(companyId: string) {
+          if (onlyCompany && companyId !== onlyCompany) return [];
           if (recipientCache.has(companyId)) return recipientCache.get(companyId)!;
           const { data: members } = await supabaseAdmin
             .from("user_roles").select("user_id, role").eq("company_id", companyId);
@@ -163,12 +179,12 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
 
         // Asset scheduled services (date-based: last_service_date + service_interval_days)
         const SERVICE_THRESHOLDS = [90, 60, 30, 14, 7, 0];
-        const { data: assetsData } = await (supabaseAdmin as any)
+        const { data: assetsData } = await scope((supabaseAdmin as any)
           .from("assets")
           .select("id, company_id, name, registration, asset_number, last_service_date, service_interval_days, companies(name)")
           .not("last_service_date", "is", null)
           .not("service_interval_days", "is", null)
-          .gt("service_interval_days", 0);
+          .gt("service_interval_days", 0));
         for (const a of ((assetsData ?? []) as any[])) {
           const last = new Date(a.last_service_date);
           const due = new Date(last);
@@ -211,7 +227,7 @@ export const Route = createFileRoute("/api/public/hooks/check-expiries")({
           }
         }
 
-        return new Response(JSON.stringify({ ok: true, ...stats }), {
+        return new Response(JSON.stringify({ ok: true, scopedToCompany: onlyCompany, ...stats }), {
           status: 200, headers: { "Content-Type": "application/json" },
         });
       },
