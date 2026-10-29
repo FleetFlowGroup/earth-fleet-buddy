@@ -29,3 +29,14 @@ Complete denial/credit masking is also NOT implemented: `knowledge://ai-gateway-
 Accordingly the mandatory safe 402/403 reason and existing 403 status remain. Refusals, busy, timeout, empty and unexpected errors otherwise use fixed replies and a closed code union; arbitrary upstream bodies and all other error messages are discarded. Logs contain only status, code and latency. Provider-denial/credit live verification still stops immediately; durable pause state is not possible within the no-storage scope.
 
 Feedback prefill uses a pure Zod helper: subject 150 characters, message 2,000 characters, only the existing four categories. Unknown values are ignored and text is truncated. Lazy useState initialisers apply these values only on initial mount; query changes do not overwrite drafts and no prefill code can submit a message. The existing submission block remains byte-identical.
+
+## Release controls (server-enforced)
+- `ASSISTANT_ENABLED` (server env): default OFF. Only the exact value `true` enables it on non-preview hosts. **Kill switch:** unset it or set it to `false`; `askFleetFlow` then returns "not available" before any DB or model call, and `getAssistantStatus` hides the UI.
+- `ASSISTANT_COMPANY_ALLOWLIST` (optional): comma-separated company UUIDs. If it's non-empty, only those companies are allowed (staged rollout). Users without a company are refused.
+- Preview hosts (`id-preview--*.lovable.app`, localhost) are always allowed.
+- The UI asks `getAssistantStatus`; hiding it is cosmetic. `askFleetFlow` re-checks the flag and the allowlist after deriving identity on the server.
+
+## Rate limits
+1. The in-memory limiter runs first (per instance).
+2. The durable limit is the RPC `assistant_consume(_company_id)` (migration 0007, SECURITY DEFINER). It's called with the caller's RLS client before the model. The user comes from `auth.uid()` and membership is verified. Limits: 10/min and 100/day per user, 500/day per company (UTC day), counted atomically under advisory locks. The `assistant_usage` table has RLS on and no client policies or grants.
+3. **Fails closed:** any RPC error or a false result returns the friendly busy/limit message, and the model isn't called. The only exception is on a preview host: if the function doesn't exist yet (PGRST202), it falls back to the in-memory limiter so preview works before 0007 is applied. Production never falls back, so **apply 0007 before setting ASSISTANT_ENABLED=true**.

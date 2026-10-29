@@ -2,6 +2,7 @@ export class GatewayError extends Error {
   constructor(public status: number, public safeMessage?: string, public kind?: string) { super('Assistant gateway request failed'); }
 }
 export const ERROR_REPLIES = {
+  disabled: 'FleetFlow Assistant is not available for your account yet.',
   cancelled: 'Stopped. The answer is incomplete.',
   timeout: 'The assistant took too long to respond. Please try again.',
   credits: 'The assistant is temporarily unavailable. Please contact your admin or FleetFlow support.',

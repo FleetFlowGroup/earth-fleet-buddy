@@ -24,7 +24,8 @@ export function deterministicReply(question: string, audience: Audience, identit
     return { reply: "I can't make changes or access the database." + (allowed ? ' You can open the relevant FleetFlow page below to manage this yourself.' : ' I can only offer guidance on using FleetFlow.'), links: allowed ? [allowed] : [], escalate: false };
   }
   if (/\b(?:what|which)\s+(?:company|business|organisation)\s+(?:am\s+I|are\s+we|do\s+I\s+belong)|\b(?:what(?:'s| is)\s+my\s+(?:company|role)|which\s+company\s+is\s+mine|what\s+role\s+(?:am\s+I|do\s+I\s+have))\b/i.test(text)) {
-    const reply = identity?.companyName && identity.role ? `You're in ${identity.companyName}. Your role is ${identity.role.replace(/_/g, ' ')}.` : "I can't confirm your active company and role from your verified membership.";
+    const name = identity?.companyName?.replace(/\s+/g, ' ').trim().replace(/[.\s]+$/, '');
+    const reply = name && identity?.role ? `You're in ${name}. Your role is ${identity.role.replace(/_/g, ' ')}.` : "I can't confirm your active company and role from your verified membership.";
     return { reply, links: [], escalate: false };
   }
   return null;
