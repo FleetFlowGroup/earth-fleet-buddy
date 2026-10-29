@@ -15,8 +15,8 @@ export type CurrentUserData = {
   role: "super_admin" | "admin" | "manager" | "supervisor" | "office_staff" | "workshop" | "mechanic" | "viewer" | "operator" | null;
 };
 
-export function useCurrentUser() {
-  return useQuery({
+export function currentUserQueryOptions() {
+  return {
     queryKey: ["current-user"],
     staleTime: 60_000,
     queryFn: async (): Promise<CurrentUserData | null> => {
@@ -69,7 +69,11 @@ export function useCurrentUser() {
         role,
       };
     },
-  });
+  };
+}
+
+export function useCurrentUser() {
+  return useQuery(currentUserQueryOptions());
 }
 
 export function canEdit(role: CurrentUserData["role"]) {
