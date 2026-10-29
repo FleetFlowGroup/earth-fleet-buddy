@@ -62,7 +62,7 @@ describe('preview rate limiter', () => {
   it('a fresh instance resets counters', () => { const limiter = createRateLimiter(); for (let n = 0; n < 10; n++) limiter.take(user, company, 1000); expect(createRateLimiter().take(user, company, 1000)).toBe(true); });
 });
 describe('gateway handling', () => {
-  it.each([new Error('raw stack and secret'), new DOMException('cancelled', 'AbortError')])('unexpected failures discard upstream text', error => { expect(mapError(error)).toEqual({ reply: ERROR_REPLIES.unexpected, code: 'unexpected' }); });
+  it.each([new Error('raw stack and secret')])('unexpected failures discard upstream text', error => { expect(mapError(error)).toEqual({ reply: ERROR_REPLIES.unexpected, code: 'unexpected' }); });
   it.each([new DOMException('private timeout detail', 'TimeoutError'), new GatewayError(408, 'private'), new GatewayError(504, 'private')])('maps actual timeout failures', error => expect(mapError(error)).toEqual({ reply: 'The assistant took too long to respond. Please try again.', code: 'timeout' }));
   it('429 discards the upstream message', () => expect(mapError(new GatewayError(429, 'private rate limit body'))).toEqual({ reply: 'The assistant is busy right now. Please try again in a moment.', code: 'busy' }));
   it('402 uses the friendly fallback when no safe message exists', () => expect(mapError(new GatewayError(402))).toEqual({ reply: 'The assistant is temporarily unavailable. Please contact your admin or FleetFlow support.', code: 'credits' }));

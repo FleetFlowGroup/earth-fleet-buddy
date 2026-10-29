@@ -41,10 +41,10 @@ export async function consumeGatewayStream(response: Response): Promise<string> 
     return text;
   } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
 }
-export async function callAssistantGateway(apiKey: string, messages: ReturnType<typeof buildMessages>, fetcher?: typeof fetch) {
+export async function callAssistantGateway(apiKey: string, messages: ReturnType<typeof buildMessages>, fetcher?: typeof fetch, signal?: AbortSignal) {
   const gateway = createLovableAiGatewayRunIdFetch();
   const response = await (fetcher ?? gateway.fetch)('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST', headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': apiKey, 'X-Lovable-AIG-SDK': 'fetch' },
+    method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': apiKey, 'X-Lovable-AIG-SDK': 'fetch' },
     body: JSON.stringify({ model: ASSISTANT_MODEL, messages, temperature: 0.2, max_tokens: 700, reasoning: { effort: 'minimal' }, stream: true }),
   });
   if (!response.ok) {
