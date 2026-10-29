@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaddleEnvironment } from "@/lib/paddle";
+import { canRunAdminQueries } from "@/lib/operator-access";
 
 export type BillingState = {
   state: "trial" | "subscribed" | "canceled_grace" | "none";
@@ -99,10 +100,15 @@ export function useBillingState(companyId?: string | null) {
   });
 }
 
-export function useAssetCount(companyId?: string | null) {
+/** Pure enabled flag for useAssetCount: company known AND a known non-operator role. */
+export function assetCountQueryEnabled(companyId: string | null | undefined, role: string | null | undefined): boolean {
+  return !!companyId && canRunAdminQueries(role);
+}
+
+export function useAssetCount(companyId?: string | null, role?: string | null) {
   return useQuery({
     queryKey: ["asset-count", companyId],
-    enabled: !!companyId,
+    enabled: assetCountQueryEnabled(companyId, role),
     staleTime: 10_000,
     queryFn: async () => {
       if (!companyId) return 0;

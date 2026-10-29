@@ -103,7 +103,7 @@ function AssetsPage() {
 
   const [open, setOpen] = useState(false);
   const { data: billing } = useBillingState(companyId);
-  const { data: assetCount = 0 } = useAssetCount(companyId);
+  const { data: assetCount = 0 } = useAssetCount(companyId, me?.role);
 
   return (
     <AppShell>
@@ -134,6 +134,7 @@ function AssetsPage() {
                 </DialogTrigger>
                 <AddAssetDialog
                   companyId={companyId!}
+                  role={me?.role}
                   onCreated={() => {
                     setOpen(false);
                     qc.invalidateQueries({ queryKey: ["assets"] });
@@ -273,15 +274,17 @@ function nextExpiry(records: { expiry_date: string }[]) {
 
 function AddAssetDialog({
   companyId,
+  role,
   onCreated,
 }: {
   companyId: string;
+  role?: string | null;
   onCreated: () => void;
 }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: billing } = useBillingState(companyId);
-  const { data: assetCount = 0 } = useAssetCount(companyId);
+  const { data: assetCount = 0 } = useAssetCount(companyId, role);
 
   const [saving, setSaving] = useState(false);
   const [quotaBlocked, setQuotaBlocked] = useState(false);

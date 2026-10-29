@@ -54,7 +54,7 @@ function OperatorHome() {
   const { data: operatorRow } = useOperatorSelf(me?.userId, me?.company?.id);
   // Always start with the machine picker each session — only show the selected
   // machine when an explicit ?asset=<id> is in the URL.
-  const { data: asset } = useOperatorTargetAsset(undefined, assetOverride);
+  const { data: asset, isPending: assetPending } = useOperatorTargetAsset(undefined, assetOverride);
 
   async function signOut() {
     await qc.cancelQueries(); qc.clear();
@@ -66,7 +66,8 @@ function OperatorHome() {
   const greeting = greetingFor(new Date());
   const name = me?.profile?.full_name?.split(" ")[0] ?? operatorRow?.full_name?.split(" ")[0] ?? "there";
 
-  if (isLoading) {
+  // QR / ?asset=<id>: wait for the by-id asset instead of flashing the picker.
+  if (isLoading || (assetOverride && assetPending)) {
     return <div className="grid min-h-screen place-items-center bg-background"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>;
   }
 

@@ -84,3 +84,12 @@ describe("post-login destination", () => {
     expect(operatorPostLoginDestination(role, undefined, null)).toBe("/dashboard");
   });
 });
+import { assetCountQueryEnabled } from "@/hooks/use-subscription";
+describe("assetCountQueryEnabled", () => {
+  it("is disabled for operators", () => expect(assetCountQueryEnabled("c1", "operator")).toBe(false));
+  it("is disabled for unknown role", () => expect(assetCountQueryEnabled("c1", undefined)).toBe(false));
+  it("is disabled without company", () => expect(assetCountQueryEnabled(null, "admin")).toBe(false));
+  it("is enabled for admin/office/viewer", () => {
+    for (const r of ["admin", "office", "viewer"]) expect(assetCountQueryEnabled("c1", r)).toBe(true);
+  });
+});
