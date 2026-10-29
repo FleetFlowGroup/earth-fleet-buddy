@@ -1,0 +1,242 @@
+import { createFileRoute } from "@tanstack/react-router";
+
+// TEMPORARY TEST ROUTE (t65): company-scoped copy of check-expiries.
+// Requires a uuid companyId (400 otherwise, nothing sent) and only ever
+// emails addresses in RECIPIENT_ALLOWLIST. Remove after the test.
+// Original note: Public cron endpoint: scans compliance and operator licences and sends
+// reminder emails to all company members at the configured day thresholds.
+// Dedupe is enforced by a unique index on reminder_log so each
+// (record, days_before, recipient) combination only sends once.
+
+export const Route = createFileRoute("/api/public/hooks/check-expiries-company")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        // Guard: only the pg_cron job (which sends the service-role key as
+        // a bearer token) can trigger this. Without this check, any
+        // anonymous caller could spam reminder emails to every customer.
+        const expected = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const auth = request.headers.get("authorization") ?? "";
+        const presented = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+        if (!expected || presented !== expected) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { sendTransactionalServer } = await import("@/lib/email/send-server");
+        const { LICENCE_LABELS } = await import("@/lib/operators");
+
+        // Optional: {"companyId": "<uuid>"} limits records AND recipients to one company.
+        // Without it, behaviour is unchanged (all companies).
+        const RECIPIENT_ALLOWLIST = ["fleetflow.group@gmail.com"];
+        let onlyCompany: string | null = null;
+        try {
+          const body = (await request.json()) as { companyId?: unknown };
+          if (typeof body?.companyId === "string" &&
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.companyId)) {
+            onlyCompany = body.companyId;
+          }
+        } catch { /* fall through to 400 */ }
+        if (!onlyCompany) return new Response("companyId (uuid) required", { status: 400 });
+        const skippedRecipients: string[] = [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const scope = (q: any) => (onlyCompany ? q.eq("company_id", onlyCompany) : q);
+
+        const COMPLIANCE_THRESHOLDS = [90, 60, 30, 14, 7, 0];
+        const LICENCE_THRESHOLDS = [90, 60, 30, 14, 7, 0];
+
+        const today = new Date();
+        const upper = new Date();
+        upper.setDate(upper.getDate() + 95);
+
+        const fmtDate = (d: string) => {
+          try {
+            return new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
+          } catch { return d; }
+        };
+
+        const { data: records, error } = await scope(supabaseAdmin
+          .from("compliance_records")
+          .select("id, company_id, asset_id, type, label, expiry_date, assets(name, registration, asset_number), companies(name)")
+          .lte("expiry_date", upper.toISOString().slice(0, 10))
+          .gte("expiry_date", today.toISOString().slice(0, 10)));
+        if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+
+        const { data: licences } = await scope((supabaseAdmin as any)
+          .from("operator_licences")
+          .select("id, company_id, operator_id, licence_type, licence_name, licence_number, expiry_date, operators(full_name), companies(name)")
+          .not("expiry_date", "is", null)
+          .lte("expiry_date", upper.toISOString().slice(0, 10))
+          .gte("expiry_date", today.toISOString().slice(0, 10)));
+
+        const stats = {
+          complianceScanned: records?.length ?? 0,
+          licencesScanned: licences?.length ?? 0,
+          attempted: 0,
+          sent: 0,
+          skippedDup: 0,
+          failed: 0,
+        };
+
+        const recipientCache = new Map<string, string[]>();
+        async function recipientsFor(companyId: string) {
+          if (onlyCompany && companyId !== onlyCompany) return [];
+          if (recipientCache.has(companyId)) return recipientCache.get(companyId)!;
+          const { data: members } = await supabaseAdmin
+            .from("user_roles").select("user_id, role").eq("company_id", companyId);
+          // Notify admins & managers only — operators don't need expiry emails
+          const ids = (members ?? [])
+            .filter((m: any) => ["admin", "manager", "office_staff", "supervisor", "super_admin"].includes(m.role))
+            .map((m: any) => m.user_id);
+          if (!ids.length) { recipientCache.set(companyId, []); return []; }
+          const { data: profiles } = await supabaseAdmin
+            .from("profiles").select("email").in("id", ids);
+          const all = (profiles ?? []).map((p: any) => p.email).filter(Boolean) as string[];
+          const emails = all.filter((e) => RECIPIENT_ALLOWLIST.includes(e.trim().toLowerCase()));
+          for (const e of all) if (!emails.includes(e)) { skippedRecipients.push(e); console.warn("[check-expiries-company] skipped non-allowlisted recipient"); }
+          recipientCache.set(companyId, emails);
+          return emails;
+        }
+
+        // Compliance
+        for (const rec of (records ?? []) as any[]) {
+          const days = Math.ceil((new Date(rec.expiry_date).getTime() - today.getTime()) / 86400000);
+          if (!COMPLIANCE_THRESHOLDS.includes(days)) continue;
+          const emails = await recipientsFor(rec.company_id);
+          for (const email of emails) {
+            stats.attempted++;
+            // Try to insert dedupe row first
+            const { error: insErr } = await supabaseAdmin.from("reminder_log").insert({
+              company_id: rec.company_id, compliance_id: rec.id, days_before: days, recipient_email: email, status: "queued",
+            });
+            if (insErr) {
+              // duplicate (unique index) → already sent
+              if ((insErr as any).code === "23505") { stats.skippedDup++; continue; }
+              stats.failed++;
+              continue;
+            }
+            const result = await sendTransactionalServer({
+              templateName: "compliance-expiry-reminder",
+              recipientEmail: email,
+              idempotencyKey: `compliance-${rec.id}-${days}-${email}`,
+              templateData: {
+                assetName: rec.assets?.name ?? "Machine",
+                assetNumber: rec.assets?.asset_number ?? "",
+                registration: rec.assets?.registration ?? "",
+                complianceLabel: rec.label ?? rec.type,
+                expiryDate: fmtDate(rec.expiry_date),
+                daysBefore: days,
+                companyName: rec.companies?.name ?? "",
+              },
+            });
+            if (result.ok) {
+              stats.sent++;
+              await supabaseAdmin.from("reminder_log").update({ status: "sent" })
+                .eq("compliance_id", rec.id).eq("days_before", days).eq("recipient_email", email);
+            } else {
+              stats.failed++;
+              await supabaseAdmin.from("reminder_log").update({ status: "failed" })
+                .eq("compliance_id", rec.id).eq("days_before", days).eq("recipient_email", email);
+            }
+          }
+        }
+
+        // Operator licences
+        for (const lic of ((licences ?? []) as any[])) {
+          const days = Math.ceil((new Date(lic.expiry_date).getTime() - today.getTime()) / 86400000);
+          if (!LICENCE_THRESHOLDS.includes(days)) continue;
+          const emails = await recipientsFor(lic.company_id);
+          const label = lic.licence_type === "custom"
+            ? (lic.licence_name || "Custom Licence")
+            : (LICENCE_LABELS[lic.licence_type] ?? lic.licence_type);
+          for (const email of emails) {
+            stats.attempted++;
+            const { error: insErr } = await (supabaseAdmin as any).from("reminder_log").insert({
+              company_id: lic.company_id, operator_licence_id: lic.id, days_before: days, recipient_email: email, status: "queued",
+            });
+            if (insErr) {
+              if ((insErr as any).code === "23505") { stats.skippedDup++; continue; }
+              stats.failed++;
+              continue;
+            }
+            const result = await sendTransactionalServer({
+              templateName: "licence-expiry-reminder",
+              recipientEmail: email,
+              idempotencyKey: `licence-${lic.id}-${days}-${email}`,
+              templateData: {
+                operatorName: lic.operators?.full_name ?? "Operator",
+                licenceLabel: label,
+                licenceNumber: lic.licence_number ?? "",
+                expiryDate: fmtDate(lic.expiry_date),
+                daysBefore: days,
+                companyName: lic.companies?.name ?? "",
+              },
+            });
+            if (result.ok) {
+              stats.sent++;
+              await (supabaseAdmin as any).from("reminder_log").update({ status: "sent" })
+                .eq("operator_licence_id", lic.id).eq("days_before", days).eq("recipient_email", email);
+            } else {
+              stats.failed++;
+              await (supabaseAdmin as any).from("reminder_log").update({ status: "failed" })
+                .eq("operator_licence_id", lic.id).eq("days_before", days).eq("recipient_email", email);
+            }
+          }
+        }
+
+        // Asset scheduled services (date-based: last_service_date + service_interval_days)
+        const SERVICE_THRESHOLDS = [90, 60, 30, 14, 7, 0];
+        const { data: assetsData } = await scope((supabaseAdmin as any)
+          .from("assets")
+          .select("id, company_id, name, registration, asset_number, last_service_date, service_interval_days, companies(name)")
+          .not("last_service_date", "is", null)
+          .not("service_interval_days", "is", null)
+          .gt("service_interval_days", 0));
+        for (const a of ((assetsData ?? []) as any[])) {
+          const last = new Date(a.last_service_date);
+          const due = new Date(last);
+          due.setDate(due.getDate() + Number(a.service_interval_days));
+          const days = Math.ceil((due.getTime() - today.getTime()) / 86400000);
+          if (!SERVICE_THRESHOLDS.includes(days)) continue;
+          const emails = await recipientsFor(a.company_id);
+          for (const email of emails) {
+            stats.attempted++;
+            const { error: insErr } = await (supabaseAdmin as any).from("reminder_log").insert({
+              company_id: a.company_id, asset_id: a.id, days_before: days, recipient_email: email, status: "queued",
+            });
+            if (insErr) {
+              if ((insErr as any).code === "23505") { stats.skippedDup++; continue; }
+              stats.failed++;
+              continue;
+            }
+            const result = await sendTransactionalServer({
+              templateName: "service-due-reminder",
+              recipientEmail: email,
+              idempotencyKey: `service-${a.id}-${days}-${email}`,
+              templateData: {
+                assetName: a.name ?? "Machine",
+                assetNumber: a.asset_number ?? "",
+                registration: a.registration ?? "",
+                dueDate: fmtDate(due.toISOString().slice(0, 10)),
+                daysBefore: days,
+                companyName: a.companies?.name ?? "",
+              },
+            });
+            if (result.ok) {
+              stats.sent++;
+              await (supabaseAdmin as any).from("reminder_log").update({ status: "sent" })
+                .eq("asset_id", a.id).eq("days_before", days).eq("recipient_email", email);
+            } else {
+              stats.failed++;
+              await (supabaseAdmin as any).from("reminder_log").update({ status: "failed" })
+                .eq("asset_id", a.id).eq("days_before", days).eq("recipient_email", email);
+            }
+          }
+        }
+
+        return new Response(JSON.stringify({ ok: true, scopedToCompany: onlyCompany, skippedRecipients: skippedRecipients.length, ...stats }), {
+          status: 200, headers: { "Content-Type": "application/json" },
+        });
+      },
+    },
+  },
+});
