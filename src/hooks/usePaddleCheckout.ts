@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { initializePaddle, getPaddlePriceId } from "@/lib/paddle";
+import { toast } from "sonner";
+import { initializePaddle, getPaddlePriceId, getPaddleEnvironment } from "@/lib/paddle";
+import { guardPaddleCheckout } from "@/utils/payments.functions";
 
 type OpenOptions = {
   priceId: string;
@@ -16,6 +18,9 @@ export function usePaddleCheckout() {
   async function openCheckout(opts: OpenOptions) {
     setLoading(true);
     try {
+      await guardPaddleCheckout({
+        data: { companyId: opts.companyId, environment: getPaddleEnvironment() },
+      });
       await initializePaddle();
       const paddlePriceId = await getPaddlePriceId(opts.priceId);
       window.Paddle.Checkout.open({
@@ -30,6 +35,9 @@ export function usePaddleCheckout() {
           variant: "one-page",
         },
       });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not start checkout");
+      throw error;
     } finally {
       setLoading(false);
     }

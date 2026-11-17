@@ -1,6 +1,6 @@
 /** Supabase (service-role) implementation of the BillingDb port. Every error throws. */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { rowIsCurrentPaddle, type EntitlementRow } from "./entitlement";
+import { rowIsCurrentApple, rowIsCurrentPaddle, type EntitlementRow } from "./entitlement";
 import type { BillingDb } from "./types";
 
 let _sb: SupabaseClient | null = null;
@@ -85,6 +85,21 @@ export function createSupabaseBillingDb(client: SupabaseClient = sb()): BillingD
         "paddle entitlement lookup",
       );
       return ((r.data ?? []) as EntitlementRow[]).some((row) => rowIsCurrentPaddle(row));
+    },
+    async hasCurrentAppleEntitlement(companyId, env) {
+      const r = await db
+        .from("subscriptions")
+        .select("*")
+        .eq("company_id", companyId)
+        .eq("environment", env);
+      if (r.error) {
+        const code = String(r.error.code ?? "");
+        const message = String(r.error.message ?? "");
+        // Legacy schema has no provider column and therefore no Apple rows.
+        if (code === "42703" || code === "PGRST204" || /provider/i.test(message)) return false;
+        throw new Error(`[billing db] apple entitlement lookup: ${code} ${message}`);
+      }
+      return ((r.data ?? []) as EntitlementRow[]).some((row) => rowIsCurrentApple(row));
     },
     async isCompanyAdmin(userId, companyId) {
       const r = check(

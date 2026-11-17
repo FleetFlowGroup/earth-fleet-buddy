@@ -199,6 +199,71 @@ describe("processRevenueCatEvent", () => {
     expect(expired.outcome).toBe("processed");
     expect(f.appleSubs.get("otid1|live")!.status).toBe("canceled");
   });
+  it("renews an Apple subscription when Paddle is not current", async () => {
+    const f = fakeDb({ companies: [C] });
+    await processRevenueCatEvent(f.db, base());
+    const renewed = await processRevenueCatEvent(
+      f.db,
+      base({
+        id: "renew-ok",
+        type: "RENEWAL",
+        event_timestamp_ms: Date.parse("2026-11-01T00:00:00Z"),
+        expiration_at_ms: Date.parse("2026-12-01T00:00:00Z"),
+        transaction_id: "t2",
+      }),
+    );
+    expect(renewed.outcome).toBe("processed");
+    expect(f.appleSubs.get("otid1|live")!.current_period_end).toBe("2026-12-01T00:00:00.000Z");
+    expect(f.appleSubs.get("otid1|live")!.status).toBe("active");
+  });
+  it("lets an Apple purchase through after the Paddle row has expired", async () => {
+    const f = fakeDb({ companies: [C] });
+    f.paddleSubs.set("sub_old|live", {
+      company_id: C,
+      environment: "live",
+      provider: "paddle",
+      paddle_subscription_id: "sub_old",
+      status: "canceled",
+      current_period_end: "2026-09-01T00:00:00.000Z",
+    });
+    const result = await processRevenueCatEvent(f.db, base());
+    expect(result.outcome).toBe("processed");
+    expect(f.appleSubs.get("otid1|live")!.status).toBe("active");
+  });
+  it("applies an Apple cancellation while a Paddle entitlement is current", async () => {
+    const f = fakeDb({ companies: [C] });
+    await processRevenueCatEvent(f.db, base());
+    f.setPaddleCurrent([C]);
+    const canceled = await processRevenueCatEvent(
+      f.db,
+      base({
+        id: "cancel-apple",
+        type: "CANCELLATION",
+        cancel_reason: "UNSUBSCRIBE",
+        event_timestamp_ms: Date.parse("2026-10-10T00:00:00Z"),
+      }),
+    );
+    expect(canceled.outcome).toBe("processed");
+    expect(f.appleSubs.get("otid1|live")).toMatchObject({
+      status: "active",
+      cancel_at_period_end: true,
+    });
+  });
+  it("blocks a new Apple purchase when the Paddle row itself is past_due", async () => {
+    const f = fakeDb({ companies: [C] });
+    f.paddleSubs.set("sub_due|live", {
+      company_id: C,
+      environment: "live",
+      provider: "paddle",
+      paddle_subscription_id: "sub_due",
+      status: "past_due",
+      current_period_end: "2099-01-01T00:00:00.000Z",
+    });
+    const result = await processRevenueCatEvent(f.db, base());
+    expect(result.outcome).toBe("needs_review");
+    expect(result.note).toMatch(/paddle entitlement active/);
+    expect(f.appleSubs.size).toBe(0);
+  });
   it("still records Apple when Paddle is not current", () => {
     expect(refuseAppleBecausePaddle(false, false, "INITIAL_PURCHASE")).toBe(false);
     expect(refuseAppleBecausePaddle(true, false, "INITIAL_PURCHASE")).toBe(true);

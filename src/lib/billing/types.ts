@@ -64,9 +64,15 @@ export interface BillingDb {
   isCompanyAdmin(userId: string, companyId: string): Promise<boolean>;
   /**
    * True when this company already has a current Paddle entitlement in `env`.
-   * Apple must not create a second one. Paddle webhook code does not call this.
+   * Apple must not create a second one.
    */
   hasCurrentPaddleEntitlement(companyId: string, env: BillingEnv): Promise<boolean>;
+  /**
+   * True when this company has a current Apple entitlement in `env`.
+   * False in legacy mode (no provider column / no Apple rows). Used only to flag
+   * a new Paddle subscription.created; it does not change other Paddle events.
+   */
+  hasCurrentAppleEntitlement(companyId: string, env: BillingEnv): Promise<boolean>;
   getPaddleSub(paddleSubscriptionId: string, env: BillingEnv): Promise<ExistingSub | null>;
   upsertPaddleSub(
     row: SubscriptionWrite & { paddle_subscription_id: string; paddle_customer_id: string },

@@ -2,7 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { canRunAdminQueries } from "@/lib/operator-access";
-import { resolveDisplayedBillingProvider, type EntitlementRow } from "@/lib/billing/entitlement";
+import {
+  isMissingProviderColumn,
+  resolveBillingFallback,
+  type EntitlementRow,
+  type SubscriptionRead,
+} from "@/lib/billing/entitlement";
 
 export type BillingState = {
   state: "trial" | "subscribed" | "canceled_grace" | "none";
@@ -125,8 +130,10 @@ export function useAssetCount(companyId?: string | null, role?: string | null) {
 
 /**
  * Which provider bills the company's current subscription ("paddle" | "apple" | null).
- * A current Paddle row always wins, including before migration 0009 (the provider RPC
- * is missing then). Web UI still shows Paddle controls unless the result is "apple".
+ * A current Paddle row always wins. A current Apple row stays visible when the
+ * provider RPC fails. If the subscription read itself fails, the result is "apple"
+ * so checkout stays hidden. Before migration 0009 the provider column is missing
+ * and that read is treated as legacy (no Apple rows).
  */
 export function useBillingProvider(companyId?: string | null) {
   return useQuery({
@@ -135,16 +142,50 @@ export function useBillingProvider(companyId?: string | null) {
     queryFn: async (): Promise<"paddle" | "apple" | null> => {
       const env = getPaddleEnvironment();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const [{ data, error }, rows] = await Promise.all([
-        (supabase as any).rpc("company_billing_provider", { _company_id: companyId, _env: env }),
-        supabase
-          .from("subscriptions")
-          .select("status,current_period_end,paddle_subscription_id")
-          .eq("company_id", companyId!)
-          .eq("environment", env),
-      ]);
+      const { data, error } = await (supabase as any).rpc("company_billing_provider", {
+        _company_id: companyId,
+        _env: env,
+      });
       const rpc = !error && (data === "apple" || data === "paddle") ? data : null;
-      return resolveDisplayedBillingProvider(rpc, (rows.data ?? []) as EntitlementRow[]);
+      const loaded = await loadSubscriptionRows(companyId!, env);
+      return resolveBillingFallback({ rpc, rows: loaded.rows, read: loaded.read });
     },
   });
+}
+
+async function loadSubscriptionRows(
+  companyId: string,
+  env: string,
+): Promise<{ rows: EntitlementRow[]; read: SubscriptionRead }> {
+  // provider exists only after migration 0009. The typed client rejects that column, so this read is untyped.
+  const db = supabase as unknown as {
+    from: (table: string) => {
+      select: (columns: string) => {
+        eq: (column: string, value: string) => {
+          eq: (column: string, value: string) => Promise<{
+            data: EntitlementRow[] | null;
+            error: { code?: string; message?: string } | null;
+          }>;
+        };
+      };
+    };
+  };
+  const withProvider = await db
+    .from("subscriptions")
+    .select("status,current_period_end,paddle_subscription_id,provider")
+    .eq("company_id", companyId)
+    .eq("environment", env);
+  if (!withProvider.error) {
+    return { rows: withProvider.data ?? [], read: "ok" };
+  }
+  if (isMissingProviderColumn(withProvider.error)) {
+    const legacy = await supabase
+      .from("subscriptions")
+      .select("status,current_period_end,paddle_subscription_id")
+      .eq("company_id", companyId)
+      .eq("environment", env);
+    if (legacy.error) return { rows: [], read: "failed" };
+    return { rows: (legacy.data ?? []) as EntitlementRow[], read: "legacy" };
+  }
+  return { rows: [], read: "failed" };
 }

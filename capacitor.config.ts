@@ -1,5 +1,29 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
+function hostFrom(value: string | undefined): string | null {
+  if (!value) return null;
+  try {
+    return value.includes("://") ? new URL(value).hostname : value.split("/")[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Production hosts, plus CAP_SERVER_URL and CAP_SUPABASE_HOST when a staging build sets them. */
+function allowNavigation(): string[] {
+  const hosts = [
+    "fleetflow.group",
+    "*.fleetflow.group",
+    "appleid.apple.com",
+    "idmsa.apple.com",
+    "czsvzcysnppmzlyfzrhv.supabase.co",
+  ];
+  for (const extra of [hostFrom(process.env.CAP_SERVER_URL), hostFrom(process.env.CAP_SUPABASE_HOST)]) {
+    if (extra && !hosts.includes(extra)) hosts.push(extra);
+  }
+  return hosts;
+}
+
 // FleetFlow iOS shell. Approach: "hosted" — the WKWebView loads the live
 // TanStack Start app from https://fleetflow.group (SSR + server functions +
 // Supabase auth keep working same-origin, no CORS/auth changes needed), while
@@ -16,13 +40,7 @@ const config: CapacitorConfig = {
     url: process.env.CAP_SERVER_URL ?? "https://fleetflow.group",
     // FleetFlow stays in the WebView. Apple and this project's Supabase host are
     // included so Sign in with Apple can redirect back without leaving the app.
-    allowNavigation: [
-      "fleetflow.group",
-      "*.fleetflow.group",
-      "appleid.apple.com",
-      "idmsa.apple.com",
-      "czsvzcysnppmzlyfzrhv.supabase.co",
-    ],
+    allowNavigation: allowNavigation(),
     errorPath: "offline.html",
   },
   ios: {

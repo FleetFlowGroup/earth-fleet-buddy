@@ -1,6 +1,41 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gatewayFetch, getPaddleClient, type PaddleEnv } from "@/lib/paddle.server";
+import { assertPaddlePurchaseRows, type EntitlementRow } from "@/lib/billing/entitlement";
+
+type CompanyClient = {
+  rpc: (fn: string, args: Record<string, string>) => Promise<{ data: unknown }>;
+  from: (table: string) => {
+    select: (columns: string) => {
+      eq: (column: string, value: string) => {
+        eq: (column: string, value: string) => Promise<{ data: unknown[] | null; error: { message: string } | null }>;
+      };
+    };
+  };
+};
+
+/** Company admin only. Refuses when a current Apple row exists. Legacy rows have no provider, so they pass. */
+export async function assertCompanyMayUsePaddle(
+  supabase: CompanyClient,
+  userId: string,
+  companyId: string,
+  environment: PaddleEnv,
+): Promise<void> {
+  const { data: isAdmin } = await supabase.rpc("has_role", {
+    _user_id: userId,
+    _company_id: companyId,
+    _role: "admin",
+  });
+  if (!isAdmin) throw new Error("Forbidden");
+
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("company_id", companyId)
+    .eq("environment", environment);
+  if (error) throw new Error("Could not verify App Store subscription status. Checkout was not started.");
+  assertPaddlePurchaseRows((data ?? []) as EntitlementRow[]);
+}
 
 // Resolves a human-readable price ID (e.g. "starter_monthly") to Paddle's internal ID.
 export const resolvePaddlePrice = createServerFn({ method: "GET" })
@@ -10,6 +45,20 @@ export const resolvePaddlePrice = createServerFn({ method: "GET" })
     const json = await res.json();
     if (!json.data?.length) throw new Error(`Price not found: ${data.priceId}`);
     return json.data[0].id as string;
+  });
+
+// Called before Paddle.js opens a checkout. Same admin and company scope as plan change.
+export const guardPaddleCheckout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { companyId: string; environment: PaddleEnv }) => data)
+  .handler(async ({ data, context }) => {
+    await assertCompanyMayUsePaddle(
+      context.supabase as unknown as CompanyClient,
+      context.userId,
+      data.companyId,
+      data.environment,
+    );
+    return { ok: true as const };
   });
 
 // Open the Paddle hosted customer portal for the current company.
@@ -52,12 +101,12 @@ export const changeSubscriptionPlan = createServerFn({ method: "POST" })
   .inputValidator((data: { companyId: string; newPriceId: string; environment: PaddleEnv }) => data)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: isAdmin } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _company_id: data.companyId,
-      _role: "admin",
-    });
-    if (!isAdmin) throw new Error("Forbidden");
+    await assertCompanyMayUsePaddle(
+      supabase as unknown as CompanyClient,
+      userId,
+      data.companyId,
+      data.environment,
+    );
 
     const { data: sub, error } = await supabase
       .from("subscriptions")

@@ -81,8 +81,26 @@ export async function purchaseIapPlan(
   }
 }
 
-export async function restoreIapPurchases(companyId: string): Promise<void> {
-  await ensureIapCompany(companyId);
-  const Purchases = await rc();
-  await Purchases.restorePurchases();
+type RestoreClient = {
+  isConfigured: () => Promise<{ isConfigured: boolean }>;
+  configure: (input: { apiKey: string; appUserID: string }) => Promise<unknown>;
+  logIn: (input: { appUserID: string }) => Promise<unknown>;
+  restorePurchases: () => Promise<unknown>;
+};
+
+/** Signs the company in to RevenueCat, then restores. Pass `client` only from tests. */
+export async function restoreIapPurchases(companyId: string, client?: RestoreClient): Promise<void> {
+  if (!client && !iapAvailable()) throw new Error("In-app purchases are not available");
+  const purchases = client ?? ((await rc()) as RestoreClient);
+  if (!client) {
+    const key = import.meta.env.VITE_REVENUECAT_IOS_KEY as string;
+    const { isConfigured } = await purchases.isConfigured();
+    if (!isConfigured) await purchases.configure({ apiKey: key, appUserID: companyId });
+    else await purchases.logIn({ appUserID: companyId });
+  } else {
+    const { isConfigured } = await purchases.isConfigured();
+    if (!isConfigured) await purchases.configure({ apiKey: "test", appUserID: companyId });
+    else await purchases.logIn({ appUserID: companyId });
+  }
+  await purchases.restorePurchases();
 }

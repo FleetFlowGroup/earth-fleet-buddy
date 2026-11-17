@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useBillingState, useAssetCount, PLAN_LABEL, PLAN_LIMIT, PLAN_ORDER, PLAN_PRICE_ID, PLAN_PRICE_AUD, PLAN_INTRO_DISCOUNT_ID, isUnlimitedAssetLimit, useBillingProvider } from "@/hooks/use-subscription";
 import { isNativeApp } from "@/lib/native";
+import { paddleControlsVisible } from "@/lib/billing/entitlement";
 import { IapBillingPanel } from "@/components/billing/iap-billing-panel";
 import { APPLE_MANAGE_SUBSCRIPTIONS_URL } from "@/lib/iap";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
@@ -33,8 +34,8 @@ function BillingPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const { data: provider = null } = useBillingProvider(companyId);
   const native = isNativeApp();
-  // Web keeps Paddle for everyone except companies already billed by Apple (iOS app purchase).
-  const showPaddleControls = !native && provider !== "apple";
+  // Web keeps Paddle unless the company is billed by Apple, or the provider read failed closed.
+  const showPaddleControls = paddleControlsVisible(native, provider);
 
   if (!isAdmin) {
     return (

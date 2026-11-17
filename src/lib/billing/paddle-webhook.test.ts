@@ -108,6 +108,91 @@ describe("processPaddleEvent", () => {
     expect(cb.outcome).toBe("needs_review");
   });
 
+  it("renews a Paddle subscription on subscription.updated", async () => {
+    const f = fakeDb({ companies: [C], admins: [[U, C]] });
+    await processPaddleEvent(f.db, ev("e1", "subscription.created", sub()), "live");
+    const r = await processPaddleEvent(
+      f.db,
+      ev(
+        "e2",
+        "subscription.updated",
+        sub({ currentBillingPeriod: { startsAt: "2026-11-01T00:00:00Z", endsAt: "2026-12-01T00:00:00Z" } }),
+        "2026-11-01T00:00:00Z",
+      ),
+      "live",
+    );
+    expect(r.outcome).toBe("processed");
+    expect(f.paddleSubs.get("sub_1|live")!.current_period_end).toBe("2026-12-01T00:00:00Z");
+    expect(f.paddleSubs.get("sub_1|live")!.status).toBe("active");
+  });
+  it("records a Paddle refund adjustment", async () => {
+    const f = fakeDb({ companies: [C] });
+    await processPaddleEvent(f.db, ev("e1", "subscription.created", sub()), "live");
+    const r = await processPaddleEvent(
+      f.db,
+      ev("e2", "adjustment.created", {
+        id: "adj_refund",
+        action: "refund",
+        subscriptionId: "sub_1",
+        status: "approved",
+        currencyCode: "AUD",
+        totals: { total: "4900" },
+      }),
+      "live",
+    );
+    expect(r.outcome).toBe("processed");
+    expect(f.payments.find((p) => p.kind === "refund")).toMatchObject({
+      provider: "paddle",
+      external_id: "adj_refund",
+      amount_minor: 4900,
+      company_id: C,
+    });
+  });
+  it("records subscription.created while Apple is current and flags it for review", async () => {
+    const f = fakeDb({ companies: [C], admins: [[U, C]] });
+    f.appleSubs.set("otid|live", {
+      company_id: C,
+      environment: "live",
+      provider: "apple",
+      status: "active",
+      current_period_end: "2026-12-01T00:00:00.000Z",
+    });
+    const r = await processPaddleEvent(f.db, ev("evt_apple", "subscription.created", sub()), "live");
+    expect(r.outcome).toBe("needs_review");
+    expect(r.note).toMatch(/apple entitlement active/);
+    expect(f.paddleSubs.get("sub_1|live")).toMatchObject({ company_id: C, status: "active" });
+    expect(f.events.get("paddle:evt_apple")!.status).toBe("needs_review");
+  });
+  it("still cancels Paddle when an Apple row also exists", async () => {
+    const f = fakeDb({ companies: [C], admins: [[U, C]] });
+    await processPaddleEvent(f.db, ev("e1", "subscription.created", sub()), "live");
+    f.appleSubs.set("otid|live", {
+      company_id: C,
+      environment: "live",
+      provider: "apple",
+      status: "active",
+      current_period_end: "2026-12-01T00:00:00.000Z",
+    });
+    const r = await processPaddleEvent(
+      f.db,
+      ev("e2", "subscription.canceled", sub({ status: "canceled", currentBillingPeriod: { startsAt: "2026-10-01T00:00:00Z", endsAt: "2026-11-01T00:00:00Z" } }), "2026-10-20T00:00:00Z"),
+      "live",
+    );
+    expect(r.outcome).toBe("processed");
+    expect(f.paddleSubs.get("sub_1|live")!.status).toBe("canceled");
+    expect(f.appleSubs.get("otid|live")!.status).toBe("active");
+  });
+  it("does not flag subscription.created in legacy mode even if an Apple-shaped row is present", async () => {
+    const f = fakeDb({ v9: false, companies: [C], admins: [[U, C]] });
+    f.appleSubs.set("otid|live", {
+      company_id: C,
+      environment: "live",
+      status: "active",
+      current_period_end: "2026-12-01T00:00:00.000Z",
+    });
+    const r = await processPaddleEvent(f.db, ev("e1", "subscription.created", sub()), "live");
+    expect(r.outcome).toBe("processed");
+  });
   it("legacy mode (migration 0009 not applied) still writes the subscription", async () => {
     const f = fakeDb({ v9: false, companies: [C] });
     const r = await processPaddleEvent(f.db, ev("e1", "subscription.created", sub()), "live");

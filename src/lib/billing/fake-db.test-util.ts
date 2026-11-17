@@ -1,3 +1,4 @@
+import { rowIsCurrentApple, rowIsCurrentPaddle, type EntitlementRow } from "./entitlement";
 import type { BillingDb, BillingEventRecord, ExistingSub, PaymentWrite } from "./types";
 
 export function fakeDb(
@@ -45,8 +46,30 @@ export function fakeDb(
     async isCompanyAdmin(u, c) {
       return admins.has(`${u}|${c}`);
     },
-    async hasCurrentPaddleEntitlement(companyId) {
-      return paddleCurrent.has(companyId);
+    async hasCurrentPaddleEntitlement(companyId, env) {
+      if (paddleCurrent.has(companyId)) return true;
+      for (const row of paddleSubs.values()) {
+        if (
+          row.company_id === companyId &&
+          row.environment === env &&
+          rowIsCurrentPaddle(row as unknown as EntitlementRow)
+        ) {
+          return true;
+        }
+      }
+      return false;
+    },
+    async hasCurrentAppleEntitlement(companyId, env) {
+      for (const row of appleSubs.values()) {
+        if (
+          row.company_id === companyId &&
+          row.environment === env &&
+          rowIsCurrentApple({ ...(row as unknown as EntitlementRow), provider: "apple" })
+        ) {
+          return true;
+        }
+      }
+      return false;
     },
     async getPaddleSub(id, env) {
       const r = paddleSubs.get(`${id}|${env}`);

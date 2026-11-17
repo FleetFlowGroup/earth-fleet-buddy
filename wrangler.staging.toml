@@ -1,0 +1,17 @@
+# Staging worker only. Do not add a route for fleetflow.group.
+# Do not put secrets in this file. Set them with `npx wrangler secret put --config wrangler.staging.toml`.
+# Production deploys must not use this config.
+name = "fleetflow-staging"
+main = ".output/server/index.mjs"
+compatibility_date = "2026-11-17"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+no_bundle = true
+
+[assets]
+binding = "ASSETS"
+directory = ".output/public"
+
+[[rules]]
+type = "ESModule"
+globs = ["**/*.mjs", "**/*.js"]

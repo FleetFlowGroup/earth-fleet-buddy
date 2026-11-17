@@ -4,6 +4,13 @@
  * 4 (dedupe + out-of-order guard + upsert on updated), 5 (cancel keeps period end),
  * 6 (transactions / failed payments / adjustments → payments ledger).
  * Works before migration 0009 too (legacy mode: no dedupe/ledger), so web billing never breaks.
+ *
+ * Conflict with Apple: a subscription.created that arrives while a current Apple
+ * entitlement exists is still stored (the Paddle row is not dropped) but the event
+ * is needs_review and logged. It is not a silent second grant. Renewals, cancels,
+ * transactions and legacy mode (no Apple rows) are unchanged. company_billing_state
+ * can still see the stored Paddle row until a person voids it; checkout and plan
+ * change refuse a new Paddle purchase while Apple is current.
  */
 import { isStale, UUID_RE, type BillingDb, type BillingEnv, type EventOutcome } from "./types";
 
@@ -130,6 +137,20 @@ async function handleSubscription(
     },
     v9,
   );
+
+  // Only a brand-new Paddle subscription while Apple is already current. Legacy
+  // (v9 false) skips this: there are no Apple rows to conflict with.
+  if (
+    v9 &&
+    !existing &&
+    ev.eventType === "subscription.created" &&
+    (await db.hasCurrentAppleEntitlement(companyId, env))
+  ) {
+    const conflict =
+      "apple entitlement active; paddle subscription.created recorded for review, not a second silent entitlement";
+    console.warn("[paddle webhook]", ev.eventId, companyId, conflict);
+    return { outcome: "needs_review", note: note ? `${note}; ${conflict}` : conflict, companyId };
+  }
   return { outcome: "processed", note, companyId };
 }
 

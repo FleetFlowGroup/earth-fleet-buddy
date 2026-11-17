@@ -20,6 +20,19 @@ import { MISSION_HOSTS } from "@/lib/platform/host";
 import { getNativeShell } from "@/lib/native-shell.functions";
 import { browserLooksLikeNativeShell } from "@/lib/native";
 
+const PRODUCTION_SUPABASE_ORIGIN = "https://czsvzcysnppmzlyfzrhv.supabase.co";
+
+/** Staging builds set VITE_SUPABASE_URL. Production stays the default when it is unset. */
+function supabaseOrigin(): string {
+  const configured = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  if (!configured) return PRODUCTION_SUPABASE_ORIGIN;
+  try {
+    return new URL(configured).origin;
+  } catch {
+    return PRODUCTION_SUPABASE_ORIGIN;
+  }
+}
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -139,8 +152,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient; nati
       { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
-      { rel: "preconnect", href: "https://czsvzcysnppmzlyfzrhv.supabase.co", crossOrigin: "anonymous" },
-      { rel: "dns-prefetch", href: "https://czsvzcysnppmzlyfzrhv.supabase.co" },
+      { rel: "preconnect", href: supabaseOrigin(), crossOrigin: "anonymous" },
+      { rel: "dns-prefetch", href: supabaseOrigin() },
     ],
     scripts: [
       {

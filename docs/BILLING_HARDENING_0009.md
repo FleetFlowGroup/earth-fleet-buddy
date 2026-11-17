@@ -34,12 +34,24 @@ so Apple rows grant access identically. `company_billing_provider()` tells the U
 plan change/portal for Apple-billed companies (link to App Store instead); the iOS app shows Apple plans,
 and for Paddle-billed companies just says it is managed on the web (no link, per App Store rules).
 
+## Paddle `subscription.created` while Apple is current
+
+Documented above the webhook processor: the row is stored, the event is `needs_review`, and it is logged. Other Paddle events are unchanged. Legacy mode (0009 not applied) does not run this check.
+
+## Paddle checkout while Apple is current
+
+`guardPaddleCheckout` and `changeSubscriptionPlan` call `assertCompanyMayUsePaddle` with the signed-in admin's client. A current Apple row throws `This company is subscribed through the App Store` before Paddle.js opens and before a plan change is sent. A failed subscription read also refuses checkout. Rows with no `provider` column (legacy, 0009 not applied) are not Apple, so existing Paddle customers are unchanged. The customer portal is unchanged.
+
+If Paddle still delivers `subscription.created` while Apple is current, the webhook stores the Paddle row and marks the billing event `needs_review` (and logs it). It does not return a normal `processed` grant. `subscription.updated`, cancel, transactions and legacy mode are unchanged. `company_billing_state` can still see that stored row until someone voids it.
+
 ## Single source of truth (no double charge)
 Access stays on `company_billing_state` (one row). Purchase rights are separate: a **current Paddle
 entitlement blocks a second Apple entitlement** for that company and environment. The iOS billing screen
 does not offer IAP in that case (already subscribed / manage on the web, no Paddle name, no web price, no
 checkout link). `purchaseIapPlan` throws if the displayed provider is paddle. The RevenueCat webhook
 refuses to insert or extend an Apple row while Paddle is current (`needs_review`, no second active row)
-and still applies Apple expiration/cancellation so an existing Apple row can end. Paddle webhook, checkout,
-plan change and portal code paths are not modified. If both rows already exist, Paddle wins for the
+and still applies Apple expiration/cancellation so an existing Apple row can end. Paddle renewals, cancels,
+transactions and the customer portal are unchanged. Checkout and plan change refuse when Apple is current,
+and a new `subscription.created` during an Apple entitlement is stored and flagged `needs_review`.
+If both rows already exist, Paddle wins for the
 "may this company buy in the app?" decision. Complimentary access is not a Paddle subscription.
