@@ -148,6 +148,7 @@
 @layer base {
   * { border-color: var(--color-border); }
   html, body { background-color: var(--color-background); color: var(--color-foreground); }
+  html.ff-native body { padding-bottom: env(safe-area-inset-bottom); }
   body { font-feature-settings: "ss01", "cv11"; }
   ::selection { background: oklch(0.62 0.14 210 / 0.30); color: var(--color-foreground); }
   .dark ::selection { background: oklch(0.82 0.14 210 / 0.35); }

@@ -12,6 +12,9 @@ import {
   restoreIapPurchases,
   type IapProduct,
 } from "@/lib/iap";
+import { IAP_SUBSCRIPTION_DISCLOSURE, NATIVE_ALREADY_SUBSCRIBED, NATIVE_MANAGE_ON_WEB } from "@/lib/ios-store-copy";
+import { openExternalUrl } from "@/lib/native";
+import { Link } from "@tanstack/react-router";
 
 /** iOS app only. Apple rules: no links to web checkout here. */
 export function IapBillingPanel({
@@ -35,7 +38,8 @@ export function IapBillingPanel({
   if (provider === "paddle") {
     return (
       <div className="surface-card p-6 text-sm text-muted-foreground">
-        Your subscription is billed through your FleetFlow web account. Manage it from a web browser.
+        <p className="font-medium text-foreground">{NATIVE_ALREADY_SUBSCRIBED}</p>
+        <p className="mt-2">{NATIVE_MANAGE_ON_WEB}</p>
       </div>
     );
   }
@@ -55,7 +59,7 @@ export function IapBillingPanel({
   async function buy(planId: string) {
     setBusy(planId);
     try {
-      if (await purchaseIapPlan(companyId, planId)) {
+      if (await purchaseIapPlan(companyId, planId, provider)) {
         toast.success(`Subscribed to ${PLAN_LABEL[planId]}`);
         await refresh();
       }
@@ -82,7 +86,7 @@ export function IapBillingPanel({
   return (
     <div className="surface-card p-6">
       <div className="text-sm font-semibold">{provider === "apple" ? "Change plan" : "Choose a plan"}</div>
-      <p className="mt-1 text-xs text-muted-foreground">Billed monthly through your Apple ID. Cancel anytime in Settings.</p>
+      <p className="mt-1 text-xs text-muted-foreground">{IAP_SUBSCRIPTION_DISCLOSURE}</p>
       {products === null ? (
         <Loader2 className="mt-4 size-4 animate-spin" />
       ) : products.length === 0 ? (
@@ -112,11 +116,15 @@ export function IapBillingPanel({
           {busy === "restore" ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}Restore purchases
         </Button>
         {provider === "apple" && (
-          <Button variant="ghost" size="sm" onClick={() => window.open(APPLE_MANAGE_SUBSCRIPTIONS_URL, "_blank")}>
+          <Button variant="ghost" size="sm" onClick={() => void openExternalUrl(APPLE_MANAGE_SUBSCRIPTIONS_URL)}>
             Manage subscription
           </Button>
         )}
       </div>
+      <p className="mt-4 text-xs text-muted-foreground">
+        By subscribing you agree to the <Link to="/terms" className="underline">Terms</Link> and{" "}
+        <Link to="/privacy" className="underline">Privacy Notice</Link>.
+      </p>
     </div>
   );
 }

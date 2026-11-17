@@ -15,9 +15,12 @@
   },
   "dependencies": {
     "@capacitor/app": "^8",
+    "@capacitor/browser": "^8",
     "@capacitor/camera": "^8",
     "@capacitor/core": "^8",
+    "@capacitor/haptics": "^8",
     "@capacitor/ios": "^8",
+    "@capacitor/network": "^8",
     "@capacitor/push-notifications": "^8",
     "@capacitor/splash-screen": "^8",
     "@capacitor/status-bar": "^8",

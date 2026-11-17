@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useNativeShell } from "@/lib/use-native-shell";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/terms")({
 });
 
 function Terms() {
+  const nativeShell = useNativeShell();
   return (
     <main className="mx-auto max-w-3xl px-6 py-12 prose prose-invert">
       <p className="text-sm text-muted-foreground">
@@ -64,15 +66,23 @@ function Terms() {
       </p>
 
       <h2>7. Payment and subscriptions</h2>
-      <p>
-        Our order process is conducted by our online reseller Paddle.com. <strong>Paddle.com is the Merchant of
-        Record for all our orders.</strong> Paddle provides all customer service inquiries and handles returns.
-        For payment, billing, tax, cancellation and refund terms, see Paddle's{" "}
-        <a href="https://www.paddle.com/legal/checkout-buyer-terms" target="_blank" rel="noreferrer">
-          Buyer Terms
-        </a>{" "}
-        and our <Link to="/refund">Refund Policy</Link>.
-      </p>
+      {nativeShell ? (
+        <p>
+          Subscriptions bought in the FleetFlow iOS app are billed by Apple to your Apple ID. They renew until
+          you cancel in Settings → Apple ID → Subscriptions. Deleting your FleetFlow account does not cancel an
+          Apple subscription. See our <Link to="/refund">Refund Policy</Link>.
+        </p>
+      ) : (
+        <p>
+          Our order process is conducted by our online reseller Paddle.com. <strong>Paddle.com is the Merchant of
+          Record for all our orders.</strong> Paddle provides all customer service inquiries and handles returns.
+          For payment, billing, tax, cancellation and refund terms, see Paddle's{" "}
+          <a href="https://www.paddle.com/legal/checkout-buyer-terms" target="_blank" rel="noreferrer">
+            Buyer Terms
+          </a>{" "}
+          and our <Link to="/refund">Refund Policy</Link>.
+        </p>
+      )}
 
       <h2>8. Suspension and termination</h2>
       <p>

@@ -14,6 +14,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { CheckCircle2, Truck, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useNativeShell } from '@/lib/use-native-shell'
 
 export const Route = createFileRoute('/contact')({
   head: () => ({
@@ -109,6 +110,7 @@ const initial: FormState = {
 }
 
 function ContactPage() {
+  const nativeShell = useNativeShell()
   const [form, setForm] = useState<FormState>(initial)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -170,7 +172,7 @@ function ContactPage() {
           </Link>
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground sm:flex">
             <Link to="/" className="hover:text-foreground">Home</Link>
-            <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
+            {!nativeShell && <Link to="/pricing" className="hover:text-foreground">Pricing</Link>}
             <Link to="/contact" className="text-foreground">Contact</Link>
           </nav>
           <Button asChild size="sm" variant="outline">
@@ -192,7 +194,7 @@ function ContactPage() {
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               <Button asChild variant="outline"><Link to="/">Back to home</Link></Button>
-              <Button asChild><Link to="/pricing">View pricing</Link></Button>
+              {!nativeShell && <Button asChild><Link to="/pricing">View pricing</Link></Button>}
             </div>
           </div>
         ) : (
@@ -200,7 +202,9 @@ function ContactPage() {
             <div className="mb-8 text-center">
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Talk to FleetFlow</h1>
               <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-                Book a demo, ask about pricing or tell us what you need. We typically respond within one business day.
+                {nativeShell
+                  ? 'Book a demo or tell us what you need. We typically respond within one business day.'
+                  : 'Book a demo, ask about pricing or tell us what you need. We typically respond within one business day.'}
               </p>
             </div>
 
@@ -310,7 +314,7 @@ function ContactPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 text-xs text-muted-foreground sm:flex-row sm:px-6">
           <span>© {new Date().getFullYear()} FleetFlow</span>
           <div className="flex flex-wrap items-center gap-4">
-            <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
+            {!nativeShell && <Link to="/pricing" className="hover:text-foreground">Pricing</Link>}
             <Link to="/contact" className="hover:text-foreground">Contact</Link>
             <Link to="/terms" className="hover:text-foreground">Terms</Link>
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>

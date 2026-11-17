@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Loader2, Camera, MessageSquare } from "lucide-react";
+import { ArrowLeft, Loader2, MessageSquare } from "lucide-react";
+import { NativePhotoInput } from "@/components/native-photo-input";
 import { toast } from "sonner";
 import { uploadPhoto, compressImage } from "@/lib/photo-upload";
 import { SignaturePad, type SignaturePadHandle } from "@/components/signature-pad";
@@ -285,11 +286,11 @@ function PrestartScreen() {
 
           <div className="surface-card p-4 space-y-2">
             <Label>Photos (optional)</Label>
-            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-3 text-sm">
-              <Camera className="size-4" />
-              <span>{photos.length ? `${photos.length} selected` : "Take or choose photos"}</span>
-              <input type="file" hidden multiple accept="image/*" capture="environment" onChange={(e) => setPhotos(Array.from(e.target.files ?? []))} />
-            </label>
+            <NativePhotoInput
+              multiple
+              label={photos.length ? `${photos.length} selected` : "Take or choose photos"}
+              onFiles={(files, source) => setPhotos((prev) => (source === "native" ? [...prev, ...files] : files))}
+            />
             {anyFail && photos.length > 0 && (
               <p className="text-[11px] text-muted-foreground">Photos will also be attached to the auto-generated defect report.</p>
             )}

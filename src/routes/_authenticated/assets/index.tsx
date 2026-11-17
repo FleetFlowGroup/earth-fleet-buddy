@@ -1,4 +1,5 @@
 import { canRunAdminQueries } from "@/lib/operator-access";
+import { useNativeShell } from "@/lib/use-native-shell";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -283,6 +284,7 @@ function AddAssetDialog({
 }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const nativeShell = useNativeShell();
   const { data: billing } = useBillingState(companyId);
   const { data: assetCount = 0 } = useAssetCount(companyId, role);
 
@@ -376,6 +378,11 @@ function AddAssetDialog({
   }
 
   async function upgradeAndAdd() {
+    if (nativeShell) {
+      setQuotaBlocked(false);
+      navigate({ to: "/billing" });
+      return;
+    }
     const target = nextPlan();
     if (!target) {
       toast.message("You need an Enterprise plan", { description: "Contact sales for 100+ assets." });
@@ -434,7 +441,12 @@ function AddAssetDialog({
             plan.
           </p>
           {target ? (
-            noSub ? (
+            nativeShell ? (
+              <p>
+                You've reached the asset limit on <strong>{PLAN_LABEL[billing?.product_id ?? ""] || "your plan"}</strong>.
+                Manage the subscription from Billing. Prices are shown by the App Store there.
+              </p>
+            ) : noSub ? (
               <p>
                 Start a subscription on <strong>{PLAN_LABEL[target]}</strong> (${PLAN_PRICE_AUD[target]} AUD/mo,
                 first month $9.99 AUD, {isUnlimitedAssetLimit(PLAN_LIMIT[target]) ? "unlimited assets" : `up to ${PLAN_LIMIT[target]} assets`}) to add this asset.
@@ -460,7 +472,7 @@ function AddAssetDialog({
           {target ? (
             <Button onClick={upgradeAndAdd} disabled={upgrading}>
               {upgrading && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {noSub ? "Choose a plan" : `Upgrade to ${PLAN_LABEL[target]} & add asset`}
+              {nativeShell ? "Open billing" : noSub ? "Choose a plan" : `Upgrade to ${PLAN_LABEL[target]} & add asset`}
             </Button>
           ) : (
             <Button asChild>

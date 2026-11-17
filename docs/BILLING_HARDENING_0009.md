@@ -33,3 +33,13 @@ an *additional* provider used only inside the iOS app. Source audit: BILLING_AUD
 so Apple rows grant access identically. `company_billing_provider()` tells the UI who bills: web hides Paddle
 plan change/portal for Apple-billed companies (link to App Store instead); the iOS app shows Apple plans,
 and for Paddle-billed companies just says it is managed on the web (no link, per App Store rules).
+
+## Single source of truth (no double charge)
+Access stays on `company_billing_state` (one row). Purchase rights are separate: a **current Paddle
+entitlement blocks a second Apple entitlement** for that company and environment. The iOS billing screen
+does not offer IAP in that case (already subscribed / manage on the web, no Paddle name, no web price, no
+checkout link). `purchaseIapPlan` throws if the displayed provider is paddle. The RevenueCat webhook
+refuses to insert or extend an Apple row while Paddle is current (`needs_review`, no second active row)
+and still applies Apple expiration/cancellation so an existing Apple row can end. Paddle webhook, checkout,
+plan change and portal code paths are not modified. If both rows already exist, Paddle wins for the
+"may this company buy in the app?" decision. Complimentary access is not a Paddle subscription.

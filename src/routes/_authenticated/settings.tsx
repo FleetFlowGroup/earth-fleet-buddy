@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { PrestartTemplateEditor } from "@/components/prestart-template-editor";
+import { DeleteAccountCard } from "@/components/delete-account-card";
 import { canRunAdminQueries } from "@/lib/operator-access";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -88,6 +89,8 @@ function SettingsPage() {
             expires. Reminders go to all members of your company.
           </p>
         </div>
+
+        <DeleteAccountCard />
 
         {me?.company && canRunAdminQueries(me.role) && (
           <div className="surface-card p-6">

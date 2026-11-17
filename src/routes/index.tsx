@@ -24,6 +24,8 @@ import {
   Loader2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useNativeShell } from "@/lib/use-native-shell";
+import { landingFaqsForShell } from "@/lib/ios-store-copy";
 
 
 const FAQS: { question: string; answer: string }[] = [
@@ -37,7 +39,8 @@ const FAQS: { question: string; answer: string }[] = [
 ];
 
 export const Route = createFileRoute("/")({
-  head: () => ({
+  loader: ({ context }) => ({ nativeShell: context.nativeShell }),
+  head: ({ loaderData }) => ({
     meta: [
       { title: "FleetFlow — Digital Pre-Starts & Fleet Management" },
       {
@@ -58,7 +61,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: FAQS.map((f) => ({
+          mainEntity: landingFaqsForShell(!!loaderData?.nativeShell, FAQS).map((f) => ({
             "@type": "Question",
             name: f.question,
             acceptedAnswer: { "@type": "Answer", text: f.answer },
@@ -72,7 +75,9 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const navigate = useNavigate();
+  const nativeShell = useNativeShell();
   const [menuOpen, setMenuOpen] = useState(false);
+  const faqs = landingFaqsForShell(nativeShell, FAQS);
   const [demoLoading, setDemoLoading] = useState(false);
   const startDemo = useServerFn(startDemoSession);
 
@@ -125,7 +130,7 @@ function Landing() {
           <nav className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">
             <a href="#features" className="hover:text-foreground">Features</a>
             <a href="#how" className="hover:text-foreground">How it works</a>
-            <a href="#pricing" className="hover:text-foreground">Pricing</a>
+            {!nativeShell && <a href="#pricing" className="hover:text-foreground">Pricing</a>}
             <Link to="/contact" className="hover:text-foreground">Contact</Link>
           </nav>
           <div className="hidden items-center gap-2 md:flex">
@@ -145,7 +150,7 @@ function Landing() {
             <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3 text-sm">
               <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">Features</a>
               <a href="#how" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">How it works</a>
-              <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">Pricing</a>
+              {!nativeShell && <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">Pricing</a>}
               <Link to="/contact" onClick={() => setMenuOpen(false)} className="rounded-md px-2 py-2 hover:bg-muted">Contact</Link>
               <div className="mt-2">
                 <Button asChild variant="outline" size="sm" className="w-full"><Link to="/auth">Sign in</Link></Button>
@@ -329,7 +334,8 @@ function Landing() {
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* Pricing — hidden in the iOS shell so web prices are not offered there. */}
+      {!nativeShell && (
       <section id="pricing" className="border-t border-border/60 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="text-center">
@@ -404,6 +410,7 @@ function Landing() {
           </div>
         </div>
       </section>
+      )}
 
 
       {/* FAQ */}
@@ -411,7 +418,7 @@ function Landing() {
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-4xl">Common questions</h2>
           <div className="mt-10 space-y-4">
-            {FAQS.map((f) => (
+            {faqs.map((f) => (
               <FaqItem key={f.question} question={f.question} answer={f.answer} />
             ))}
           </div>
@@ -426,7 +433,7 @@ function Landing() {
             <span>© {new Date().getFullYear()} FleetFlow</span>
           </div>
           <div className="flex flex-wrap items-center gap-4">
-            <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
+            {!nativeShell && <Link to="/pricing" className="hover:text-foreground">Pricing</Link>}
             <Link to="/contact" className="hover:text-foreground">Contact</Link>
             <Link to="/terms" className="hover:text-foreground">Terms</Link>
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>

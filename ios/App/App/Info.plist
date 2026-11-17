@@ -72,6 +72,8 @@
 	<string>FleetFlow lets you attach existing photos to prestarts and defect reports.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>FleetFlow can save photos you take to your library.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>FleetFlow uses your location to record where a prestart or defect was logged.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 </dict>

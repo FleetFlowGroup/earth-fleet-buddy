@@ -6,7 +6,8 @@ import { useOperatorContext, useOperatorSelf, useOperatorTargetAsset, realOperat
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Camera } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { NativePhotoInput } from "@/components/native-photo-input";
 import { toast } from "sonner";
 import { uploadPhoto, compressImage } from "@/lib/photo-upload";
 import { Shell, Empty } from "./operator.prestart";
@@ -92,11 +93,11 @@ function DefectScreen() {
           </div>
           <div className="surface-card p-4 space-y-2">
             <Label>Photos</Label>
-            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-3 text-sm">
-              <Camera className="size-4" />
-              <span>{photos.length ? `${photos.length} selected` : "Take or choose photos"}</span>
-              <input type="file" hidden multiple accept="image/*" capture="environment" onChange={(e) => setPhotos(Array.from(e.target.files ?? []))} />
-            </label>
+            <NativePhotoInput
+              multiple
+              label={photos.length ? `${photos.length} selected` : "Take or choose photos"}
+              onFiles={(files, source) => setPhotos((prev) => (source === "native" ? [...prev, ...files] : files))}
+            />
           </div>
           <div className="sticky bottom-4">
             <Button className="h-12 w-full text-base" variant="destructive" disabled={saving} onClick={submit}>

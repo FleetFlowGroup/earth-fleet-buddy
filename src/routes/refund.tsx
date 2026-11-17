@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useNativeShell } from "@/lib/use-native-shell";
 
 export const Route = createFileRoute("/refund")({
   head: () => ({
@@ -17,6 +18,29 @@ export const Route = createFileRoute("/refund")({
 });
 
 function Refund() {
+  const nativeShell = useNativeShell();
+  if (nativeShell) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-12 prose prose-invert">
+        <p className="text-sm text-muted-foreground">
+          <Link to="/" className="underline">← Back to FleetFlow</Link>
+        </p>
+        <h1>Refund Policy</h1>
+        <p><em>Last updated: 17 November 2026</em></p>
+        <h2>Subscriptions bought in the app</h2>
+        <p>
+          Subscriptions purchased in the FleetFlow iOS app are billed by Apple. Request a refund from Apple
+          via Settings → Apple ID → Subscriptions, or through Apple's report a problem page. Deleting your
+          FleetFlow account does not cancel the subscription or refund a payment.
+        </p>
+        <h2>Cancellation</h2>
+        <p>
+          Cancel anytime in Settings → Apple ID → Subscriptions. Access continues until the end of the period
+          you already paid for.
+        </p>
+      </main>
+    );
+  }
   return (
     <main className="mx-auto max-w-3xl px-6 py-12 prose prose-invert">
       <p className="text-sm text-muted-foreground">

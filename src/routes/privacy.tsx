@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useNativeShell } from "@/lib/use-native-shell";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/privacy")({
 });
 
 function Privacy() {
+  const nativeShell = useNativeShell();
   return (
     <main className="mx-auto max-w-3xl px-6 py-12 prose prose-invert">
       <p className="text-sm text-muted-foreground">
@@ -51,7 +53,11 @@ function Privacy() {
       <h2>4. Who we share it with</h2>
       <ul>
         <li><strong>Service providers / subprocessors</strong>: hosting, database, email delivery, analytics.</li>
-        <li><strong>Merchant of Record</strong>: Paddle.com Market Limited handles payments, subscription management, tax compliance and invoicing on our behalf.</li>
+        {nativeShell ? (
+          <li><strong>Payments</strong>: subscriptions bought in the iOS app are processed by Apple. We do not receive your full payment card number.</li>
+        ) : (
+          <li><strong>Merchant of Record</strong>: Paddle.com Market Limited handles payments, subscription management, tax compliance and invoicing on our behalf.</li>
+        )}
         <li><strong>Professional advisers</strong> (legal, accounting) when needed.</li>
         <li><strong>Authorities</strong> where required by law.</li>
       </ul>
@@ -59,7 +65,8 @@ function Privacy() {
       <h2>5. Retention</h2>
       <p>
         We keep account and fleet data while your account is active and for a reasonable period afterwards for
-        legal, accounting and dispute-resolution purposes. You can request deletion at any time.
+        legal, accounting and dispute-resolution purposes. You can delete your account from Settings or your
+        operator profile, or email us to ask.
       </p>
 
       <h2>6. International transfers</h2>

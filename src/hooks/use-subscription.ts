@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { canRunAdminQueries } from "@/lib/operator-access";
+import { resolveDisplayedBillingProvider, type EntitlementRow } from "@/lib/billing/entitlement";
 
 export type BillingState = {
   state: "trial" | "subscribed" | "canceled_grace" | "none";
@@ -124,20 +125,26 @@ export function useAssetCount(companyId?: string | null, role?: string | null) {
 
 /**
  * Which provider bills the company's current subscription ("paddle" | "apple" | null).
- * Needs migration 0009; before that (RPC missing) it returns null and the UI behaves as today.
+ * A current Paddle row always wins, including before migration 0009 (the provider RPC
+ * is missing then). Web UI still shows Paddle controls unless the result is "apple".
  */
 export function useBillingProvider(companyId?: string | null) {
   return useQuery({
     queryKey: ["billing-provider", companyId, getPaddleEnvironment()],
     enabled: !!companyId,
     queryFn: async (): Promise<"paddle" | "apple" | null> => {
+      const env = getPaddleEnvironment();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any).rpc("company_billing_provider", {
-        _company_id: companyId,
-        _env: getPaddleEnvironment(),
-      });
-      if (error) return null;
-      return data === "apple" || data === "paddle" ? data : null;
+      const [{ data, error }, rows] = await Promise.all([
+        (supabase as any).rpc("company_billing_provider", { _company_id: companyId, _env: env }),
+        supabase
+          .from("subscriptions")
+          .select("status,current_period_end,paddle_subscription_id")
+          .eq("company_id", companyId!)
+          .eq("environment", env),
+      ]);
+      const rpc = !error && (data === "apple" || data === "paddle") ? data : null;
+      return resolveDisplayedBillingProvider(rpc, (rows.data ?? []) as EntitlementRow[]);
     },
   });
 }

@@ -5,9 +5,18 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { PLAN_INTRO_DISCOUNT_ID } from "@/hooks/use-subscription";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { useNativeShell } from "@/lib/use-native-shell";
 
 export const Route = createFileRoute("/pricing")({
-  head: () => ({
+  loader: ({ context }) => ({ nativeShell: context.nativeShell }),
+  head: ({ loaderData }) => loaderData?.nativeShell
+    ? {
+        meta: [
+          { title: "Subscriptions — FleetFlow" },
+          { name: "description", content: "Subscriptions in the FleetFlow iOS app are purchased with your Apple ID from Billing." },
+        ],
+      }
+    : ({
     meta: [
       { title: "Pricing — FleetFlow" },
       {
@@ -57,9 +66,42 @@ const CORE_FEATURES = [
 ];
 
 function PricingPage() {
+  const nativeShell = useNativeShell();
   const { data: me } = useCurrentUser();
   const navigate = useNavigate();
   const { openCheckout, loading } = usePaddleCheckout();
+
+  if (nativeShell) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <header className="border-b border-border/60">
+          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+            <Link to="/" className="text-base font-semibold">FleetFlow</Link>
+            <Button asChild variant="ghost" size="sm">
+              <Link to={me ? "/dashboard" : "/auth"}>{me ? "Open app" : "Sign in"}</Link>
+            </Button>
+          </div>
+        </header>
+        <main className="mx-auto max-w-xl px-4 py-16 text-center">
+          <h1 className="text-3xl font-semibold tracking-tight">Subscriptions</h1>
+          <p className="mt-3 text-muted-foreground">
+            Subscriptions in the FleetFlow iOS app are purchased with your Apple ID from Billing after you sign in.
+            Restore a previous purchase from that screen.
+          </p>
+          <Button asChild className="mt-6">
+            <Link to={me?.role === "admin" || me?.role === "super_admin" ? "/billing" : me ? "/dashboard" : "/auth"}>
+              {me?.role === "admin" || me?.role === "super_admin" ? "Open billing" : me ? "Open app" : "Sign in"}
+            </Link>
+          </Button>
+          <p className="mt-8 text-xs text-muted-foreground">
+            <Link to="/terms" className="underline">Terms</Link>
+            {" · "}
+            <Link to="/privacy" className="underline">Privacy Notice</Link>
+          </p>
+        </main>
+      </div>
+    );
+  }
 
   async function subscribe(productId: string, priceId: string) {
     if (!me?.userId || !me?.company?.id) {

@@ -8,7 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import fleetflowLogo from "@/assets/fleetflow-logo.png.asset.json";
@@ -17,6 +17,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PresenceTracker } from "@/components/presence-tracker";
 import { MISSION_HOSTS } from "@/lib/platform/host";
+import { getNativeShell } from "@/lib/native-shell.functions";
+import { browserLooksLikeNativeShell } from "@/lib/native";
 
 function NotFoundComponent() {
   return (
@@ -98,11 +100,14 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient; nativeShell: boolean }>()({
+  beforeLoad: async () => ({
+    nativeShell: typeof window === "undefined" ? await getNativeShell() : browserLooksLikeNativeShell(),
+  }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "google-site-verification", content: "7B-VRneHZDDPWU1YXzNHoJ_kSqlh15HSLNMhBBlDx14" },
       { title: "FleetFlow — Digital Pre-Starts & Fleet Management for Earthmoving Businesses" },
       {
@@ -179,6 +184,32 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function NativeOfflineBanner() {
+  const [offline, setOffline] = useState(false);
+  useEffect(() => {
+    let active = true;
+    let remove = () => {};
+    void import("@/lib/native").then(async (native) => {
+      if (!native.isNativeApp()) return;
+      const { Network } = await import("@capacitor/network");
+      const status = await Network.getStatus();
+      if (active) setOffline(!status.connected);
+      const handle = await Network.addListener("networkStatusChange", (next) => setOffline(!next.connected));
+      remove = () => { void handle.remove(); };
+    }).catch(() => {});
+    return () => {
+      active = false;
+      remove();
+    };
+  }, []);
+  if (!offline) return null;
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-[60] bg-[#0b1220] px-4 py-3 text-center text-sm text-white" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
+      You're offline. FleetFlow needs a connection to sync prestarts and defects.
+    </div>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
@@ -204,10 +235,18 @@ function RootComponent() {
     router.navigate({ to: "/mission-control", replace: true });
   }, [router]);
 
-  // iOS app shell only (no-op on the website): status bar + splash.
+  // iOS app shell only (no-op on the website): status bar, splash, external links, pull to refresh.
   useEffect(() => {
-    void import("@/lib/native").then((m) => m.initNativeChrome()).catch(() => {});
-  }, []);
+    let stop = () => {};
+    void import("@/lib/native").then((m) => {
+      void m.initNativeChrome();
+      stop = m.bindPullToRefresh(() => {
+        void queryClient.invalidateQueries();
+        void router.invalidate();
+      });
+    }).catch(() => {});
+    return () => stop();
+  }, [queryClient, router]);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -221,6 +260,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <PresenceTracker />
+      <NativeOfflineBanner />
       <Outlet />
       <Toaster richColors position="top-right" />
     </QueryClientProvider>

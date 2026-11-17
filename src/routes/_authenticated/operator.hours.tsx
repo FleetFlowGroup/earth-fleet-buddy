@@ -6,7 +6,8 @@ import { useOperatorContext, useOperatorSelf, useOperatorTargetAsset, meterValue
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Camera, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
+import { NativePhotoInput } from "@/components/native-photo-input";
 import { toast } from "sonner";
 import { uploadPhoto, compressImage } from "@/lib/photo-upload";
 import { Shell, Empty } from "./operator.prestart";
@@ -94,11 +95,10 @@ function HoursScreen() {
           </div>
           <div className="surface-card p-4 space-y-2">
             <Label>Photo of meter (optional)</Label>
-            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-3 text-sm">
-              <Camera className="size-4" />
-              <span>{photo ? photo.name : "Take meter photo"}</span>
-              <input type="file" hidden accept="image/*" capture="environment" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
-            </label>
+            <NativePhotoInput
+              label={photo ? photo.name : "Take meter photo"}
+              onFiles={(files) => setPhoto(files[0] ?? null)}
+            />
           </div>
           <div className="sticky bottom-4">
             <Button className="h-12 w-full text-base" disabled={saving} onClick={submit}>

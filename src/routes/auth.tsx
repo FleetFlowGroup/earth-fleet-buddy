@@ -14,10 +14,11 @@ import { isOperatorPreviewOn } from "@/lib/operator-preview";
 import { useQueryClient } from "@tanstack/react-query";
 import { currentUserQueryOptions } from "@/hooks/use-current-user";
 import { operatorPostLoginDestination } from "@/lib/operator-access";
+import { useNativeShell } from "@/lib/use-native-shell";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
-  oauth: z.enum(["google"]).optional(),
+  oauth: z.enum(["google", "apple"]).optional(),
   redirect: z.string().optional(),
   invite: z.string().optional(),
   email: z.string().optional(),
@@ -43,6 +44,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
+  const nativeShell = useNativeShell();
   const search = useSearch({ from: "/auth" });
   const { mode, oauth, redirect, invite, email: prefillEmail } = search;
   // If we arrived from an invite link, after sign-in/up land on the join page to accept.
@@ -88,7 +90,7 @@ function AuthPage() {
   }, [invite]);
 
   useEffect(() => {
-    if (oauth !== "google") return;
+    if (oauth !== "google" && oauth !== "apple") return;
 
     let active = true;
     const finishGoogleSignIn = async () => {
@@ -97,7 +99,7 @@ function AuthPage() {
 
       if (!active) return;
       if (error || !data.user) {
-        toast.error("Google sign-in did not finish. Please try again.");
+        toast.error(oauth === "apple" ? "Apple sign-in did not finish. Please try again." : "Google sign-in did not finish. Please try again.");
         setLoading(false);
         navigate({ to: "/auth", replace: true });
         return;
@@ -141,6 +143,19 @@ function AuthPage() {
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
     } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleApple() {
+    setLoading(true);
+    const redirectTo = `${window.location.origin}/auth?oauth=apple${invite ? `&invite=${encodeURIComponent(invite)}` : ""}`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "apple",
+      options: { redirectTo, scopes: "name email" },
+    });
+    if (error) {
+      toast.error(error.message ?? "Apple sign-in failed");
       setLoading(false);
     }
   }
@@ -220,14 +235,32 @@ function AuthPage() {
               </p>
 
 
+              {nativeShell && (
+                <Button
+                  type="button"
+                  onClick={handleApple}
+                  disabled={loading}
+                  className="mt-6 w-full bg-black text-white hover:bg-black/90"
+                >
+                  {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  Sign in with Apple
+                </Button>
+              )}
+
               <Button
+                type="button"
                 onClick={handleGoogle}
                 disabled={loading}
                 variant="outline"
-                className="mt-6 w-full"
+                className={nativeShell ? "mt-3 w-full" : "mt-6 w-full"}
               >
                 <GoogleIcon /> Continue with Google
               </Button>
+              {nativeShell && (
+                <p className="mt-2 text-center text-xs text-muted-foreground">
+                  Google may be unavailable inside the app. Use Sign in with Apple or your email.
+                </p>
+              )}
 
               <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
                 <div className="h-px flex-1 bg-border" />

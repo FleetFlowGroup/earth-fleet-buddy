@@ -7,6 +7,7 @@
  */
 import { isNativeApp, nativePlatform } from "./native";
 import { PLAN_ORDER } from "@/hooks/use-subscription";
+import { assertIapPurchaseAllowed, type BillingProviderName } from "@/lib/billing/entitlement";
 
 export const APPLE_MANAGE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
 
@@ -32,7 +33,10 @@ export async function ensureIapCompany(companyId: string): Promise<void> {
   const Purchases = await rc();
   const { isConfigured } = await Purchases.isConfigured();
   if (!isConfigured) {
-    await Purchases.configure({ apiKey: import.meta.env.VITE_REVENUECAT_IOS_KEY as string, appUserID: companyId });
+    await Purchases.configure({
+      apiKey: import.meta.env.VITE_REVENUECAT_IOS_KEY as string,
+      appUserID: companyId,
+    });
   } else if (configuredFor !== companyId) {
     await Purchases.logIn({ appUserID: companyId });
   }
@@ -57,7 +61,12 @@ export async function loadIapProducts(companyId: string): Promise<IapProduct[]> 
 }
 
 /** Returns false if the user cancelled the Apple sheet. Entitlement arrives via webhook. */
-export async function purchaseIapPlan(companyId: string, planId: string): Promise<boolean> {
+export async function purchaseIapPlan(
+  companyId: string,
+  planId: string,
+  provider: BillingProviderName | null = null,
+): Promise<boolean> {
+  assertIapPurchaseAllowed(provider);
   await ensureIapCompany(companyId);
   const Purchases = await rc();
   const id = appleProductIdForPlan(planId);

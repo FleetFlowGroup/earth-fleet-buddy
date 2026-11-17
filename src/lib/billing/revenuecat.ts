@@ -5,11 +5,41 @@
  */
 import { isStale, UUID_RE, type BillingDb, type BillingEnv, type EventOutcome } from "./types";
 
+/**
+ * Single source of truth: a current Paddle entitlement blocks a new or extended
+ * Apple entitlement for the same company and environment. Access still comes
+ * from company_billing_state. Cancellation and expiration of an Apple row that
+ * already exists are still applied so access can end. Paddle webhooks are not
+ * changed. This does not delete an Apple row that was stored earlier.
+ */
+const APPLE_EXTENDING_EVENTS = new Set([
+  "INITIAL_PURCHASE",
+  "RENEWAL",
+  "UNCANCELLATION",
+  "PRODUCT_CHANGE",
+  "SUBSCRIPTION_EXTENDED",
+  "REFUND_REVERSED",
+  "TEMPORARY_ENTITLEMENT_GRANT",
+  "BILLING_ISSUE",
+]);
+
+export function refuseAppleBecausePaddle(
+  paddleCurrent: boolean,
+  hasExistingApple: boolean,
+  eventType: string,
+): boolean {
+  if (!paddleCurrent) return false;
+  if (!hasExistingApple) return eventType !== "TEST";
+  return APPLE_EXTENDING_EVENTS.has(eventType);
+}
+
 export const APPLE_PRODUCT_PREFIX = "group.fleetflow.app.";
 const PLANS = ["starter", "growth", "pro", "business"] as const;
 
 /** group.fleetflow.app.growth.monthly → { product_id: growth_plan, price_id: growth_monthly } */
-export function mapAppleProduct(storeProductId: string | null | undefined): { product_id: string; price_id: string } | null {
+export function mapAppleProduct(
+  storeProductId: string | null | undefined,
+): { product_id: string; price_id: string } | null {
   if (!storeProductId) return null;
   const m = /^group\.fleetflow\.app\.([a-z]+)\.monthly$/.exec(storeProductId);
   if (!m || !(PLANS as readonly string[]).includes(m[1])) return null;
@@ -27,7 +57,10 @@ export function safeEqual(a: string, b: string): boolean {
 }
 
 /** RevenueCat sends the configured Authorization header value verbatim. Accepts "Bearer x" or "x". */
-export function isAuthorizedRevenueCat(header: string | null, expected: string | undefined): boolean {
+export function isAuthorizedRevenueCat(
+  header: string | null,
+  expected: string | undefined,
+): boolean {
   if (!expected || !header) return false;
   return safeEqual(header, expected) || safeEqual(header, `Bearer ${expected}`);
 }
@@ -51,24 +84,41 @@ export interface RevenueCatEvent {
   cancel_reason?: string | null;
 }
 
-const ms = (v: number | null | undefined) => (typeof v === "number" ? new Date(v).toISOString() : null);
+const ms = (v: number | null | undefined) =>
+  typeof v === "number" ? new Date(v).toISOString() : null;
 
-export async function processRevenueCatEvent(db: BillingDb, ev: RevenueCatEvent): Promise<{ outcome: EventOutcome; note?: string }> {
+export async function processRevenueCatEvent(
+  db: BillingDb,
+  ev: RevenueCatEvent,
+): Promise<{ outcome: EventOutcome; note?: string }> {
   if (!(await db.hasV9())) {
     // Apple rows need migration 0009 (provider columns). Throw so RevenueCat retries after it is applied.
     throw new Error("billing migration 0009 not applied");
   }
   const env: BillingEnv = ev.environment === "PRODUCTION" ? "live" : "sandbox";
   const occurredAt = ms(ev.event_timestamp_ms) ?? new Date().toISOString();
-  const appUser = [ev.app_user_id, ev.original_app_user_id].find((u) => typeof u === "string" && UUID_RE.test(u)) ?? null;
+  const appUser =
+    [ev.app_user_id, ev.original_app_user_id].find(
+      (u) => typeof u === "string" && UUID_RE.test(u),
+    ) ?? null;
   const eventKey = `apple:${ev.id}`;
 
   const claim = await db.claimEvent({
-    id: eventKey, provider: "apple", event_type: ev.type, occurred_at: occurredAt, environment: env, company_id: appUser, payload: ev,
+    id: eventKey,
+    provider: "apple",
+    event_type: ev.type,
+    occurred_at: occurredAt,
+    environment: env,
+    company_id: appUser,
+    payload: ev,
   });
   if (claim === "duplicate") return { outcome: "duplicate" };
 
-  const finish = async (outcome: Exclude<EventOutcome, "duplicate">, note?: string, companyId?: string | null) => {
+  const finish = async (
+    outcome: Exclude<EventOutcome, "duplicate">,
+    note?: string,
+    companyId?: string | null,
+  ) => {
     await db.finishEvent(eventKey, outcome, note ?? null, companyId ?? null);
     if (outcome === "needs_review") console.warn("[revenuecat webhook] needs review", ev.id, note);
     return { outcome, note };
@@ -76,19 +126,37 @@ export async function processRevenueCatEvent(db: BillingDb, ev: RevenueCatEvent)
 
   if (ev.type === "TEST") return finish("ignored", "test event");
   if (ev.store && ev.store !== "APP_STORE") return finish("ignored", `store ${ev.store}`);
-  if (ev.type === "TRANSFER" || ev.type === "SUBSCRIPTION_PAUSED") return finish("needs_review", ev.type);
+  if (ev.type === "TRANSFER" || ev.type === "SUBSCRIPTION_PAUSED")
+    return finish("needs_review", ev.type);
   const otid = ev.original_transaction_id;
   if (!otid) return finish("needs_review", "missing original_transaction_id");
 
   const existing = await db.getAppleSub(otid, env);
-  if (existing && isStale(occurredAt, existing.last_event_at)) return finish("ignored", "stale event", existing.company_id);
+  if (existing && isStale(occurredAt, existing.last_event_at))
+    return finish("ignored", "stale event", existing.company_id);
   const companyId = existing?.company_id ?? appUser;
   if (!companyId) return finish("needs_review", "app_user_id is not a company id");
-  if (!existing && !(await db.companyExists(companyId))) return finish("needs_review", "company does not exist");
+  if (!existing && !(await db.companyExists(companyId)))
+    return finish("needs_review", "company does not exist");
 
-  const productRaw = ev.type === "PRODUCT_CHANGE" ? ev.new_product_id ?? ev.product_id : ev.product_id;
+  const productRaw =
+    ev.type === "PRODUCT_CHANGE" ? (ev.new_product_id ?? ev.product_id) : ev.product_id;
   const plan = mapAppleProduct(productRaw);
   if (!plan) return finish("needs_review", `unknown product ${productRaw}`, companyId);
+
+  if (
+    refuseAppleBecausePaddle(
+      await db.hasCurrentPaddleEntitlement(companyId, env),
+      !!existing,
+      ev.type,
+    )
+  ) {
+    return finish(
+      "needs_review",
+      "paddle entitlement active; apple entitlement not recorded",
+      companyId,
+    );
+  }
 
   const expires = ms(ev.expiration_at_ms);
   let status = "active";
@@ -136,10 +204,13 @@ export async function processRevenueCatEvent(db: BillingDb, ev: RevenueCatEvent)
   });
 
   const kind =
-    ev.type === "INITIAL_PURCHASE" || ev.type === "RENEWAL" ? "payment"
-    : ev.type === "BILLING_ISSUE" ? "payment_failed"
-    : ev.type === "CANCELLATION" && ev.cancel_reason === "CUSTOMER_SUPPORT" ? "refund"
-    : null;
+    ev.type === "INITIAL_PURCHASE" || ev.type === "RENEWAL"
+      ? "payment"
+      : ev.type === "BILLING_ISSUE"
+        ? "payment_failed"
+        : ev.type === "CANCELLATION" && ev.cancel_reason === "CUSTOMER_SUPPORT"
+          ? "refund"
+          : null;
   if (kind) {
     await db.upsertPayment({
       provider: "apple",
@@ -148,7 +219,10 @@ export async function processRevenueCatEvent(db: BillingDb, ev: RevenueCatEvent)
       status: kind === "payment" ? "completed" : kind,
       company_id: companyId,
       subscription_external_id: otid,
-      amount_minor: typeof ev.price_in_purchased_currency === "number" ? Math.round(ev.price_in_purchased_currency * 100) : null,
+      amount_minor:
+        typeof ev.price_in_purchased_currency === "number"
+          ? Math.round(ev.price_in_purchased_currency * 100)
+          : null,
       currency: ev.currency ?? null,
       environment: env,
       occurred_at: occurredAt,

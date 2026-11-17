@@ -54,13 +54,28 @@ export interface BillingDb {
   hasV9(): Promise<boolean>;
   /** "new" when this event should be processed (first time or previous attempt failed). */
   claimEvent(ev: BillingEventRecord): Promise<"new" | "duplicate">;
-  finishEvent(id: string, status: Exclude<EventOutcome, "duplicate">, note?: string | null, companyId?: string | null): Promise<void>;
+  finishEvent(
+    id: string,
+    status: Exclude<EventOutcome, "duplicate">,
+    note?: string | null,
+    companyId?: string | null,
+  ): Promise<void>;
   companyExists(companyId: string): Promise<boolean>;
   isCompanyAdmin(userId: string, companyId: string): Promise<boolean>;
+  /**
+   * True when this company already has a current Paddle entitlement in `env`.
+   * Apple must not create a second one. Paddle webhook code does not call this.
+   */
+  hasCurrentPaddleEntitlement(companyId: string, env: BillingEnv): Promise<boolean>;
   getPaddleSub(paddleSubscriptionId: string, env: BillingEnv): Promise<ExistingSub | null>;
-  upsertPaddleSub(row: SubscriptionWrite & { paddle_subscription_id: string; paddle_customer_id: string }, v9: boolean): Promise<void>;
+  upsertPaddleSub(
+    row: SubscriptionWrite & { paddle_subscription_id: string; paddle_customer_id: string },
+    v9: boolean,
+  ): Promise<void>;
   getAppleSub(originalTransactionId: string, env: BillingEnv): Promise<ExistingSub | null>;
-  upsertAppleSub(row: SubscriptionWrite & { store_original_transaction_id: string; store_product_id: string }): Promise<void>;
+  upsertAppleSub(
+    row: SubscriptionWrite & { store_original_transaction_id: string; store_product_id: string },
+  ): Promise<void>;
   upsertPayment(row: PaymentWrite): Promise<void>;
 }
 

@@ -5,6 +5,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { useOperatorSelf } from "@/lib/operator-data";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
+import { DeleteAccountCard } from "@/components/delete-account-card";
 import { Shell, Empty } from "./operator.prestart";
 
 export const Route = createFileRoute("/_authenticated/operator/profile")({
@@ -49,6 +50,7 @@ function ProfileScreen() {
           <Button variant="outline" className="w-full" onClick={signOut}>
             <LogOut className="mr-2 size-4" /> Sign out
           </Button>
+          <DeleteAccountCard />
         </>
       )}
     </Shell>

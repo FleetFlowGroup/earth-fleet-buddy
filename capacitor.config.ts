@@ -14,8 +14,15 @@ const config: CapacitorConfig = {
   webDir: "ios-shell",
   server: {
     url: process.env.CAP_SERVER_URL ?? "https://fleetflow.group",
-    // Keep navigation inside the app for our own origins only.
-    allowNavigation: ["fleetflow.group", "*.fleetflow.group"],
+    // FleetFlow stays in the WebView. Apple and this project's Supabase host are
+    // included so Sign in with Apple can redirect back without leaving the app.
+    allowNavigation: [
+      "fleetflow.group",
+      "*.fleetflow.group",
+      "appleid.apple.com",
+      "idmsa.apple.com",
+      "czsvzcysnppmzlyfzrhv.supabase.co",
+    ],
     errorPath: "offline.html",
   },
   ios: {
@@ -24,7 +31,12 @@ const config: CapacitorConfig = {
     appendUserAgent: "FleetFlowiOS/1",
   },
   plugins: {
-    SplashScreen: { launchShowDuration: 1200, launchAutoHide: true, backgroundColor: "#0b1220", showSpinner: false },
+    SplashScreen: {
+      launchShowDuration: 1200,
+      launchAutoHide: true,
+      backgroundColor: "#0b1220",
+      showSpinner: false,
+    },
     StatusBar: { overlaysWebView: false, style: "DARK", backgroundColor: "#0b1220" },
     PushNotifications: { presentationOptions: ["badge", "sound", "alert"] },
   },
